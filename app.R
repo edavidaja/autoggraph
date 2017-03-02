@@ -419,6 +419,7 @@ server <- function(input, output, session) {
           }
         }
         print (p + gao_theme)
+        print ('successful print')
       }
     }
   })
