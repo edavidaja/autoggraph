@@ -274,7 +274,7 @@ shinyServer(function(input, output, session) {
       # custom theme ... I think there's a different v of ggplot2 on VDI; plot.caption isn't implemented yet so
       # I commented out for now
       gao_theme <-  theme(
-        #plot.caption = element_text(hjust = 0, size = 6),
+        plot.caption = element_text(hjust = 0, size = 6),
         legend.position = "bottom",
         legend.justification = "left",
         legend.title = element_text(size = 7),
@@ -284,7 +284,7 @@ shinyServer(function(input, output, session) {
         panel.grid = element_blank()
         )
 
-      # gao custome pallette
+      # gao custome palette
       gao_pallete <- c('#99CCFF', '#3F9993', '#044F91', '#330033')
 
       if (input$x != '')
