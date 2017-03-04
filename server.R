@@ -7,82 +7,11 @@ library(dplyr)
 library(stringr)
 library(maps)
 
-viz_vocab <- read_csv("data/visual_vocabulary.csv")
+# viz_vocab <- read_csv("data/visual_vocabulary.csv")
 
-# user interface --------------------------------------------------------------
-ui <- fluidPage(
-  # Application title
-  titlePanel("tablol", windowTitle = "uninvent the wheel."),
-  includeCSS("www/simplex.css"),
-  fluidRow(  
-    # Sidebar with a slider input for number of bins
-    column(3,
-     wellPanel(
-     # cascading menu system prompts relationship and then chart
-       uiOutput("select_relationship"),
-       textOutput("desc_text"),
-       br(),
-       uiOutput("select_chart"),
-
-       fileInput("infile", label = "upload your data (in csv format)"),
-
-       uiOutput("x_variable"),
-       uiOutput("y_variable"),
-       uiOutput("z_variable")
-       )
-     ),
-    column(6, 
-           # Show a plot of the generated distribution
-     mainPanel(
-       plotOutput("graph")
-       )
-     ),
-    column(3, 
-     wellPanel(
-      h4("plot labels"),
-      textInput("x_label", "x-axis label"),
-      textInput("y_label", "y-axis label"),
-      textInput("source_label", "source label",
-        placeholder = "Source: GAO analysis...")
-      ) 
-     )
-    )
-  )
 # server ----------------------------------------------------------------------
-server <- function(input, output, session) {
-  # observe({
-  #   if (input$chart_type != 'scatterplot')
-  #   {
-  #     updateCheckboxGroupInput(session=session, inputId="smoother", choices=c('loess', 'linear', 'quadratic'), label = NULL, selected=NULL)
-  #   }
-  # })
-  # Relationship selectors ------------------------------------------------------
-  output$select_relationship <- renderUI({
-      choices = unique(viz_vocab$relationship_type))
-  })
-  
-  output$desc_text <- renderText({
-    req(input$relationship_type)
-    
-    relationship_description <- viz_vocab %>%
-    filter(relationship_type == input$relationship_type) %>%
-    select(description) %>% unique(.) %>% as.character(.)
-    
-    (relationship_description)
-  })
-  
-  output$select_chart <- renderUI({
+shinyServer(function(input, output, session) {
 
-    req(input$relationship_type)
-    
-    available_charts <- viz_vocab %>%
-    filter(relationship_type == input$relationship_type) %>%
-    select(chart_type)
-    
-    selectInput("chart_type", "which chart would you like to use?",
-      choices = available_charts)
-  })
-  
   inserted_scatter <- FALSE
   inserted_error <- FALSE
   id <- ''
@@ -173,7 +102,7 @@ server <- function(input, output, session) {
     values$data <- read.csv(fil$datapath)
 
   })
-  
+
   # Variable selectors ----------------------------------------------------------
   output$x_variable <- renderUI({
 
@@ -186,7 +115,7 @@ server <- function(input, output, session) {
        )
      )
   })
-  
+
   output$y_variable <- renderUI({
 
     selectizeInput("y",
@@ -198,7 +127,7 @@ server <- function(input, output, session) {
        )
      )
   })
-  
+
   output$z_variable <- renderUI({
 
     selectizeInput("z",
@@ -211,7 +140,7 @@ server <- function(input, output, session) {
      )
   })
 
-  
+
   # Graphs ----------------------------------------------------------------
   which_error <- reactive({
 
@@ -219,9 +148,9 @@ server <- function(input, output, session) {
     verbage2 <- paste(input$y, '-', input$limit)
     limits <- aes_string(ymax=verbage1, ymin=verbage2)
     geom_errorbar(limits, position='dodge')
-    
+
   })
-  
+
   which_smoother <- reactive({
 
     if (input$smoother == 'loess')
@@ -233,10 +162,10 @@ server <- function(input, output, session) {
       geom_smooth(method='lm')
     }
 
-    
+
   })
-  
-  
+
+
   which_aes <- reactive({
 
     if (input$x != '' & input$y == '' & input$z == '')
@@ -266,8 +195,8 @@ server <- function(input, output, session) {
       } 
     }
   })
-  
-  
+
+
   # added an extra which_geom function for z vars to override the default color
   # changed the these function from switch to if to handle some extra logic
   which_geom_z <- reactive({
@@ -296,15 +225,15 @@ server <- function(input, output, session) {
     {
       geom_bar(position = "dodge", stat = "identity", fun.y = "mean")
     }
-    
+
     else if (input$chart_type == 'map')
     {
 
       geom_map()
     }
-    
+
   })
-  
+
   # changed from switch to if to handle extra logic
   which_geom <- reactive({
 
@@ -332,12 +261,14 @@ server <- function(input, output, session) {
     {
       geom_bar(position = "dodge", stat = "identity", fill = '#044F91') 
     }
-    
+
   })
-  
-  
-  
+
+
+
   output$graph <- renderPlot({
+
+    req(input$x)
     if (! is.null(graph_data()))
     {
       # custom theme ... I think there's a different v of ggplot2 on VDI; plot.caption isn't implemented yet so
@@ -352,10 +283,10 @@ server <- function(input, output, session) {
         axis.text = element_text(size = 7, face = "bold"),
         panel.grid = element_blank()
         )
-      
+
       # gao custome pallette
       gao_pallete <- c('#99CCFF', '#3F9993', '#044F91', '#330033')
-      
+
       if (input$x != '')
       {
         p <- ggplot(data = graph_data()) + which_aes()
@@ -397,7 +328,4 @@ server <- function(input, output, session) {
       }
     }
   })
-}
-
-# Run the application
-shinyApp(ui = ui, server = server)
+})
