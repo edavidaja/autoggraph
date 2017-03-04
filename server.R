@@ -7,8 +7,6 @@ library(dplyr)
 library(stringr)
 library(maps)
 
-# viz_vocab <- read_csv("data/visual_vocabulary.csv")
-
 # server ----------------------------------------------------------------------
 shinyServer(function(input, output, session) {
 
@@ -88,10 +86,7 @@ shinyServer(function(input, output, session) {
    inserted_error <<- FALSE
 
  }
-
-
-}
-)
+})
 
   # so i can mess with the assignemt
   values <- reactiveValues()
@@ -100,7 +95,6 @@ shinyServer(function(input, output, session) {
     fil <- input$infile
     values <- reactiveValues(data = NULL)
     values$data <- read.csv(fil$datapath)
-
   })
 
   # Variable selectors ----------------------------------------------------------
