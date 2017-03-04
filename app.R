@@ -11,25 +11,6 @@ library(dplyr)
 library(stringr)
 library(maps)
 
-# guess_import <- function(input_filename) {
-#   extension <- str_extract(input_filename, "\\.[A-z]+")
-
-#   if (extension == ".xlsx" | extension == ".xls") {
-#     read_excel(input_filename)
-#   } else if (extension == ".csv") {
-#     read_csv(input_filename)
-#   } else if (extension == ".dta") {
-#     read_dta(input_filename)
-#   } else if (extension == ".sav") {
-#     read_spss(input_filename)
-#   } else if (extension == ".sas") {
-#     read_sas(input_filename)
-#   } else {
-#     return(NULL)
-#   }
-# }
-
-
 viz_vocab <- read_csv("data/visual_vocabulary.csv")
 
 ui <- fluidPage(
@@ -38,7 +19,7 @@ ui <- fluidPage(
   includeCSS("www/simplex.css"),
   fluidRow(  
     # Sidebar with a slider input for number of bins
-    column(4,
+    column(3,
            wellPanel(
              # cascading menu system prompts relationship and then chart
              uiOutput("select_relationship"),
@@ -55,15 +36,16 @@ ui <- fluidPage(
              actionButton("go", "Go!", icon = icon("area-chart"))
            )
     ),
-    column(8, 
+    column(6, 
            # Show a plot of the generated distribution
            mainPanel(
              plotOutput("graph")
            )
     ),
-    column(2, 
-           tags$div(id = 'placeholder') 
-    )),
+    column(3, 
+           wellPanel() 
+    )
+  ),
   
   hr(),
   fluidRow(
