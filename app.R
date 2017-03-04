@@ -9,6 +9,7 @@ library(maps)
 
 viz_vocab <- read_csv("data/visual_vocabulary.csv")
 
+# user interface --------------------------------------------------------------
 ui <- fluidPage(
   # Application title
   titlePanel("tablol", windowTitle = "uninvent the wheel."),
@@ -17,7 +18,7 @@ ui <- fluidPage(
     # Sidebar with a slider input for number of bins
     column(3,
      wellPanel(
-             # cascading menu system prompts relationship and then chart
+     # cascading menu system prompts relationship and then chart
        uiOutput("select_relationship"),
        textOutput("desc_text"),
        br(),
@@ -27,9 +28,7 @@ ui <- fluidPage(
 
        uiOutput("x_variable"),
        uiOutput("y_variable"),
-       uiOutput("z_variable"),
-
-       actionButton("go", "Go!", icon = icon("area-chart"))
+       uiOutput("z_variable")
        )
      ),
     column(6, 
@@ -49,7 +48,7 @@ ui <- fluidPage(
      )
     )
   )
-
+# server ----------------------------------------------------------------------
 server <- function(input, output, session) {
   # observe({
   #   if (input$chart_type != 'scatterplot')
@@ -59,7 +58,6 @@ server <- function(input, output, session) {
   # })
   # Relationship selectors ------------------------------------------------------
   output$select_relationship <- renderUI({
-    selectInput("relationship_type", "what kind of relationship are you depicting?",
       choices = unique(viz_vocab$relationship_type))
   })
   
@@ -98,7 +96,7 @@ server <- function(input, output, session) {
     input$infile
   },
   {
-                   # if they ask for a scatter, added the scatter  
+   # if they ask for a scatter, added the scatter  
    if (input$chart_type == 'scatterplot' & inserted_scatter == FALSE)
    {
                      # have to put some randomness in the id, otherwise shiny doesnt like it
@@ -115,7 +113,7 @@ server <- function(input, output, session) {
      inserted_scatter <<- TRUE
 
    }
-                   # once they switch, clear and remove
+   # once they switch, clear and remove
    else if (inserted_scatter == TRUE & input$chart_type != 'scatterplot')
    {
     updateSelectizeInput(session, inputId = "smoother", "choose smoother", c('', 'loess', 'linear', 'quadratic'),
