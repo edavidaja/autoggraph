@@ -43,16 +43,9 @@ ui <- fluidPage(
       h4("plot labels"),
       textInput("x_label", "x-axis label"),
       textInput("y_label", "y-axis label"),
-      textInput("source_label", "source label", placeholder = "Source: GAO analysis of XXX. | GAO-XX-XXX")
+      textInput("source_label", "source label",
+        placeholder = "Source: GAO analysis...")
       ) 
-     )
-    ),
-  
-  hr(),
-  fluidRow(
-    column(12, 
-     a("Inspired by the FT Visual Vocabulary.",
-       href="https://github.com/ft-interactive/chart-doctor/raw/master/visual-vocabulary/Visual-vocabulary.pdf")
      )
     )
   )
