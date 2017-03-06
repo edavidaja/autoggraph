@@ -42,10 +42,11 @@ shinyUI(
         conditionalPanel("input.chart_type == 'scatterplot'",
           p("smoother?")
           ),
-        ### 
+        ### bar charts --------------------------------------------------------
         conditionalPanel("input.chart_type == 'bar'",
           p("horizontal?")
           ),
+        ### line graphs -------------------------------------------------------
         conditionalPanel("input.chart_type == 'line'",
           p("linetypes?")
           )
