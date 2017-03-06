@@ -40,10 +40,11 @@ shinyUI(
         h4("plot-specific options:"),
         ### scatterplots ------------------------------------------------------
         conditionalPanel("input.chart_type == 'scatterplot'",
-          p("smoother?")
+          p("smoother?", id='placeholder')
           ),
         ### bar charts --------------------------------------------------------
         conditionalPanel("input.chart_type == 'bar'",
+          p("error bars?", id='placeholder'),
           p("horizontal?")
           ),
         ### line graphs -------------------------------------------------------

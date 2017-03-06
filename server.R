@@ -33,7 +33,7 @@ shinyServer(function(input, output, session) {
        ui = tags$div(
          selectizeInput('smoother', "choose smoother", c('', 'loess', 'linear', 'quadratic'),
           options = list(
-            placeholder = 'Please select an option below',
+            placeholder = 'Select',
             onInitialize = I('function() { this.setValue(""); }'))), 
          id = id)
        )
@@ -43,9 +43,9 @@ shinyServer(function(input, output, session) {
    # once they switch, clear and remove
    else if (inserted_scatter == TRUE & input$chart_type != 'scatterplot')
    {
-    updateSelectizeInput(session, inputId = "smoother", "choose smoother", c('', 'loess', 'linear', 'quadratic'),
+    updateSelectizeInput(session, inputId = "smoother", "", c('', 'loess', 'linear', 'quadratic'),
      options = list(
-       placeholder = 'Please select an option below',
+       placeholder = 'Select',
        onInitialize = I('function() { this.setValue(""); }')))
     removeUI(
      selector = paste0('#', id)
@@ -60,10 +60,10 @@ shinyServer(function(input, output, session) {
      selector = '#placeholder',
      ui = tags$div(
        selectizeInput("limit",
-        "limit",
+        "",
         choices = c(names(graph_data()), ''),
         options = list(
-          placeholder = 'Please select an option below',
+          placeholder = 'Select',
           onInitialize = I('function() { this.setValue(""); }')
           )                     
         ),
