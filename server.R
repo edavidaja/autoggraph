@@ -14,6 +14,7 @@ shinyServer(function(input, output, session) {
   inserted_error <- FALSE
   id <- ''
   limit_id <- ''
+  fil  <- ''
 
   ### code to add and remove smoother and error bars. im trying to do think of a way to refactor this code, as its going to get 
   ### more and more complex (i.e., remove CI on the smoother, other things i can't think of right now). would love to hear some
@@ -23,6 +24,37 @@ shinyServer(function(input, output, session) {
     input$infile
   },
   {
+    print(input$infile$name)
+    print(fil)
+    if (fil != '' & input$infile$name != fil)
+   {
+     
+     if (id  != '' | limit_id != '')
+     {
+       remove_id <- ifelse(id != '', id, limit_id)
+       if (id != '')
+       {
+         updateSelectizeInput(session, inputId = "smoother", "", c('', 'loess', 'linear', 'quadratic'),
+                              options = list(
+                                placeholder = 'Select',
+                                onInitialize = I('function() { this.setValue(""); }')))
+
+       }
+       if (limit_id != '')
+       {
+         updateSelectizeInput(session, 'limit', choices = c(names(graph_data()), ''),
+                              options = list(
+                                placeholder = 'Please select an option below',
+                                onInitialize = I('function() { this.setValue(""); }')))
+       }
+       print (remove_id)
+       removeUI(
+         selector = paste0('#', remove_id)
+       )}
+   }
+   fil <<- input$infile$name
+   # if the graph switches .... reset!!
+        
    # if they ask for a scatter, added the scatter  
    if (input$chart_type == 'scatterplot' & inserted_scatter == FALSE)
    {
@@ -51,13 +83,15 @@ shinyServer(function(input, output, session) {
      selector = paste0('#', id)
      )
     inserted_scatter <<- FALSE
-  }
-  else if (input$chart_type == 'bar'  & inserted_error == FALSE)
+   }
+    
+  if (input$chart_type == 'bar'  & inserted_error == FALSE)
   {
                      # do the same for error bars
    limit_id <<- paste0('limit', floor(runif(1, min=0, max=101)))
+   print ('I AM HERE')
    insertUI(
-     selector = '#placeholder',
+     selector = '#placehold',
      ui = tags$div(
        selectizeInput("limit",
         "",
@@ -78,8 +112,7 @@ shinyServer(function(input, output, session) {
    updateSelectizeInput(session, 'limit', choices = c(names(graph_data()), ''), 
     options = list(
       placeholder = 'Please select an option below',
-      onInitialize = I('function() { this.setValue(""); }'),
-      server = server))
+      onInitialize = I('function() { this.setValue(""); }')))
    removeUI(
      selector = paste0('#', limit_id)
      )
@@ -194,7 +227,8 @@ shinyServer(function(input, output, session) {
   # added an extra which_geom function for z vars to override the default color
   # changed the these function from switch to if to handle some extra logic
   which_geom_z <- reactive({
-
+    print (input$chart_type)
+    
     if (input$chart_type == 'histogram')
     {
       if (! is.null(graph_data()))
@@ -210,6 +244,19 @@ shinyServer(function(input, output, session) {
           geom_histogram()
         }
       }
+    }
+    else if (input$chart_type == 'density')
+    {
+      print ('DID I GET HERE')    
+      geom_density()
+    }
+    else if (input$chart_type == 'step')
+    {
+      geom_step()
+    }
+    else if (input$chart_type == 'line')
+    {
+      geom_line()
     }
     else if (input$chart_type == 'scatterplot')
     {
@@ -247,6 +294,20 @@ shinyServer(function(input, output, session) {
         }
       }
     }
+    else if (input$chart_type == 'density')
+    {
+      print ('DID I GET HERE')    
+      geom_density(fill = '#044F91')
+    } 
+    else if (input$chart_type == 'line')
+    {
+      geom_line(color = '#044F91')
+    }
+    else if (input$chart_type == 'step')
+    {
+      geom_step(color = '#044F91')
+    }
+    
     else if (input$chart_type == 'scatterplot')
     {
       geom_point(color = '#044F91')
@@ -292,7 +353,7 @@ shinyServer(function(input, output, session) {
         {
           stop <- nrow(unique(graph_data()[input$z]))
           # gotta set out scatterplot to differentiate between fills and colors
-          if (input$chart_type == 'scatterplot')
+          if (input$chart_type == 'scatterplot' | input$chart_type == 'step' | input$chart_type == 'line')
           {
             p <- p + scale_color_manual(values = gao_pallete[1:stop])        
           }
@@ -316,6 +377,14 @@ shinyServer(function(input, output, session) {
           {
             p <- p + which_error() 
           }
+        }
+        if (input$x_label != '')
+        {
+          p <- p + xlab(input$x_label)
+        }
+        if (input$y_label != '')
+        {
+          p <- p + ylab(input$y_label)
         }
         print (p + gao_theme)
         print ('successful print')

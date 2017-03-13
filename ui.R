@@ -44,7 +44,7 @@ shinyUI(
           ),
         ### bar charts --------------------------------------------------------
         conditionalPanel("input.chart_type == 'bar'",
-          p("error bars?", id='placeholder'),
+          p("error bars?", id='placehold'),
           p("horizontal?")
           ),
         ### line graphs -------------------------------------------------------
