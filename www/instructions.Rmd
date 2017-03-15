@@ -1,0 +1,28 @@
+---
+title: "instructions"
+output: html_document
+---
+
+
+one variable:  
+```{r, echo = FALSE}
+library(ggplot2)
+ggplot(iris, aes(x = Sepal.Length)) + geom_hist()
+```
+
+two variable:
+```{r}
+library(ggplot2)
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + geom_point()
+```
+three variable:
+```{r}
+library(ggplot2)
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width, color = Species)) + geom_point()
+```
+
+four variable:
+```{r}
+library(ggplot2)
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width, color = Species, size = Petal.Width)) + geom_point()
+```

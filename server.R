@@ -167,6 +167,18 @@ shinyServer(function(input, output, session) {
      )
   })
 
+  output$w_variable <- renderUI({
+
+    selectizeInput("w",
+     "add your w variable:",
+     choices = c(names(graph_data()), ''),
+     options = list(
+       placeholder = 'Please select an option below',
+       onInitialize = I('function() { this.setValue(""); }')
+       )
+     )
+  })
+
 
   # Graphs ----------------------------------------------------------------
   which_error <- reactive({
