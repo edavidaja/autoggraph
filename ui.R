@@ -38,6 +38,7 @@ shinyUI(
        ## conditional panels with plot specific options ------------------------
        wellPanel(
         h4("plot-specific options:"),
+        uiOutput("plot_options"),
         ### scatterplots ------------------------------------------------------
         conditionalPanel("input.chart_type == 'scatterplot'",
           p("smoother?", id='placeholder')
