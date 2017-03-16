@@ -216,6 +216,11 @@ shinyServer(function(input, output, session) {
       {
         aes_string(x=input$x, y=input$y, colour=input$z)  
       }
+      # gotta set out scatterplot to differentiate between fills and colors
+      else if (input$chart_type == 'line' | input$chart_type == 'step')
+      {
+        aes_string(x=input$x, y=input$y, colour=input$z, group = input$z)  
+      }
       else
       {
         aes_string(x=input$x, y=input$y, fill=input$z)
