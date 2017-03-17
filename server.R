@@ -16,124 +16,13 @@ shinyServer(function(input, output, session) {
     req(input$chart_type)
 
     switch(input$chart_type,
-      "scatterplot" = list(radioButtons(inputId = "dynamic", "add a smoother:", choices = c("loess", "linear", "quadratic")),
-        selectInput("dynamic2", "rad if this works", choices = c("one", "two", "three"))),
-      "bar" = radioButtons(inputId = "dynamic", "orientation:", choices = c("horizontal", "vertical"))
+      "scatterplot" = radioButtons(inputId = "dynamic", "add a smoother:", choices = c('', "loess", "linear", "quadratic")),
+      "bar" = radioButtons(inputId = "dynamic", "error bars:", choices = c('', names(graph_data()))            
       )
+    )  
 
   })
 
-
-  inserted_scatter <- FALSE
-  inserted_error <- FALSE
-  id <- ''
-  limit_id <- ''
-  fil  <- ''
-
-  ### code to add and remove smoother and error bars. im trying to do think of a way to refactor this code, as its going to get 
-  ### more and more complex (i.e., remove CI on the smoother, other things i can't think of right now). would love to hear some
-  ### other thoughts on how to do this
-  observeEvent({
-    input$chart_type
-    input$infile
-  },
-  {
-    print(input$infile$name)
-    print(fil)
-    if (fil != '' & input$infile$name != fil)
-   {
-     
-     if (id  != '' | limit_id != '')
-     {
-       remove_id <- ifelse(id != '', id, limit_id)
-       if (id != '')
-       {
-         updateSelectizeInput(session, inputId = "smoother", "", c('', 'loess', 'linear', 'quadratic'),
-                              options = list(
-                                placeholder = 'Select',
-                                onInitialize = I('function() { this.setValue(""); }')))
-
-       }
-       if (limit_id != '')
-       {
-         updateSelectizeInput(session, 'limit', choices = c(names(graph_data()), ''),
-                              options = list(
-                                placeholder = 'Please select an option below',
-                                onInitialize = I('function() { this.setValue(""); }')))
-       }
-       print (remove_id)
-       removeUI(
-         selector = paste0('#', remove_id)
-       )}
-   }
-   fil <<- input$infile$name
-   # if the graph switches .... reset!!
-        
-   # if they ask for a scatter, added the scatter  
-   if (input$chart_type == 'scatterplot' & inserted_scatter == FALSE)
-   {
-                     # have to put some randomness in the id, otherwise shiny doesnt like it
-     id <<- paste0('smoother', floor(runif(1, min=0, max=101)))
-     insertUI(
-       selector = '#placeholder',
-       ui = tags$div(
-         selectizeInput('smoother', "choose smoother", c('', 'loess', 'linear', 'quadratic'),
-          options = list(
-            placeholder = 'Select',
-            onInitialize = I('function() { this.setValue(""); }'))), 
-         id = id)
-       )
-     inserted_scatter <<- TRUE
-
-   }
-   # once they switch, clear and remove
-   else if (inserted_scatter == TRUE & input$chart_type != 'scatterplot')
-   {
-    updateSelectizeInput(session, inputId = "smoother", "", c('', 'loess', 'linear', 'quadratic'),
-     options = list(
-       placeholder = 'Select',
-       onInitialize = I('function() { this.setValue(""); }')))
-    removeUI(
-     selector = paste0('#', id)
-     )
-    inserted_scatter <<- FALSE
-   }
-    
-  if (input$chart_type == 'bar'  & inserted_error == FALSE)
-  {
-                     # do the same for error bars
-   limit_id <<- paste0('limit', floor(runif(1, min=0, max=101)))
-   print ('I AM HERE')
-   insertUI(
-     selector = '#placehold',
-     ui = tags$div(
-       selectizeInput("limit",
-        "",
-        choices = c(names(graph_data()), ''),
-        options = list(
-          placeholder = 'Select',
-          onInitialize = I('function() { this.setValue(""); }')
-          )                     
-        ),
-       id = limit_id)
-     )
-
-   inserted_error <<- TRUE
-
- }
- else if (inserted_error == TRUE & input$chart_type != 'bar')
- {
-   updateSelectizeInput(session, 'limit', choices = c(names(graph_data()), ''), 
-    options = list(
-      placeholder = 'Please select an option below',
-      onInitialize = I('function() { this.setValue(""); }')))
-   removeUI(
-     selector = paste0('#', limit_id)
-     )
-   inserted_error <<- FALSE
-
- }
-})
 
   # so i can mess with the assignemt
   values <- reactiveValues()
@@ -185,20 +74,21 @@ shinyServer(function(input, output, session) {
   # Graphs ----------------------------------------------------------------
   which_error <- reactive({
 
-    verbage1 <- paste(input$y, '+', input$limit) 
-    verbage2 <- paste(input$y, '-', input$limit)
+    verbage1 <- paste(input$y, '+', input$dynamic) 
+    verbage2 <- paste(input$y, '-', input$dynamic)
     limits <- aes_string(ymax=verbage1, ymin=verbage2)
+    print ('made it to the error')
     geom_errorbar(limits, position='dodge')
 
   })
 
   which_smoother <- reactive({
 
-    if (input$smoother == 'loess')
+    if (input$dynamic == 'loess')
     {
       geom_smooth(method='loess')
     }
-    else if (input$smoother == 'linear')
+    else if (input$dynamic == 'linear')
     {
       geom_smooth(method='lm')
     }
@@ -382,21 +272,19 @@ shinyServer(function(input, output, session) {
           }
           p <- p + which_geom_z()
         }
-        if (! is.null(input$smoother))
-        {
-          if (input$smoother != '')
-          {
 
-            p <- p + which_smoother()
-          }          
-        }
-        if (! is.null(input$limit))
+          
+        if (input$dynamic == 'linear' | input$dynamic == 'quadratic' | input$dynamic == 'loess')
         {
-          if (input$limit != '')
-          {
-            p <- p + which_error() 
-          }
+          p <- p + which_smoother()
         }
+        print (input$dynamic)
+        print (names(graph_data()))
+        if (input$dynamic %in% names(graph_data()))
+        {
+            p <- p + which_error() 
+        }
+        
         if (input$x_label != '')
         {
           p <- p + xlab(input$x_label)
