@@ -16,9 +16,22 @@ shinyServer(function(input, output, session) {
     req(input$chart_type)
 
     switch(input$chart_type,
-      "scatterplot" = list(radioButtons(inputId = "dynamic", "add a smoother:", choices = c("loess", "linear", "quadratic")),
-        selectInput("dynamic2", "rad if this works", choices = c("one", "two", "three"))),
-      "bar" = radioButtons(inputId = "dynamic", "orientation:", choices = c("horizontal", "vertical"))
+      "scatterplot" = 
+      list(
+        selectInput(inputId = "scatter_smooth", "add a smoother:", 
+          choices = c("smoother" = "", "loess", "linear", "quadratic")
+          ),
+        radioButtons("scatter_smooth_ci", "show confidence interval?", 
+          choices = c("yes", "no")
+          )
+        ),
+      "bar" = 
+      radioButtons(inputId = "bar_orientation", "orientation:", 
+        choices = c("horizontal", "vertical")
+        ),
+      "pie" = 
+      a(p("no. pie charts are the worst."), 
+        href = "http://www.businessinsider.com/pie-charts-are-the-worst-2013-6")
       )
 
   })
@@ -41,99 +54,99 @@ shinyServer(function(input, output, session) {
     print(input$infile$name)
     print(fil)
     if (fil != '' & input$infile$name != fil)
-   {
-     
+    {
+
      if (id  != '' | limit_id != '')
      {
        remove_id <- ifelse(id != '', id, limit_id)
        if (id != '')
        {
          updateSelectizeInput(session, inputId = "smoother", "", c('', 'loess', 'linear', 'quadratic'),
-                              options = list(
-                                placeholder = 'Select',
-                                onInitialize = I('function() { this.setValue(""); }')))
+          options = list(
+            placeholder = 'Select',
+            onInitialize = I('function() { this.setValue(""); }')))
 
        }
        if (limit_id != '')
        {
          updateSelectizeInput(session, 'limit', choices = c(names(graph_data()), ''),
-                              options = list(
-                                placeholder = 'Please select an option below',
-                                onInitialize = I('function() { this.setValue(""); }')))
+          options = list(
+            placeholder = 'Please select an option below',
+            onInitialize = I('function() { this.setValue(""); }')))
        }
        print (remove_id)
        removeUI(
          selector = paste0('#', remove_id)
-       )}
-   }
-   fil <<- input$infile$name
+         )}
+     }
+     fil <<- input$infile$name
    # if the graph switches .... reset!!
-        
+
    # if they ask for a scatter, added the scatter  
-   if (input$chart_type == 'scatterplot' & inserted_scatter == FALSE)
-   {
+     if (input$chart_type == 'scatterplot' & inserted_scatter == FALSE)
+     {
                      # have to put some randomness in the id, otherwise shiny doesnt like it
-     id <<- paste0('smoother', floor(runif(1, min=0, max=101)))
+       id <<- paste0('smoother', floor(runif(1, min=0, max=101)))
+       insertUI(
+         selector = '#placeholder',
+         ui = tags$div(
+           selectizeInput('smoother', "choose smoother", c('', 'loess', 'linear', 'quadratic'),
+            options = list(
+              placeholder = 'Select',
+              onInitialize = I('function() { this.setValue(""); }'))), 
+           id = id)
+         )
+       inserted_scatter <<- TRUE
+
+     }
+   # once they switch, clear and remove
+     else if (inserted_scatter == TRUE & input$chart_type != 'scatterplot')
+     {
+      updateSelectizeInput(session, inputId = "smoother", "", c('', 'loess', 'linear', 'quadratic'),
+       options = list(
+         placeholder = 'Select',
+         onInitialize = I('function() { this.setValue(""); }')))
+      removeUI(
+       selector = paste0('#', id)
+       )
+      inserted_scatter <<- FALSE
+    }
+    
+    if (input$chart_type == 'bar'  & inserted_error == FALSE)
+    {
+                     # do the same for error bars
+     limit_id <<- paste0('limit', floor(runif(1, min=0, max=101)))
+     print ('I AM HERE')
      insertUI(
-       selector = '#placeholder',
+       selector = '#placehold',
        ui = tags$div(
-         selectizeInput('smoother', "choose smoother", c('', 'loess', 'linear', 'quadratic'),
+         selectizeInput("limit",
+          "",
+          choices = c(names(graph_data()), ''),
           options = list(
             placeholder = 'Select',
-            onInitialize = I('function() { this.setValue(""); }'))), 
-         id = id)
+            onInitialize = I('function() { this.setValue(""); }')
+            )                     
+          ),
+         id = limit_id)
        )
-     inserted_scatter <<- TRUE
+
+     inserted_error <<- TRUE
 
    }
-   # once they switch, clear and remove
-   else if (inserted_scatter == TRUE & input$chart_type != 'scatterplot')
+   else if (inserted_error == TRUE & input$chart_type != 'bar')
    {
-    updateSelectizeInput(session, inputId = "smoother", "", c('', 'loess', 'linear', 'quadratic'),
-     options = list(
-       placeholder = 'Select',
-       onInitialize = I('function() { this.setValue(""); }')))
-    removeUI(
-     selector = paste0('#', id)
-     )
-    inserted_scatter <<- FALSE
+     updateSelectizeInput(session, 'limit', choices = c(names(graph_data()), ''), 
+      options = list(
+        placeholder = 'Please select an option below',
+        onInitialize = I('function() { this.setValue(""); }')))
+     removeUI(
+       selector = paste0('#', limit_id)
+       )
+     inserted_error <<- FALSE
+
    }
-    
-  if (input$chart_type == 'bar'  & inserted_error == FALSE)
-  {
-                     # do the same for error bars
-   limit_id <<- paste0('limit', floor(runif(1, min=0, max=101)))
-   print ('I AM HERE')
-   insertUI(
-     selector = '#placehold',
-     ui = tags$div(
-       selectizeInput("limit",
-        "",
-        choices = c(names(graph_data()), ''),
-        options = list(
-          placeholder = 'Select',
-          onInitialize = I('function() { this.setValue(""); }')
-          )                     
-        ),
-       id = limit_id)
-     )
-
-   inserted_error <<- TRUE
-
- }
- else if (inserted_error == TRUE & input$chart_type != 'bar')
- {
-   updateSelectizeInput(session, 'limit', choices = c(names(graph_data()), ''), 
-    options = list(
-      placeholder = 'Please select an option below',
-      onInitialize = I('function() { this.setValue(""); }')))
-   removeUI(
-     selector = paste0('#', limit_id)
-     )
-   inserted_error <<- FALSE
-
- }
-})
+ })
 
   # so i can mess with the assignemt
   values <- reactiveValues()

@@ -16,7 +16,7 @@ shinyUI(
            selectInput("chart_type", "which chart would you like to use?",
             choices = list(
               `select a chart type` = "",
-              `one variable` = c("bar", "histogram", "density"),
+              `one variable` = c("bar", "histogram", "density", "pie"),
               `two variable` = c("line", "step", "scatterplot"),
               `three variable` = c("stacked bar", "scatterplot"),
               `four variable` = c("bubble chart", ""),
@@ -25,7 +25,7 @@ shinyUI(
             ),
 
            fileInput("infile", label = "upload your data (in csv format)"),
-           
+
            uiOutput("x_variable"),
            uiOutput("y_variable"),
            uiOutput("z_variable"),
@@ -45,7 +45,8 @@ shinyUI(
           ),
        ## conditional panels with plot specific options ------------------------
          wellPanel(
-          h4("plot-specific options:")
+          h4("plot-specific options:"),
+          uiOutput("plot_options")
           ),
        ## links to outputs of application -------------------------------------
          wellPanel(
