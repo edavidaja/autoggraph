@@ -25,7 +25,7 @@ shinyUI(
             ),
 
            fileInput("infile", label = "upload your data (in csv format)"),
-
+           
            uiOutput("x_variable"),
            uiOutput("y_variable"),
            uiOutput("z_variable"),

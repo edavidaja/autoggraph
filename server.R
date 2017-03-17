@@ -10,6 +10,20 @@ library(maps)
 # server ----------------------------------------------------------------------
 shinyServer(function(input, output, session) {
 
+  # plot specific options block based on dynamic ui example -------------------
+  # http://shiny.rstudio.com/gallery/dynamic-ui.html
+  output$plot_options <- renderUI({
+    req(input$chart_type)
+
+    switch(input$chart_type,
+      "scatterplot" = list(radioButtons(inputId = "dynamic", "add a smoother:", choices = c("loess", "linear", "quadratic")),
+        selectInput("dynamic2", "rad if this works", choices = c("one", "two", "three"))),
+      "bar" = radioButtons(inputId = "dynamic", "orientation:", choices = c("horizontal", "vertical"))
+      )
+
+  })
+
+
   inserted_scatter <- FALSE
   inserted_error <- FALSE
   id <- ''
