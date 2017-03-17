@@ -367,7 +367,7 @@ shinyServer(function(input, output, session) {
     {
       # custom theme ... I think there's a different v of ggplot2 on VDI; plot.caption isn't implemented yet so
       # I commented out for now
-      gao_theme <-  theme(
+      gao_theme <-  theme_minimal() + theme(
         plot.caption = element_text(hjust = 0, size = 6),
         legend.position = "bottom",
         legend.justification = "left",

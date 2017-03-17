@@ -13,3 +13,5 @@ graphs when you want them, how you want them.
 - notes about what long data look like  
 - example plots  
 - questions? contact info.
+
+## hit 'plots' above to get started
