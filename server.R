@@ -30,6 +30,7 @@ shinyServer(function(input, output, session) {
     fil <- input$infile
     values <- reactiveValues(data = NULL)
     values$data <- read_csv(fil$datapath)
+    # todo(ajae): enable infile to handle either excel or csv input
   })
 
   # Variable selectors ----------------------------------------------------------
