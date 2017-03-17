@@ -154,7 +154,7 @@ shinyServer(function(input, output, session) {
   graph_data <- eventReactive(input$infile, {
     fil <- input$infile
     values <- reactiveValues(data = NULL)
-    values$data <- read.csv(fil$datapath)
+    values$data <- read_csv(fil$datapath)
   })
 
   # Variable selectors ----------------------------------------------------------
@@ -236,28 +236,28 @@ shinyServer(function(input, output, session) {
 
     if (input$x != '' & input$y == '' & input$z == '')
     {
-      aes_string(x=input$x)
+      aes_string(x=as.name(input$x))
     }
     # x and z
     else if (input$x != '' & input$y == '' & input$z != '')
     {
-      aes_string(x=input$x, fill = input$z)
+      aes_string(x=as.name(input$x), fill = as.name(input$z))
     }    
     # x and y
     else if (input$x != '' & input$y != '' & input$z == '')
     {
-      aes_string(x=input$x, y=input$y)
+      aes_string(x=as.name(input$x), y=as.name(input$y))
     }
     else if (input$x != '' & input$y != '' & input$z != '')
     {
       # gotta set out scatterplot to differentiate between fills and colors
       if (input$chart_type == 'scatterplot')
       {
-        aes_string(x=input$x, y=input$y, colour=input$z)  
+        aes_string(x=as.name(input$x), y=as.name(input$y), colour=as.name(input$z))  
       }
       else
       {
-        aes_string(x=input$x, y=input$y, fill=input$z)
+        aes_string(x=as.name(input$x), y=as.name(input$y), fill=as.name(input$z))
       } 
     }
   })
