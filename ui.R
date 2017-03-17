@@ -45,20 +45,7 @@ shinyUI(
           ),
        ## conditional panels with plot specific options ------------------------
          wellPanel(
-          h4("plot-specific options:"),
-        ### scatterplots ------------------------------------------------------
-          conditionalPanel("input.chart_type == 'scatterplot'",
-            p("smoother?", id='placeholder')
-            ),
-        ### bar charts --------------------------------------------------------
-          conditionalPanel("input.chart_type == 'bar'",
-            p("error bars?", id='placehold'),
-            p("horizontal?")
-            ),
-        ### line graphs -------------------------------------------------------
-          conditionalPanel("input.chart_type == 'line'",
-            p("linetypes?")
-            )
+          h4("plot-specific options:")
           ),
        ## links to outputs of application -------------------------------------
          wellPanel(
