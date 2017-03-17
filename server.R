@@ -17,8 +17,8 @@ shinyServer(function(input, output, session) {
 
     switch(input$chart_type,
       "scatterplot" = selectInput(inputId = "dynamic", "add a smoother:", choices = c("smoother" = '', "loess", "linear", "quadratic")),
-      "bar" = radioButtons(inputId = "dynamic", "error bars:", choices = c('', names(graph_data()))            
-        )
+      "bar" = radioButtons(inputId = "dynamic", "error bars:", choices = c('', names(graph_data()))),
+      "pie" = a(p("no. pie charts are the worst."), href = "http://www.businessinsider.com/pie-charts-are-the-worst-2013-6")
       )  
 
   })
