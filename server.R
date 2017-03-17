@@ -16,13 +16,12 @@ shinyServer(function(input, output, session) {
     req(input$chart_type)
 
     switch(input$chart_type,
-      "scatterplot" = radioButtons(inputId = "dynamic", "add a smoother:", choices = c('', "loess", "linear", "quadratic")),
+      "scatterplot" = selectInput(inputId = "dynamic", "add a smoother:", choices = c("smoother" = '', "loess", "linear", "quadratic")),
       "bar" = radioButtons(inputId = "dynamic", "error bars:", choices = c('', names(graph_data()))            
-      )
-    )  
+        )
+      )  
 
   })
-
 
   # so i can mess with the assignemt
   values <- reactiveValues()
@@ -62,6 +61,18 @@ shinyServer(function(input, output, session) {
 
     selectizeInput("z",
      "add your z variable:",
+     choices = c(names(graph_data()), ''),
+     options = list(
+       placeholder = 'Please select an option below',
+       onInitialize = I('function() { this.setValue(""); }')
+       )
+     )
+  })
+
+  output$w_variable <- renderUI({
+
+    selectizeInput("w",
+     "add your w variable:",
      choices = c(names(graph_data()), ''),
      options = list(
        placeholder = 'Please select an option below',
@@ -237,7 +248,7 @@ shinyServer(function(input, output, session) {
     {
       # custom theme ... I think there's a different v of ggplot2 on VDI; plot.caption isn't implemented yet so
       # I commented out for now
-      gao_theme <-  theme(
+      gao_theme <-  theme_minimal() + theme(
         plot.caption = element_text(hjust = 0, size = 6),
         legend.position = "bottom",
         legend.justification = "left",
@@ -273,7 +284,7 @@ shinyServer(function(input, output, session) {
           p <- p + which_geom_z()
         }
 
-          
+
         if (input$dynamic == 'linear' | input$dynamic == 'quadratic' | input$dynamic == 'loess')
         {
           p <- p + which_smoother()
@@ -282,7 +293,7 @@ shinyServer(function(input, output, session) {
         print (names(graph_data()))
         if (input$dynamic %in% names(graph_data()))
         {
-            p <- p + which_error() 
+          p <- p + which_error() 
         }
         
         if (input$x_label != '')

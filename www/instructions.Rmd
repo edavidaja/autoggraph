@@ -1,0 +1,17 @@
+---
+title: "instructions"
+output: html_document
+---
+
+# welcome to tablol
+graphs when you want them, how you want them.
+
+
+## instructions
+
+- this is not a data manipulation tool  
+- notes about what long data look like  
+- example plots  
+- questions? contact info.
+
+## hit 'plots' above to get started
