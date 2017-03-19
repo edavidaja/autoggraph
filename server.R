@@ -16,7 +16,12 @@ shinyServer(function(input, output, session) {
     req(input$chart_type)
 
     switch(input$chart_type,
-      "scatterplot" = selectInput(inputId = "dynamic", "add a smoother:", choices = c("smoother" = '', "loess", "linear", "quadratic")),
+      "scatterplot" = 
+      list(
+        selectInput(inputId = "scatter_option_smooth", "add a smoother:", choices = c("smoother" = '', "loess", "linear")),
+        sliderInput(inputId = "scatter_option_span", "wiggle", min = 0, max = 1, value = .7, step = .1, ticks = FALSE),
+        checkboxInput(inputId = "scatter_option_se", "confidence interval?", value = TRUE)
+        ),
       "bar" = radioButtons(inputId = "dynamic", "error bars:", choices = c('', names(graph_data()))),
       "pie" = a(p("no. pie charts are the worst."), href = "http://www.businessinsider.com/pie-charts-are-the-worst-2013-6")
       )  
@@ -34,52 +39,29 @@ shinyServer(function(input, output, session) {
   })
 
   # Variable selectors ----------------------------------------------------------
-  output$x_variable <- renderUI({
+  output$variable_selector <- renderUI({
 
-    selectizeInput("x",
-     "select your x variable:",
-     choices =  names(graph_data()),
-     options = list(
-       placeholder = 'Please select an option below',
-       onInitialize = I('function() { this.setValue(""); }')
+    list(
+      selectInput("x",
+       "select your x variable:",
+       choices =  c("x variable" = "", names(graph_data()))
+       ),
+
+      selectInput("y",
+       "select your y variable:",
+       choices =  c("y variable" = "", names(graph_data()))
+       ),
+
+      selectInput("z",
+       "add a third variable:",
+       choices =  c("third variable (e.g. color)" = "", names(graph_data()))
+       ),
+
+      selectInput("w",
+       "add a fourth variable:",
+       choices =  c("fourth variable (e.g. point size)" = "", names(graph_data()))
        )
-     )
-  })
-
-  output$y_variable <- renderUI({
-
-    selectizeInput("y",
-     "add your y variable:",
-     choices = c(names(graph_data()), ''),
-     options = list(
-       placeholder = 'Please select an option below',
-       onInitialize = I('function() { this.setValue(""); }')
-       )
-     )
-  })
-
-  output$z_variable <- renderUI({
-
-    selectizeInput("z",
-     "add your z variable:",
-     choices = c(names(graph_data()), ''),
-     options = list(
-       placeholder = 'Please select an option below',
-       onInitialize = I('function() { this.setValue(""); }')
-       )
-     )
-  })
-
-  output$w_variable <- renderUI({
-
-    selectizeInput("w",
-     "add your w variable:",
-     choices = c(names(graph_data()), ''),
-     options = list(
-       placeholder = 'Please select an option below',
-       onInitialize = I('function() { this.setValue(""); }')
-       )
-     )
+      )
   })
 
 
@@ -96,16 +78,10 @@ shinyServer(function(input, output, session) {
 
   which_smoother <- reactive({
 
-    if (input$dynamic == 'loess')
-    {
-      geom_smooth(method='loess')
-    }
-    else if (input$dynamic == 'linear')
-    {
-      geom_smooth(method='lm')
-    }
-
-
+    switch(input$scatter_option_smooth,
+      'loess' = geom_smooth(method = 'loess', span = input$scatter_option_span, se = input$scatter_option_se),
+      'linear' = geom_smooth(method = 'lm')
+      )
   })
 
 
@@ -142,94 +118,132 @@ shinyServer(function(input, output, session) {
   # changed the these function from switch to if to handle some extra logic
   which_geom_z <- reactive({
     print (input$chart_type)
+
+    req(graph_data())
     
-    if (input$chart_type == 'histogram')
-    {
-      if (! is.null(graph_data()))
-      {
-        # if its a factor, just count
-        if (is.factor(unlist(graph_data()[input$x])) | is.character (unlist(graph_data()[input$x])))
-        {
+    switch(input$chart_type,
+      # bracket notation in switch is a bit awkward, but I think it's worth 
+      # the trade in terms of compactness
+      'histogram' = {
+        if (class(graph_data()$input$x) %in% c("character", "factor")) {
           stat_count()
-        }
-        # otherwise do a regular histogram
-        else
-        {
+        } else { 
           geom_histogram()
         }
-      }
-    }
-    else if (input$chart_type == 'density')
-    {
-      print ('DID I GET HERE')    
-      geom_density()
-    }
-    else if (input$chart_type == 'step')
-    {
-      geom_step()
-    }
-    else if (input$chart_type == 'line')
-    {
-      geom_line()
-    }
-    else if (input$chart_type == 'scatterplot')
-    {
-      geom_point()
-    }
-    else if (input$chart_type == 'bar')
-    {
-      geom_bar(position = "dodge", stat = "identity", fun.y = "mean")
-    }
+      },
+      'density' = geom_density(),
+      'step' = geom_step(),
+      'scatterplot' = geom_point(),
+      'bar' = geom_bar(position = 'dodge', stat = "identity", fun.y = "mean")
+      )
 
-    else if (input$chart_type == 'map')
-    {
 
-      geom_map()
-    }
+    # if (input$chart_type == 'histogram')
+    # {
+    #   if (! is.null(graph_data()))
+    #   {
+    #     # if its a factor, just count
+    #     if (is.factor(unlist(graph_data()[input$x])) | is.character (unlist(graph_data()[input$x])))
+    #     {
+    #       stat_count()
+    #     }
+    #     # otherwise do a regular histogram
+    #     else
+    #     {
+    #       geom_histogram()
+    #     }
+    #   }
+    # }
+    # else if (input$chart_type == 'density')
+    # {
+    #   print ('DID I GET HERE')    
+    #   geom_density()
+    # }
+    # else if (input$chart_type == 'step')
+    # {
+    #   geom_step()
+    # }
+    # else if (input$chart_type == 'line')
+    # {
+    #   geom_line()
+    # }
+    # else if (input$chart_type == 'scatterplot')
+    # {
+    #   geom_point()
+    # }
+    # else if (input$chart_type == 'bar')
+    # {
+    #   geom_bar(position = "dodge", stat = "identity", fun.y = "mean")
+    # }
+
+    # else if (input$chart_type == 'map')
+    # {
+
+    #   geom_map()
+    # }
 
   })
 
   # changed from switch to if to handle extra logic
   which_geom <- reactive({
 
-    if (input$chart_type == 'histogram')
-    {
-      if (! is.null(graph_data()))
-      {
-        # if its a factor, just count
-        if (is.factor(unlist(graph_data()[input$x])) | is.character (unlist(graph_data()[input$x])))
-        {
+    print (input$chart_type)
+
+    req(graph_data())
+    
+    switch(input$chart_type,
+      'histogram' = {
+        if (class(graph_data()$input$x) %in% c("character", "factor")) {
           stat_count(color = '#044F91', fill = '#044F91')
-        }
-        # otherwise do a histogram
-        else
-        {
+        } else { 
           geom_histogram(color = '#044F91', fill = '#044F91')
         }
-      }
-    }
-    else if (input$chart_type == 'density')
-    {
-      print ('DID I GET HERE')    
-      geom_density(fill = '#044F91')
-    } 
-    else if (input$chart_type == 'line')
-    {
-      geom_line(color = '#044F91')
-    }
-    else if (input$chart_type == 'step')
-    {
-      geom_step(color = '#044F91')
-    }
+      },
+      'density' = geom_density(fill = '#044F91'),
+      'step' = geom_step(fill = '#044F91'),
+      'scatterplot' = geom_point(fill = '#044F91'),
+      'bar' = geom_bar(position = 'dodge', stat = "identity", fill = '#044F91')
+      )
+
+
+    # if (input$chart_type == 'histogram')
+    # {
+    #   if (! is.null(graph_data()))
+    #   {
+    #     # if its a factor, just count
+    #     if (is.factor(unlist(graph_data()[input$x])) | is.character (unlist(graph_data()[input$x])))
+    #     {
+    #       stat_count(color = '#044F91', fill = '#044F91')
+    #     }
+    #     # otherwise do a histogram
+    #     else
+    #     {
+    #       geom_histogram(color = '#044F91', fill = '#044F91')
+    #     }
+    #   }
+    # }
+    # else if (input$chart_type == 'density')
+    # {
+    #   print ('DID I GET HERE')    
+    #   geom_density(fill = '#044F91')
+    # } 
+    # else if (input$chart_type == 'line')
+    # {
+    #   geom_line(color = '#044F91')
+    # }
+    # else if (input$chart_type == 'step')
+    # {
+    #   geom_step(color = '#044F91')
+    # }
     
-    else if (input$chart_type == 'scatterplot')
-    {
-      geom_point(color = '#044F91')
-    }
-    else if (input$chart_type == 'bar')
-    {
-      geom_bar(position = "dodge", stat = "identity", fill = '#044F91') 
-    }
+    # else if (input$chart_type == 'scatterplot')
+    # {
+    #   geom_point(color = '#044F91')
+    # }
+    # else if (input$chart_type == 'bar')
+    # {
+    #   geom_bar(position = "dodge", stat = "identity", fill = '#044F91') 
+    # }
 
   })
 
@@ -278,17 +292,16 @@ shinyServer(function(input, output, session) {
           p <- p + which_geom_z()
         }
 
-
-        if (input$dynamic == 'linear' | input$dynamic == 'quadratic' | input$dynamic == 'loess')
+        if (input$scatter_option_smooth == 'linear' | input$scatter_option_smooth == 'loess')
         {
           p <- p + which_smoother()
         }
-        print (input$dynamic)
+        # print (input$dynamic)
         print (names(graph_data()))
-        if (input$dynamic %in% names(graph_data()))
-        {
-          p <- p + which_error() 
-        }
+        # if (input$dynamic %in% names(graph_data()))
+        # {
+        #   p <- p + which_error() 
+        # }
         
         if (input$x_label != '')
         {
