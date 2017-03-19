@@ -19,8 +19,7 @@ shinyUI(
               `one variable` = c("bar", "histogram", "density", "pie"),
               `two variable` = c("line", "step", "scatterplot"),
               `three variable` = c("stacked bar", "scatterplot"),
-              `four variable` = c("bubble chart", ""),
-              `map` = c("chloropeth", "")
+              `four variable` = c("bubble chart", "")
               )
             ),
 
