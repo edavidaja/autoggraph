@@ -17,7 +17,7 @@ shinyServer(function(input, output, session) {
 
     switch(input$chart_type,
       "scatterplot" = 
-        list(
+      list(
         selectInput(inputId = "dynamic", "add a smoother:", choices = c("smoother" = '', "loess", "linear")),
         sliderInput(inputId = "smooth_span", "wiggle", min = 0.01, max = 1, value = .75, step = .1)
         ),
@@ -38,36 +38,29 @@ shinyServer(function(input, output, session) {
   })
 
   # Variable selectors ----------------------------------------------------------
-  output$x_variable <- renderUI({
+  output$variable_selector <- renderUI({
 
-    selectInput("x",
-     "select your x variable:",
-     choices =  c("x variable" = "", names(graph_data()))
-     )
-  })
-
-  output$y_variable <- renderUI({
-
-    selectInput("y",
-     "select your y variable:",
-     choices =  c("y variable" = "", names(graph_data()))
-     )
-  })
-
-  output$z_variable <- renderUI({
-
-    selectInput("z",
-     "add a third variable:",
-     choices =  c("third variable (e.g. color)" = "", names(graph_data()))
-     )
-  })
-
-  output$w_variable <- renderUI({
-
-    selectInput("w",
-     "add a fourth variable:",
-     choices =  c("fourth variable (e.g. point size)" = "", names(graph_data()))
-     )
+    list(
+      selectInput("x",
+       "select your x variable:",
+       choices =  c("x variable" = "", names(graph_data()))
+       ),
+      
+      selectInput("y",
+       "select your y variable:",
+       choices =  c("y variable" = "", names(graph_data()))
+       ),
+      
+      selectInput("z",
+       "add a third variable:",
+       choices =  c("third variable (e.g. color)" = "", names(graph_data()))
+       ),
+      
+      selectInput("w",
+       "add a fourth variable:",
+       choices =  c("fourth variable (e.g. point size)" = "", names(graph_data()))
+       )
+      )
   })
 
 

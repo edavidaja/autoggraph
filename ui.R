@@ -26,11 +26,12 @@ shinyUI(
 
            fileInput("infile", label = "upload your data (in csv format)"),
 
-           uiOutput("x_variable"),
-           uiOutput("y_variable"),
-           uiOutput("z_variable"),
-           uiOutput("w_variable")
-           )
+           uiOutput("variable_selector")
+           ),
+         wellPanel(
+          h4("plot-specific options:"),
+          uiOutput("plot_options")
+          )
          ),
         column(6, 
          mainPanel(plotOutput("graph"))
@@ -40,14 +41,15 @@ shinyUI(
           h4("plot labels"),
           textInput("x_label", "x-axis label"),
           textInput("y_label", "y-axis label"),
+          textInput("z_label", "labels for third variable",
+            placeholder = "'one', 'two', 'three'"),
+          textInput("w_label", "labels for fourth variable",
+            placeholder = "'one', 'two', 'three'"),
           textInput("source_label", "source label",
             placeholder = "Source: GAO analysis...")
           ),
        ## conditional panels with plot specific options ------------------------
-         wellPanel(
-          h4("plot-specific options:"),
-          uiOutput("plot_options")
-          ),
+         
        ## links to outputs of application -------------------------------------
          wellPanel(
           h4("export:"),
