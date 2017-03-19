@@ -192,8 +192,6 @@ shinyServer(function(input, output, session) {
     req(graph_data())
     
     switch(input$chart_type,
-      # bracket notation in switch is a bit awkward, but I think it's worth 
-      # the trade in terms of compactness
       'histogram' = {
         if (class(graph_data()$input$x) %in% c("character", "factor")) {
           stat_count(color = '#044F91', fill = '#044F91')
