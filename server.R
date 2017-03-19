@@ -16,7 +16,11 @@ shinyServer(function(input, output, session) {
     req(input$chart_type)
 
     switch(input$chart_type,
-      "scatterplot" = selectInput(inputId = "dynamic", "add a smoother:", choices = c("smoother" = '', "loess", "linear", "quadratic")),
+      "scatterplot" = 
+        list(
+        selectInput(inputId = "dynamic", "add a smoother:", choices = c("smoother" = '', "loess", "linear")),
+        sliderInput(inputId = "smooth_span", "wiggle", min = 0.01, max = 1, value = .75, step = .1)
+        ),
       "bar" = radioButtons(inputId = "dynamic", "error bars:", choices = c('', names(graph_data()))),
       "pie" = a(p("no. pie charts are the worst."), href = "http://www.businessinsider.com/pie-charts-are-the-worst-2013-6")
       )  
@@ -96,16 +100,10 @@ shinyServer(function(input, output, session) {
 
   which_smoother <- reactive({
 
-    if (input$dynamic == 'loess')
-    {
-      geom_smooth(method='loess')
-    }
-    else if (input$dynamic == 'linear')
-    {
-      geom_smooth(method='lm')
-    }
-
-
+    switch(input$dynamic,
+      'loess' = geom_smooth(method = 'loess', span = input$smooth_span),
+      'linear' = geom_smooth(method = 'lm')
+      )
   })
 
 
@@ -279,7 +277,7 @@ shinyServer(function(input, output, session) {
         }
 
 
-        if (input$dynamic == 'linear' | input$dynamic == 'quadratic' | input$dynamic == 'loess')
+        if (input$dynamic == 'linear' | input$dynamic == 'loess')
         {
           p <- p + which_smoother()
         }
