@@ -40,49 +40,33 @@ shinyServer(function(input, output, session) {
   # Variable selectors ----------------------------------------------------------
   output$x_variable <- renderUI({
 
-    selectizeInput("x",
+    selectInput("x",
      "select your x variable:",
-     choices =  names(graph_data()),
-     options = list(
-       placeholder = 'Please select an option below',
-       onInitialize = I('function() { this.setValue(""); }')
-       )
+     choices =  c("x variable" = "", names(graph_data()))
      )
   })
 
   output$y_variable <- renderUI({
 
-    selectizeInput("y",
-     "add your y variable:",
-     choices = c(names(graph_data()), ''),
-     options = list(
-       placeholder = 'Please select an option below',
-       onInitialize = I('function() { this.setValue(""); }')
-       )
+    selectInput("y",
+     "select your y variable:",
+     choices =  c("y variable" = "", names(graph_data()))
      )
   })
 
   output$z_variable <- renderUI({
 
-    selectizeInput("z",
-     "add your z variable:",
-     choices = c(names(graph_data()), ''),
-     options = list(
-       placeholder = 'Please select an option below',
-       onInitialize = I('function() { this.setValue(""); }')
-       )
+    selectInput("z",
+     "add a third variable:",
+     choices =  c("third variable (e.g. color)" = "", names(graph_data()))
      )
   })
 
   output$w_variable <- renderUI({
 
-    selectizeInput("w",
-     "add your w variable:",
-     choices = c(names(graph_data()), ''),
-     options = list(
-       placeholder = 'Please select an option below',
-       onInitialize = I('function() { this.setValue(""); }')
-       )
+    selectInput("w",
+     "add a fourth variable:",
+     choices =  c("fourth variable (e.g. point size)" = "", names(graph_data()))
      )
   })
 
