@@ -18,8 +18,9 @@ shinyServer(function(input, output, session) {
     switch(input$chart_type,
       "scatterplot" = 
       list(
-        selectInput(inputId = "dynamic", "add a smoother:", choices = c("smoother" = '', "loess", "linear")),
-        sliderInput(inputId = "smooth_span", "wiggle", min = 0.01, max = 1, value = .75, step = .1)
+        selectInput(inputId = "scatter_option_smooth", "add a smoother:", choices = c("smoother" = '', "loess", "linear")),
+        sliderInput(inputId = "scatter_option_span", "wiggle", min = 0, max = 1, value = .7, step = .1, ticks = FALSE),
+        checkboxInput(inputId = "scatter_option_se", "confidence interval?", value = TRUE)
         ),
       "bar" = radioButtons(inputId = "dynamic", "error bars:", choices = c('', names(graph_data()))),
       "pie" = a(p("no. pie charts are the worst."), href = "http://www.businessinsider.com/pie-charts-are-the-worst-2013-6")
@@ -45,17 +46,17 @@ shinyServer(function(input, output, session) {
        "select your x variable:",
        choices =  c("x variable" = "", names(graph_data()))
        ),
-      
+
       selectInput("y",
        "select your y variable:",
        choices =  c("y variable" = "", names(graph_data()))
        ),
-      
+
       selectInput("z",
        "add a third variable:",
        choices =  c("third variable (e.g. color)" = "", names(graph_data()))
        ),
-      
+
       selectInput("w",
        "add a fourth variable:",
        choices =  c("fourth variable (e.g. point size)" = "", names(graph_data()))
@@ -77,8 +78,8 @@ shinyServer(function(input, output, session) {
 
   which_smoother <- reactive({
 
-    switch(input$dynamic,
-      'loess' = geom_smooth(method = 'loess', span = input$smooth_span),
+    switch(input$scatter_option_smooth,
+      'loess' = geom_smooth(method = 'loess', span = input$scatter_option_span, se = input$scatter_option_se),
       'linear' = geom_smooth(method = 'lm')
       )
   })
@@ -254,16 +255,16 @@ shinyServer(function(input, output, session) {
         }
 
 
-        if (input$dynamic == 'linear' | input$dynamic == 'loess')
+        if (input$scatter_option_smooth == 'linear' | input$scatter_option_smooth == 'loess')
         {
           p <- p + which_smoother()
         }
-        print (input$dynamic)
+        # print (input$dynamic)
         print (names(graph_data()))
-        if (input$dynamic %in% names(graph_data()))
-        {
-          p <- p + which_error() 
-        }
+        # if (input$dynamic %in% names(graph_data()))
+        # {
+        #   p <- p + which_error() 
+        # }
         
         if (input$x_label != '')
         {

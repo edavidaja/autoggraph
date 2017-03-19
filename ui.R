@@ -38,6 +38,9 @@ shinyUI(
          ),
         column(3, 
          wellPanel(
+          # TODO(): it may make sense to move this to a dynamic UI if we can
+          # get number of variable inputs to depend on option group in chart
+          # selector
           h4("plot labels"),
           textInput("x_label", "x-axis label"),
           textInput("y_label", "y-axis label"),
@@ -47,9 +50,7 @@ shinyUI(
             placeholder = "'one', 'two', 'three'"),
           textInput("source_label", "source label",
             placeholder = "Source: GAO analysis...")
-          ),
-       ## conditional panels with plot specific options ------------------------
-         
+          ),         
        ## links to outputs of application -------------------------------------
          wellPanel(
           h4("export:"),
