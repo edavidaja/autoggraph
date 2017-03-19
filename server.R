@@ -23,14 +23,9 @@ shinyServer(function(input, output, session) {
 
   })
 
-  # so i can mess with the assignemt
-  values <- reactiveValues()
   # Ingest file -----------------------------------------------------------------
   graph_data <- eventReactive(input$infile, {
-    fil <- input$infile
-    values <- reactiveValues(data = NULL)
-    values$data <- read_csv(fil$datapath)
-    # todo(ajae): enable infile to handle either excel or csv input
+    read_csv(input$infile$datapath)
   })
 
   # Variable selectors ----------------------------------------------------------
