@@ -24,7 +24,7 @@ shinyUI(
             ),
 
            fileInput("infile", label = "upload your data (in csv format)"),
-
+           uiOutput("excel_sheet_selector"),
            uiOutput("variable_selector")
            ),
          wellPanel(

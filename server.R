@@ -1,5 +1,6 @@
 library(shiny)
 library(readr)
+library(readxl)
 library(ggplot2)
 
 # server ----------------------------------------------------------------------
@@ -25,12 +26,20 @@ shinyServer(function(input, output, session) {
 
   # Ingest file -----------------------------------------------------------------
   graph_data <- eventReactive(input$infile, {
-     read_csv(input$infile$datapath)
-  })
+
+      output$excel_sheet_selector <- renderUI({
+        selectInput("which_sheet", "select a worksheet:", choices = excel_sheets(input$infile$datapath))
+        })
+
+        eventReactive(input$which_sheet, {
+            read_excel(input$infile$datapath, sheet = input$which_sheet)
+        })
+    }
+)
 
   # Variable selectors ----------------------------------------------------------
   output$variable_selector <- renderUI({
-
+    
     list(
       selectInput("x",
        "select your x variable:",
