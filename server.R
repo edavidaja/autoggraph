@@ -25,21 +25,32 @@ shinyServer(function(input, output, session) {
   })
 
   # Ingest file -----------------------------------------------------------------
-  graph_data <- eventReactive(input$infile, {
+  output$excel_sheet_selector <- renderUI({
 
-      output$excel_sheet_selector <- renderUI({
-        selectInput("which_sheet", "select a worksheet:", choices = excel_sheets(input$infile$datapath))
-        })
+    req(input$infile)
 
-        eventReactive(input$which_sheet, {
-            read_excel(input$infile$datapath, sheet = input$which_sheet)
-        })
-    }
-)
+    ext <- tools::file_ext(input$infile$name)
+    file.rename(input$infile$datapath, paste(input$infile$datapath, ext, sep="."))
+    selectInput("which_sheet", "select a worksheet:", 
+      choices = excel_sheets(paste(input$infile$datapath, ext, sep="."))
+      )
+  })
+
+  graph_data <- reactive({
+
+    req(input$infile)
+
+    ext <- tools::file_ext(input$infile$name)
+    file.rename(input$infile$datapath, paste(input$infile$datapath, ext, sep="."))
+    read_excel(paste(input$infile$datapath, ext, sep="."), sheet = input$which_sheet)
+
+  })
 
   # Variable selectors ----------------------------------------------------------
   output$variable_selector <- renderUI({
-    
+
+    req(graph_data())
+
     list(
       selectInput("x",
        "select your x variable:",
