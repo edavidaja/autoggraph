@@ -6,19 +6,21 @@ library(ggplot2)
 # server ----------------------------------------------------------------------
 shinyServer(function(input, output, session) {
 
+
   # plot specific options block based on dynamic ui example -------------------
   # http://shiny.rstudio.com/gallery/dynamic-ui.html
   output$plot_options <- renderUI({
     req(input$chart_type)
-
+    
+    id <<- paste0(round(runif(1, 1, 100), 0), '_')
     switch(input$chart_type,
       "scatterplot" = 
       list(
-        selectInput(inputId = "scatter_option_smooth", "add a smoother:", choices = c("smoother" = '', "loess", "linear")),
-        sliderInput(inputId = "scatter_option_span", "wiggle", min = 0, max = 1, value = .7, step = .1, ticks = FALSE),
-        checkboxInput(inputId = "scatter_option_se", "confidence interval?", value = TRUE)
+        selectInput(inputId = paste0(id, "scatter_option_smooth"), "add a smoother:", choices = c("smoother" = '', "loess", "linear")),
+        sliderInput(inputId = paste0(id, "scatter_option_span"), "wiggle", min = 0, max = 1, value = .7, step = .1, ticks = FALSE),
+        checkboxInput(inputId = paste0(id, "scatter_option_se"), "confidence interval?", value = TRUE)
         ),
-      "bar" = radioButtons(inputId = "dynamic", "error bars:", choices = c('', names(graph_data()))),
+      "bar" = radioButtons(inputId = paste0(id, "dynamic"), "error bars:", choices = c('', names(graph_data()))),
       "pie" = a(p("no. pie charts are the worst."), href = "http://www.businessinsider.com/pie-charts-are-the-worst-2013-6")
       )  
 
@@ -86,18 +88,17 @@ shinyServer(function(input, output, session) {
   # Graphs ----------------------------------------------------------------
   which_error <- reactive({
 
-    verbage1 <- paste(input$y, '+', input$dynamic) 
-    verbage2 <- paste(input$y, '-', input$dynamic)
+    verbage1 <- paste(input$y, '+', input[[paste0(id, 'dynamic')]]) 
+    verbage2 <- paste(input$y, '-', input[[paste0(id, 'dynamic')]]) 
     limits <- aes_string(ymax=verbage1, ymin=verbage2)
-    print ('made it to the error')
     geom_errorbar(limits, position='dodge')
 
   })
 
   which_smoother <- reactive({
 
-    switch(input$scatter_option_smooth,
-      'loess' = geom_smooth(method = 'loess', span = input$scatter_option_span, se = input$scatter_option_se),
+    switch(input[[paste0(id, 'scatter_option_smooth')]],
+      'loess' = geom_smooth(method = 'loess', span = input[[paste0(id, 'scatter_option_span')]], se = input[[paste0(id, 'scatter_option_se')]]),
       'linear' = geom_smooth(method = 'lm')
       )
   })
@@ -143,7 +144,7 @@ shinyServer(function(input, output, session) {
       # bracket notation in switch is a bit awkward, but I think it's worth 
       # the trade in terms of compactness
       'histogram' = {
-        if (class(graph_data()$input$x) %in% c("character", "factor")) {
+        if (sapply(graph_data()[,input$x], class) %in% c("character", "factor")) {
           stat_count()
         } else { 
           geom_histogram()
@@ -205,13 +206,14 @@ shinyServer(function(input, output, session) {
   # changed from switch to if to handle extra logic
   which_geom <- reactive({
 
-    print (input$chart_type)
-
+    print (sapply(graph_data()[,input$x], class))
+    
     req(graph_data())
     
     switch(input$chart_type,
       'histogram' = {
-        if (class(graph_data()$input$x) %in% c("character", "factor")) {
+        if (sapply(graph_data()[,input$x], class) %in% c("character", "factor")) {
+          print ('ok')
           stat_count(color = '#044F91', fill = '#044F91')
         } else { 
           geom_histogram(color = '#044F91', fill = '#044F91')
@@ -290,11 +292,14 @@ shinyServer(function(input, output, session) {
 
       if (input$x != '')
       {
+        
         p <- ggplot(data = graph_data()) + which_aes()
+        
         if (input$z == '')
         {
           p <- p + which_geom()
         }
+        
         else if (input$z != '')
         {
           stop <- nrow(unique(graph_data()[input$z]))
@@ -310,16 +315,22 @@ shinyServer(function(input, output, session) {
           p <- p + which_geom_z()
         }
 
-        if (input$scatter_option_smooth == 'linear' | input$scatter_option_smooth == 'loess')
+        if (! is.null(input[[paste0(id, 'scatter_option_smooth')]]))
         {
-          p <- p + which_smoother()
+          if (input[[paste0(id, 'scatter_option_smooth')]] == 'linear' | input[[paste0(id, 'scatter_option_smooth')]] == 'loess')
+          {
+            p <- p + which_smoother()
+          }          
         }
-        # print (input$dynamic)
-        print (names(graph_data()))
-        # if (input$dynamic %in% names(graph_data()))
-        # {
-        #   p <- p + which_error() 
-        # }
+        
+        if (! is.null(input[[paste0(id, 'dynamic')]]))
+        {
+          if (input[[paste0(id, 'dynamic')]] != '')
+          {
+            p <- p + which_error()  
+          }
+          
+        }
         
         if (input$x_label != '')
         {
