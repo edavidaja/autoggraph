@@ -30,10 +30,13 @@ shinyServer(function(input, output, session) {
     req(input$infile)
 
     ext <- tools::file_ext(input$infile$name)
+    if (ext %in% c("xls", "xlsx")) {
+      
     file.rename(input$infile$datapath, paste(input$infile$datapath, ext, sep="."))
     selectInput("which_sheet", "select a worksheet:", 
       choices = excel_sheets(paste(input$infile$datapath, ext, sep="."))
       )
+    }
   })
 
   graph_data <- reactive({
@@ -41,8 +44,13 @@ shinyServer(function(input, output, session) {
     req(input$infile)
 
     ext <- tools::file_ext(input$infile$name)
+    if (ext %in% c("xls", "xlsx")) {
+
     file.rename(input$infile$datapath, paste(input$infile$datapath, ext, sep="."))
     read_excel(paste(input$infile$datapath, ext, sep="."), sheet = input$which_sheet)
+  } else if (ext == "csv") {
+    read_csv(input$infile$datapath)
+  }
 
   })
 
@@ -261,7 +269,7 @@ shinyServer(function(input, output, session) {
 
   output$graph <- renderPlot({
 
-    req(input$x)
+    req(input$chart_type, input$x)
     if (! is.null(graph_data()))
     {
       # custom theme ... I think there's a different v of ggplot2 on VDI; plot.caption isn't implemented yet so
