@@ -154,52 +154,6 @@ shinyServer(function(input, output, session) {
       'scatterplot' = geom_point(),
       'bar' = geom_bar(position = 'dodge', stat = "identity", fun.y = "mean")
       )
-
-
-    # if (input$chart_type == 'histogram')
-    # {
-    #   if (! is.null(graph_data()))
-    #   {
-    #     # if its a factor, just count
-    #     if (is.factor(unlist(graph_data()[input$x])) | is.character (unlist(graph_data()[input$x])))
-    #     {
-    #       stat_count()
-    #     }
-    #     # otherwise do a regular histogram
-    #     else
-    #     {
-    #       geom_histogram()
-    #     }
-    #   }
-    # }
-    # else if (input$chart_type == 'density')
-    # {
-    #   print ('DID I GET HERE')    
-    #   geom_density()
-    # }
-    # else if (input$chart_type == 'step')
-    # {
-    #   geom_step()
-    # }
-    # else if (input$chart_type == 'line')
-    # {
-    #   geom_line()
-    # }
-    # else if (input$chart_type == 'scatterplot')
-    # {
-    #   geom_point()
-    # }
-    # else if (input$chart_type == 'bar')
-    # {
-    #   geom_bar(position = "dodge", stat = "identity", fun.y = "mean")
-    # }
-
-    # else if (input$chart_type == 'map')
-    # {
-
-    #   geom_map()
-    # }
-
   })
 
   # changed from switch to if to handle extra logic
@@ -222,47 +176,6 @@ shinyServer(function(input, output, session) {
       'scatterplot' = geom_point(fill = '#044F91'),
       'bar' = geom_bar(position = 'dodge', stat = "identity", fill = '#044F91')
       )
-
-
-    # if (input$chart_type == 'histogram')
-    # {
-    #   if (! is.null(graph_data()))
-    #   {
-    #     # if its a factor, just count
-    #     if (is.factor(unlist(graph_data()[input$x])) | is.character (unlist(graph_data()[input$x])))
-    #     {
-    #       stat_count(color = '#044F91', fill = '#044F91')
-    #     }
-    #     # otherwise do a histogram
-    #     else
-    #     {
-    #       geom_histogram(color = '#044F91', fill = '#044F91')
-    #     }
-    #   }
-    # }
-    # else if (input$chart_type == 'density')
-    # {
-    #   print ('DID I GET HERE')    
-    #   geom_density(fill = '#044F91')
-    # } 
-    # else if (input$chart_type == 'line')
-    # {
-    #   geom_line(color = '#044F91')
-    # }
-    # else if (input$chart_type == 'step')
-    # {
-    #   geom_step(color = '#044F91')
-    # }
-    
-    # else if (input$chart_type == 'scatterplot')
-    # {
-    #   geom_point(color = '#044F91')
-    # }
-    # else if (input$chart_type == 'bar')
-    # {
-    #   geom_bar(position = "dodge", stat = "identity", fill = '#044F91') 
-    # }
-
   })
 
 
