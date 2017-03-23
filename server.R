@@ -1,5 +1,6 @@
 library(shiny)
 library(readr)
+library(readxl)
 library(ggplot2)
 library(stringr)
 # server ----------------------------------------------------------------------
@@ -37,12 +38,39 @@ shinyServer(function(input, output, session) {
   )
 
   # Ingest file -----------------------------------------------------------------
-  graph_data <- eventReactive(input$infile, {
-     read_csv(input$infile$datapath)
+  output$excel_sheet_selector <- renderUI({
+
+    req(input$infile)
+
+    ext <- tools::file_ext(input$infile$name)
+    if (ext %in% c("xls", "xlsx")) {
+      
+    file.rename(input$infile$datapath, paste(input$infile$datapath, ext, sep="."))
+    selectInput("which_sheet", "select a worksheet:", 
+      choices = excel_sheets(paste(input$infile$datapath, ext, sep="."))
+      )
+    }
+  })
+
+  graph_data <- reactive({
+
+    req(input$infile)
+
+    ext <- tools::file_ext(input$infile$name)
+    if (ext %in% c("xls", "xlsx")) {
+
+    file.rename(input$infile$datapath, paste(input$infile$datapath, ext, sep="."))
+    read_excel(paste(input$infile$datapath, ext, sep="."), sheet = input$which_sheet)
+  } else if (ext == "csv") {
+    read_csv(input$infile$datapath)
+  }
+
   })
 
   # Variable selectors ----------------------------------------------------------
   output$variable_selector <- renderUI({
+
+    req(graph_data())
 
     list(
       selectInput("x",
@@ -141,35 +169,11 @@ shinyServer(function(input, output, session) {
 
   })
 
-  # changed from switch to if to handle extra logic
-  which_geom <- reactive({
-
-    print (sapply(graph_data()[,input$x], class))
-    
-    req(graph_data())
-    
-    switch(input$chart_type,
-      'histogram' = {
-        if (sapply(graph_data()[,input$x], class) %in% c("character", "factor")) {
-          print ('ok')
-          stat_count(color = '#044F91', fill = '#044F91')
-        } else { 
-          geom_histogram(color = '#044F91', fill = '#044F91')
-        }
-      },
-      'density' = geom_density(fill = '#044F91'),
-      'step' = geom_step(fill = '#044F91'),
-      'scatterplot' = geom_point(fill = '#044F91'),
-      'bar' = geom_bar(position = 'dodge', stat = "identity", fill = '#044F91')
-      )
-
-  })
-
 
 
   output$graph <- renderPlot({
 
-    req(input$x)
+    req(input$chart_type, input$x)
     if (! is.null(graph_data()))
     {
       # custom theme ... I think there's a different v of ggplot2 on VDI; plot.caption isn't implemented yet so
