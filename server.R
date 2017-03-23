@@ -175,7 +175,14 @@ shinyServer(function(input, output, session) {
       },
       'density' = geom_density(fill = '#044F91'),
       'step' = geom_step(fill = '#044F91'),
+      'line' = geom_line(),
+      'column' = geom_col(),
+      'boxplot' = geom_boxplot(),
+      'stacked bar' = geom_bar(stat = "identity", position = "stack"),
+      'clustered bar' = geom_bar(stat = "identity", position = "dodge"), 
       'scatterplot' = geom_point(fill = '#044F91'),
+      'pointrange' = geom_pointrange(),
+      'error bar' = geom_errorbar(),
       'bar' = geom_bar(position = 'dodge', stat = "identity", fill = '#044F91')
       )
   })
