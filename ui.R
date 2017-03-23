@@ -43,10 +43,7 @@ shinyUI(
           h4("plot labels"),
           textInput("x_label", "x-axis label"),
           textInput("y_label", "y-axis label"),
-          textInput("z_label", "labels for third variable",
-            placeholder = "'one', 'two', 'three'"),
-          textInput("w_label", "labels for fourth variable",
-            placeholder = "'one', 'two', 'three'"),
+          textInput("labels", "third variable labels"),
           textInput("source_label", "source label",
             placeholder = "Source: GAO analysis...")
           ),         

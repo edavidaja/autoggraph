@@ -1,14 +1,23 @@
 library(shiny)
 library(readr)
 library(ggplot2)
-
+library(stringr)
 # server ----------------------------------------------------------------------
 shinyServer(function(input, output, session) {
 
-
+  # output$third_variable <- renderUI({
+  #   req(input$z)
+  #   
+  #   labels <-  unlist(unique(graph_data()[,input$z]))
+  #   lapply(1:length(labels), function(i) {
+  #     textInput(as.character(labels[i]), paste0(as.character(labels[i]), " factor label"))
+  #   })
+  #   
+  # })
   # plot specific options block based on dynamic ui example -------------------
   # http://shiny.rstudio.com/gallery/dynamic-ui.html
   output$plot_options <- renderUI({
+
     req(input$chart_type)
     
     id <<- paste0(round(runif(1, 1, 100), 0), '_')
@@ -21,9 +30,11 @@ shinyServer(function(input, output, session) {
         ),
       "bar" = radioButtons(inputId = paste0(id, "dynamic"), "error bars:", choices = c('', names(graph_data()))),
       "pie" = a(p("no. pie charts are the worst."), href = "http://www.businessinsider.com/pie-charts-are-the-worst-2013-6")
-      )  
+      ) 
+  }
 
-  })
+  
+  )
 
   # Ingest file -----------------------------------------------------------------
   graph_data <- eventReactive(input$infile, {
@@ -128,51 +139,6 @@ shinyServer(function(input, output, session) {
       'bar' = geom_bar(position = 'dodge', stat = "identity", fun.y = "mean")
       )
 
-
-    # if (input$chart_type == 'histogram')
-    # {
-    #   if (! is.null(graph_data()))
-    #   {
-    #     # if its a factor, just count
-    #     if (is.factor(unlist(graph_data()[input$x])) | is.character (unlist(graph_data()[input$x])))
-    #     {
-    #       stat_count()
-    #     }
-    #     # otherwise do a regular histogram
-    #     else
-    #     {
-    #       geom_histogram()
-    #     }
-    #   }
-    # }
-    # else if (input$chart_type == 'density')
-    # {
-    #   print ('DID I GET HERE')    
-    #   geom_density()
-    # }
-    # else if (input$chart_type == 'step')
-    # {
-    #   geom_step()
-    # }
-    # else if (input$chart_type == 'line')
-    # {
-    #   geom_line()
-    # }
-    # else if (input$chart_type == 'scatterplot')
-    # {
-    #   geom_point()
-    # }
-    # else if (input$chart_type == 'bar')
-    # {
-    #   geom_bar(position = "dodge", stat = "identity", fun.y = "mean")
-    # }
-
-    # else if (input$chart_type == 'map')
-    # {
-
-    #   geom_map()
-    # }
-
   })
 
   # changed from switch to if to handle extra logic
@@ -196,46 +162,6 @@ shinyServer(function(input, output, session) {
       'scatterplot' = geom_point(fill = '#044F91'),
       'bar' = geom_bar(position = 'dodge', stat = "identity", fill = '#044F91')
       )
-
-
-    # if (input$chart_type == 'histogram')
-    # {
-    #   if (! is.null(graph_data()))
-    #   {
-    #     # if its a factor, just count
-    #     if (is.factor(unlist(graph_data()[input$x])) | is.character (unlist(graph_data()[input$x])))
-    #     {
-    #       stat_count(color = '#044F91', fill = '#044F91')
-    #     }
-    #     # otherwise do a histogram
-    #     else
-    #     {
-    #       geom_histogram(color = '#044F91', fill = '#044F91')
-    #     }
-    #   }
-    # }
-    # else if (input$chart_type == 'density')
-    # {
-    #   print ('DID I GET HERE')    
-    #   geom_density(fill = '#044F91')
-    # } 
-    # else if (input$chart_type == 'line')
-    # {
-    #   geom_line(color = '#044F91')
-    # }
-    # else if (input$chart_type == 'step')
-    # {
-    #   geom_step(color = '#044F91')
-    # }
-    
-    # else if (input$chart_type == 'scatterplot')
-    # {
-    #   geom_point(color = '#044F91')
-    # }
-    # else if (input$chart_type == 'bar')
-    # {
-    #   geom_bar(position = "dodge", stat = "identity", fill = '#044F91') 
-    # }
 
   })
 
@@ -278,11 +204,28 @@ shinyServer(function(input, output, session) {
           # gotta set out scatterplot to differentiate between fills and colors
           if (input$chart_type == 'scatterplot' | input$chart_type == 'step' | input$chart_type == 'line')
           {
-            p <- p + scale_color_manual(values = gao_pallete[1:stop])        
+            if (input$labels == '')
+            {
+              p <- p + scale_color_manual(values = gao_pallete[1:stop])        
+            }
+            else
+            {
+              plot_labels <- unlist(strsplit(input$labels, ',', fixed = TRUE))
+              print(plot_labels)
+              p <- p + scale_color_manual(values = gao_pallete[1:stop], labels = plot_labels)       
+            }
           }
           else
           {
-            p <- p + scale_fill_manual(values = gao_pallete[1:stop])    
+            if (input$labels == '')
+            {
+              p <- p + scale_fill_manual(values = gao_pallete[1:stop])    
+            }
+            else
+            {
+              plot_labels <- unlist(strsplit(input$labels, ',', fixed = TRUE))
+              p <- p + scale_fill_manual(values = gao_pallete[1:stop], labels = plot_labels)    
+            }
           }
           p <- p + which_geom_z()
         }
