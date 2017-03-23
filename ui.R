@@ -18,9 +18,10 @@ shinyUI(
               # if we're not able to do something about 
               `select a chart type` = "",
               `one variable` = c("bar", "histogram", "density", "pie"),
-              `two variable` = c("stacked bar", "clustered bar", "line", "step", "scatterplot", "boxplot"),
+              `two variable` = c("column", "line", "step", "scatterplot", "boxplot"),
               `three variable` = c("stacked bar", "clustered bar", "scatterplot"),
-              `four variable` = c("bubble chart", "")
+              `four variable` = c("bubble chart", ""),
+              `statistical` = c("")
               )
             ),
 
