@@ -15,7 +15,7 @@ shinyUI(
          wellPanel(
            selectInput("chart_type", "which chart would you like to use?",
             choices = list(
-              # if we're not able to do something about
+              # if we're not able to do something about 
               `select a chart type` = "",
               `one variable` = c("bar", "histogram", "density", "pie"),
               `two variable` = c("stacked bar", "clustered bar", "line", "step", "scatterplot", "boxplot"),

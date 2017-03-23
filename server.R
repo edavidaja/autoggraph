@@ -12,15 +12,15 @@ shinyServer(function(input, output, session) {
   output$plot_options <- renderUI({
     req(input$chart_type)
     
-    id <<- paste0(round(runif(1, 1, 100), 0), '_')
+    plot_opts <<- paste0(round(runif(1, 1, 100), 0), '_')
     switch(input$chart_type,
       "scatterplot" = 
       list(
-        selectInput(inputId = paste0(id, "scatter_option_smooth"), "add a smoother:", choices = c("smoother" = '', "loess", "linear")),
-        sliderInput(inputId = paste0(id, "scatter_option_span"), "wiggle", min = 0, max = 1, value = .7, step = .1, ticks = FALSE),
-        checkboxInput(inputId = paste0(id, "scatter_option_se"), "confidence interval?", value = TRUE)
+        selectInput(inputId = paste0(plot_opts, "scatter_option_smooth"), "add a smoother:", choices = c("smoother" = '', "loess", "linear")),
+        sliderInput(inputId = paste0(plot_opts, "scatter_option_span"), "wiggle", min = 0, max = 1, value = .7, step = .1, ticks = FALSE),
+        checkboxInput(inputId = paste0(plot_opts, "scatter_option_se"), "confidence interval?", value = TRUE)
         ),
-      "bar" = radioButtons(inputId = paste0(id, "dynamic"), "error bars:", choices = c('', names(graph_data()))),
+      "bar" = radioButtons(inputId = paste0(plot_opts, "dynamic"), "error bars:", choices = c('', names(graph_data()))),
       "pie" = a(p("no. pie charts are the worst."), href = "http://www.businessinsider.com/pie-charts-are-the-worst-2013-6")
       )  
 
@@ -88,8 +88,8 @@ shinyServer(function(input, output, session) {
   # Graphs ----------------------------------------------------------------
   which_error <- reactive({
 
-    verbage1 <- paste(input$y, '+', input[[paste0(id, 'dynamic')]]) 
-    verbage2 <- paste(input$y, '-', input[[paste0(id, 'dynamic')]]) 
+    verbage1 <- paste(input$y, '+', input[[paste0(plot_opts, 'dynamic')]]) 
+    verbage2 <- paste(input$y, '-', input[[paste0(plot_opts, 'dynamic')]]) 
     limits <- aes_string(ymax=verbage1, ymin=verbage2)
     geom_errorbar(limits, position='dodge')
 
@@ -97,8 +97,8 @@ shinyServer(function(input, output, session) {
 
   which_smoother <- reactive({
 
-    switch(input[[paste0(id, 'scatter_option_smooth')]],
-      'loess' = geom_smooth(method = 'loess', span = input[[paste0(id, 'scatter_option_span')]], se = input[[paste0(id, 'scatter_option_se')]]),
+    switch(input[[paste0(plot_opts, 'scatter_option_smooth')]],
+      'loess' = geom_smooth(method = 'loess', span = input[[paste0(plot_opts, 'scatter_option_span')]], se = input[[paste0(plot_opts, 'scatter_option_se')]]),
       'linear' = geom_smooth(method = 'lm')
       )
   })
@@ -228,17 +228,17 @@ shinyServer(function(input, output, session) {
           p <- p + which_geom_z()
         }
 
-        if (! is.null(input[[paste0(id, 'scatter_option_smooth')]]))
+        if (! is.null(input[[paste0(plot_opts, 'scatter_option_smooth')]]))
         {
-          if (input[[paste0(id, 'scatter_option_smooth')]] == 'linear' | input[[paste0(id, 'scatter_option_smooth')]] == 'loess')
+          if (input[[paste0(plot_opts, 'scatter_option_smooth')]] == 'linear' | input[[paste0(plot_opts, 'scatter_option_smooth')]] == 'loess')
           {
             p <- p + which_smoother()
           }          
         }
         
-        if (! is.null(input[[paste0(id, 'dynamic')]]))
+        if (! is.null(input[[paste0(plot_opts, 'dynamic')]]))
         {
-          if (input[[paste0(id, 'dynamic')]] != '')
+          if (input[[paste0(plot_opts, 'dynamic')]] != '')
           {
             p <- p + which_error()  
           }
