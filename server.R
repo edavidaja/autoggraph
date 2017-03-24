@@ -143,7 +143,27 @@ shinyServer(function(input, output, session) {
     }
   })
 
-
+  which_geom <- reactive({
+    
+    print (sapply(graph_data()[,input$x], class))
+    
+    req(graph_data())
+    
+    switch(input$chart_type,
+           'histogram' = {
+             if (sapply(graph_data()[,input$x], class) %in% c("character", "factor")) {
+               print ('ok')
+               stat_count(color = '#044F91', fill = '#044F91')
+             } else { 
+               geom_histogram(color = '#044F91', fill = '#044F91')
+             }
+           },
+           'density' = geom_density(fill = '#044F91'),
+           'step' = geom_step(fill = '#044F91'),
+           'scatterplot' = geom_point(fill = '#044F91'),
+           'bar' = geom_bar(position = 'dodge', stat = "identity", fill = '#044F91')
+    )
+  })
   # added an extra which_geom function for z vars to override the default color
   # changed the these function from switch to if to handle some extra logic
   which_geom_z <- reactive({
