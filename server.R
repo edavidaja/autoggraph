@@ -143,6 +143,7 @@ shinyServer(function(input, output, session) {
     switch(input$chart_type,
       # bracket notation in switch is a bit awkward, but I think it's worth 
       # the trade in terms of compactness
+      'bar' = geom_bar(position = 'dodge', stat = "identity", fun.y = "mean"),
       'histogram' = {
         if (sapply(graph_data()[,input$x], class) %in% c("character", "factor")) {
           stat_count()
@@ -153,7 +154,13 @@ shinyServer(function(input, output, session) {
       'density' = geom_density(),
       'step' = geom_step(),
       'scatterplot' = geom_point(),
-      'bar' = geom_bar(position = 'dodge', stat = "identity", fun.y = "mean")
+      'stacked bar' = geom_bar(stat = "identity", position = "stack"),
+      'clustered bar' = geom_bar(stat = "identity", position = "dodge"), 
+      'pointrange' = geom_pointrange(),
+      'error bar' = geom_errorbar(),
+      'hex bins' = geom_hex(),
+      'heatmap' = geom_tile(),
+      'contour' = geom_contour()
       )
   })
 
@@ -165,6 +172,7 @@ shinyServer(function(input, output, session) {
     req(graph_data())
     
     switch(input$chart_type,
+      'bar' = geom_bar(position = 'dodge', stat = "identity", fill = '#044F91'),
       'histogram' = {
         if (sapply(graph_data()[,input$x], class) %in% c("character", "factor")) {
           print ('ok')
@@ -174,16 +182,18 @@ shinyServer(function(input, output, session) {
         }
       },
       'density' = geom_density(fill = '#044F91'),
-      'step' = geom_step(fill = '#044F91'),
-      'line' = geom_line(),
       'column' = geom_col(),
+      'line' = geom_line(),
+      'step' = geom_step(fill = '#044F91'),
       'boxplot' = geom_boxplot(),
+      'scatterplot' = geom_point(fill = '#044F91'),
       'stacked bar' = geom_bar(stat = "identity", position = "stack"),
       'clustered bar' = geom_bar(stat = "identity", position = "dodge"), 
-      'scatterplot' = geom_point(fill = '#044F91'),
-      'pointrange' = geom_pointrange(),
-      'error bar' = geom_errorbar(),
-      'bar' = geom_bar(position = 'dodge', stat = "identity", fill = '#044F91')
+      'pointrange' = geom_pointrange(fill = '#044F91'),
+      'error bar' = geom_errorbar(fill = '#044F91'),
+      'hex bins' = geom_hex(fill = '#044F91'),
+      'heatmap' = geom_tile(),
+      'contour' = geom_contour()
       )
   })
 
