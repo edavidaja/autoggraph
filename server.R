@@ -243,7 +243,7 @@ shinyServer(function(input, output, session) {
         )
 
       # gao custome palette
-      gao_pallete <- c('#99CCFF', '#3F9993', '#044F91', '#330033')
+      gao_palette <- c('#99CCFF', '#3F9993', '#044F91', '#330033')
 
       if (input$x != '')
       {
@@ -263,25 +263,25 @@ shinyServer(function(input, output, session) {
           {
             if (input$labels == '')
             {
-              p <- p + scale_color_manual(values = gao_pallete[1:stop])        
+              p <- p + scale_color_manual(values = gao_palette[1:stop])        
             }
             else
             {
               plot_labels <- unlist(strsplit(input$labels, ',', fixed = TRUE))
               print(plot_labels)
-              p <- p + scale_color_manual(values = gao_pallete[1:stop], labels = plot_labels)       
+              p <- p + scale_color_manual(values = gao_palette[1:stop], labels = plot_labels)       
             }
           }
           else
           {
             if (input$labels == '')
             {
-              p <- p + scale_fill_manual(values = gao_pallete[1:stop])    
+              p <- p + scale_fill_manual(values = gao_palette[1:stop])    
             }
             else
             {
               plot_labels <- unlist(strsplit(input$labels, ',', fixed = TRUE))
-              p <- p + scale_fill_manual(values = gao_pallete[1:stop], labels = plot_labels)    
+              p <- p + scale_fill_manual(values = gao_palette[1:stop], labels = plot_labels)    
             }
           }
           p <- p + which_geom_z()
