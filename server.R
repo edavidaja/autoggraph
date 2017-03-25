@@ -16,7 +16,7 @@ theme_gao <-  theme_minimal() + theme(
   panel.grid = element_blank()
   )
 
-# gao custome palette
+# gao custom palette
 gao_palette <- c('#99CCFF', '#3F9993', '#044F91', '#330033')
 
 # server ----------------------------------------------------------------------
@@ -242,76 +242,73 @@ shinyServer(function(input, output, session) {
 
   output$graph <- renderPlot({
 
-    req(input$chart_type, input$x)
-    if (! is.null(graph_data()))
-    {
+    # require chart type, data to be loaded, 
+    # and an x variable to be selected before
+    # rendering a plot
+    req(input$chart_type, graph_data(), input$x)
+    
+      p <- ggplot(data = graph_data()) + which_aes() + labs(y = "", title = input$y)
 
-      if (input$x != '')
+      if (input$z == '')
       {
+        p <- p + which_geom()
+      }
 
-        p <- ggplot(data = graph_data()) + which_aes() + ylab("")
-
-        if (input$z == '')
-        {
-          p <- p + which_geom()
-        }
-
-        else if (input$z != '')
-        {
-          level_count <- nrow(unique(graph_data()[input$z]))
+      else if (input$z != '')
+      {
+        level_count <- nrow(unique(graph_data()[input$z]))
           # gotta set out scatterplot to differentiate between fills and colors
-          if (input$chart_type == 'scatterplot' | input$chart_type == 'step' | input$chart_type == 'line')
+        if (input$chart_type == 'scatterplot' | input$chart_type == 'step' | input$chart_type == 'line')
+        {
+          if (input$labels == '')
           {
-            if (input$labels == '')
-            {
-              p <- p + scale_color_manual(values = gao_palette[1:level_count])        
-            }
-            else
-            {
-              plot_labels <- unlist(strsplit(input$labels, ',', fixed = TRUE))
-              print(plot_labels)
-              p <- p + scale_color_manual(values = gao_palette[1:level_count], labels = plot_labels)       
-            }
+            p <- p + scale_color_manual(values = gao_palette[1:level_count])        
           }
           else
           {
-            if (input$labels == '')
-            {
-              p <- p + scale_fill_manual(values = gao_palette[1:level_count])    
-            }
-            else
-            {
-              plot_labels <- unlist(strsplit(input$labels, ',', fixed = TRUE))
-              p <- p + scale_fill_manual(values = gao_palette[1:level_count], labels = plot_labels)    
-            }
+            plot_labels <- unlist(strsplit(input$labels, ',', fixed = TRUE))
+            print(plot_labels)
+            p <- p + scale_color_manual(values = gao_palette[1:level_count], labels = plot_labels)       
           }
-          p <- p + which_geom_z()
         }
-
-        if (! is.null(input[[paste0(plot_opts, 'scatter_option_smooth')]]))
+        else
         {
-          if (input[[paste0(plot_opts, 'scatter_option_smooth')]] == 'linear' | input[[paste0(plot_opts, 'scatter_option_smooth')]] == 'loess')
+          if (input$labels == '')
           {
-            p <- p + which_smoother()
-          }          
+            p <- p + scale_fill_manual(values = gao_palette[1:level_count])    
+          }
+          else
+          {
+            plot_labels <- unlist(strsplit(input$labels, ',', fixed = TRUE))
+            p <- p + scale_fill_manual(values = gao_palette[1:level_count], labels = plot_labels)    
+          }
         }
-
-        if (input$x_label != '')
-        {
-          p <- p + xlab(input$x_label)
-        }
-        if (input$y_label != '')
-        {
-          p <- p + labs(y = "", title = input$y_label)
-        }
-        if (input$source_label != '') 
-        {
-          p <- p + labs(caption = input$source_label)
-        }
-        print ('successful print')
-        p <- p + theme_gao
-        p
+        p <- p + which_geom_z()
       }
-    }
+
+      if (! is.null(input[[paste0(plot_opts, 'scatter_option_smooth')]]))
+      {
+        if (input[[paste0(plot_opts, 'scatter_option_smooth')]] == 'linear' | input[[paste0(plot_opts, 'scatter_option_smooth')]] == 'loess')
+        {
+          p <- p + which_smoother()
+        }          
+      }
+
+      if (input$x_label != '')
+      {
+        p <- p + xlab(input$x_label)
+      }
+      if (input$y_label != '')
+      {
+        p <- p + labs(y = "", title = input$y_label)
+      }
+      if (input$source_label != '') 
+      {
+        p <- p + labs(caption = input$source_label)
+      }
+      print ('successful print')
+      p <- p + theme_gao
+      p
+
   })
 })
