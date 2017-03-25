@@ -303,6 +303,10 @@ shinyServer(function(input, output, session) {
         {
           p <- p + labs(y = "", title = input$y_label)
         }
+        if (input$source_label != '') 
+        {
+          p <- p + labs(caption = input$source_label)
+        }
         print ('successful print')
         p <- p + gao_theme
         p
