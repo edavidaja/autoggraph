@@ -3,6 +3,22 @@ library(readr)
 library(readxl)
 library(ggplot2)
 library(stringr)
+
+# gao theme -------------------------------------------------------------------
+theme_gao <-  theme_minimal() + theme(
+  plot.caption = element_text(hjust = 0, size = 6),
+  legend.position = "bottom",
+  legend.justification = "left",
+  legend.title = element_text(size = 7),
+  plot.title = element_text(size = 7, face = "bold"),
+  axis.title.x = element_text(hjust = 0, size = 7, face = "bold"),
+  axis.text = element_text(size = 7, face = "bold"),
+  panel.grid = element_blank()
+  )
+
+# gao custome palette
+gao_palette <- c('#99CCFF', '#3F9993', '#044F91', '#330033')
+
 # server ----------------------------------------------------------------------
 shinyServer(function(input, output, session) {
 
@@ -229,21 +245,6 @@ shinyServer(function(input, output, session) {
     req(input$chart_type, input$x)
     if (! is.null(graph_data()))
     {
-      # custom theme ... I think there's a different v of ggplot2 on VDI; plot.caption isn't implemented yet so
-      # I commented out for now
-      gao_theme <-  theme_minimal() + theme(
-        plot.caption = element_text(hjust = 0, size = 6),
-        legend.position = "bottom",
-        legend.justification = "left",
-        legend.title = element_text(size = 7),
-        plot.title = element_text(size = 7, face = "bold"),
-        axis.title.x = element_text(hjust = 0, size = 7, face = "bold"),
-        axis.text = element_text(size = 7, face = "bold"),
-        panel.grid = element_blank()
-        )
-
-      # gao custome palette
-      gao_palette <- c('#99CCFF', '#3F9993', '#044F91', '#330033')
 
       if (input$x != '')
       {
@@ -308,7 +309,7 @@ shinyServer(function(input, output, session) {
           p <- p + labs(caption = input$source_label)
         }
         print ('successful print')
-        p <- p + gao_theme
+        p <- p + theme_gao
         p
       }
     }
