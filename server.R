@@ -29,13 +29,26 @@ shinyServer(function(input, output, session) {
         sliderInput(inputId = paste0(plot_opts, "scatter_option_span"), "wiggle", min = 0, max = 1, value = .7, step = .1, ticks = FALSE),
         checkboxInput(inputId = paste0(plot_opts, "scatter_option_se"), "confidence interval?", value = TRUE)
         ),
-      "bar" = radioButtons(inputId = paste0(plot_opts, "dynamic"), "error bars:", choices = c('', names(graph_data()))),
-      "pie" = a(p("no. pie charts are the worst."), href = "http://www.businessinsider.com/pie-charts-are-the-worst-2013-6")
+      "pointrange" = 
+      list(
+        selectInput(inputId = paste0(plot_opts, "pointrange_option_lower"), "lower bound:", 
+          choices = c('lower bound variable' = '', names(graph_data()))),
+        selectInput(inputId = paste0(plot_opts, "pointrange_option_upper"), "upper bound:", 
+          choices = c('upper bound variable' = '', names(graph_data())))
+        ),
+      "error bar" = 
+      list(
+        selectInput(inputId = paste0(plot_opts, "stat_option_lower"), "lower bound:", 
+          choices = c('lower bound variable' = '', names(graph_data()))),
+        selectInput(inputId = paste0(plot_opts, "stat_option_upper"), "upper bound:", 
+          choices = c('upper bound variable' = '', names(graph_data())))
+        ),
+      "pie" = 
+      a(p("no. pie charts are the worst."), 
+        href = "http://www.businessinsider.com/pie-charts-are-the-worst-2013-6"
+        )
       ) 
-  }
-
-  
-  )
+  })
 
   # Ingest file -----------------------------------------------------------------
   output$excel_sheet_selector <- renderUI({
@@ -44,26 +57,26 @@ shinyServer(function(input, output, session) {
 
     ext <- tools::file_ext(input$infile$name)
     if (ext %in% c("xls", "xlsx")) {
-      
-    file.rename(input$infile$datapath, paste(input$infile$datapath, ext, sep="."))
-    selectInput("which_sheet", "select a worksheet:", 
-      choices = excel_sheets(paste(input$infile$datapath, ext, sep="."))
-      )
+
+      file.rename(input$infile$datapath, paste(input$infile$datapath, ext, sep="."))
+      selectInput("which_sheet", "select a worksheet:", 
+        choices = excel_sheets(paste(input$infile$datapath, ext, sep="."))
+        )
     }
   })
 
   graph_data <- reactive({
 
-    req(input$infile)
+    req(input$infile$name)
 
     ext <- tools::file_ext(input$infile$name)
     if (ext %in% c("xls", "xlsx")) {
 
-    file.rename(input$infile$datapath, paste(input$infile$datapath, ext, sep="."))
-    read_excel(paste(input$infile$datapath, ext, sep="."), sheet = input$which_sheet)
-  } else if (ext == "csv") {
-    read_csv(input$infile$datapath)
-  }
+      file.rename(input$infile$datapath, paste(input$infile$datapath, ext, sep="."))
+      read_excel(paste(input$infile$datapath, ext, sep="."), sheet = input$which_sheet)
+    } else if (ext == "csv") {
+      read_csv(input$infile$datapath)
+    }
 
   })
 
@@ -97,14 +110,6 @@ shinyServer(function(input, output, session) {
 
 
   # Graphs ----------------------------------------------------------------
-  which_error <- reactive({
-
-    verbage1 <- paste(input$y, '+', input[[paste0(plot_opts, 'dynamic')]]) 
-    verbage2 <- paste(input$y, '-', input[[paste0(plot_opts, 'dynamic')]]) 
-    limits <- aes_string(ymax=verbage1, ymin=verbage2)
-    geom_errorbar(limits, position='dodge')
-
-  })
 
   which_smoother <- reactive({
 
@@ -144,34 +149,45 @@ shinyServer(function(input, output, session) {
   })
 
   which_geom <- reactive({
-    
+
     print (sapply(graph_data()[,input$x], class))
     
     req(graph_data())
     
     switch(input$chart_type,
-           'histogram' = {
-             if (sapply(graph_data()[,input$x], class) %in% c("character", "factor")) {
-               print ('ok')
-               stat_count(color = '#044F91', fill = '#044F91')
-             } else { 
-               geom_histogram(color = '#044F91', fill = '#044F91')
-             }
-           },
-           'density' = geom_density(fill = '#044F91'),
-           'step' = geom_step(fill = '#044F91'),
-           'scatterplot' = geom_point(fill = '#044F91'),
-           'bar' = geom_bar(position = 'dodge', stat = "identity", fill = '#044F91')
-    )
+     'histogram' = {
+       if (sapply(graph_data()[,input$x], class) %in% c("character", "factor")) {
+         print ('ok')
+         stat_count(color = '#044F91', fill = '#044F91')
+       } else { 
+         geom_histogram(color = '#044F91', fill = '#044F91')
+       }
+     },
+     'density' = geom_density(fill = '#044F91'),
+     'step' = geom_step(fill = '#044F91'),
+     'scatterplot' = geom_point(fill = '#044F91'),
+     'bar' = geom_bar(position = 'dodge', stat = "identity", fill = '#044F91'),
+     'pointrange' = geom_pointrange(
+       aes_string(
+         ymin = input[[paste0(plot_opts, 'pointrange_option_lower')]],
+         ymax = input[[paste0(plot_opts, 'pointrange_option_upper')]] 
+         ), fill = '#044F91'),
+     'error bar' = geom_errorbar(
+      aes_string(
+        ymin = input[[paste0(plot_opts, 'stat_option_lower')]],
+        ymax = input[[paste0(plot_opts, 'stat_option_upper')]]
+        )
+      )
+     )
   })
   # added an extra which_geom function for z vars to override the default color
   # changed the these function from switch to if to handle some extra logic
   which_geom_z <- reactive({
 
     print (sapply(graph_data()[,input$x], class))
-    
+
     req(graph_data())
-    
+
     switch(input$chart_type,
       'bar' = geom_bar(position = 'dodge', stat = "identity", fill = '#044F91'),
       'histogram' = {
@@ -190,8 +206,16 @@ shinyServer(function(input, output, session) {
       'scatterplot' = geom_point(fill = '#044F91'),
       'stacked bar' = geom_bar(stat = "identity", position = "stack"),
       'clustered bar' = geom_bar(stat = "identity", position = "dodge"), 
-      'pointrange' = geom_pointrange(fill = '#044F91'),
-      'error bar' = geom_errorbar(fill = '#044F91'),
+      'pointrange' = geom_pointrange(
+        aes_string(
+          ymin = input[[paste0(plot_opts, 'pointrange_option_lower')]],
+          ymax = input[[paste0(plot_opts, 'pointrange_option_upper')]] 
+          ), fill = '#044F91'),
+      'error bar' = geom_errorbar(
+        aes_string(
+          ymin = input[[paste0(plot_opts, 'stat_option_lower')]],
+          ymax = input[[paste0(plot_opts, 'stat_option_upper')]]
+          ), fill = '#044F91'),
       'hex bins' = geom_hex(fill = '#044F91'),
       'heatmap' = geom_tile(),
       'contour' = geom_contour()
@@ -223,14 +247,14 @@ shinyServer(function(input, output, session) {
 
       if (input$x != '')
       {
-        
-        p <- ggplot(data = graph_data()) + which_aes()
-        
+
+        p <- ggplot(data = graph_data()) + which_aes() + ylab("")
+
         if (input$z == '')
         {
           p <- p + which_geom()
         }
-        
+
         else if (input$z != '')
         {
           stop <- nrow(unique(graph_data()[input$z]))
@@ -270,26 +294,18 @@ shinyServer(function(input, output, session) {
             p <- p + which_smoother()
           }          
         }
-        
-        if (! is.null(input[[paste0(plot_opts, 'dynamic')]]))
-        {
-          if (input[[paste0(plot_opts, 'dynamic')]] != '')
-          {
-            p <- p + which_error()  
-          }
-          
-        }
-        
+
         if (input$x_label != '')
         {
           p <- p + xlab(input$x_label)
         }
         if (input$y_label != '')
         {
-          p <- p + ylab(input$y_label)
+          p <- p + labs(y = "", title = input$y_label)
         }
-        print (p + gao_theme)
         print ('successful print')
+        p <- p + gao_theme
+        p
       }
     }
   })
