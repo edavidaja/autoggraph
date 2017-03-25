@@ -257,31 +257,31 @@ shinyServer(function(input, output, session) {
 
         else if (input$z != '')
         {
-          stop <- nrow(unique(graph_data()[input$z]))
+          level_count <- nrow(unique(graph_data()[input$z]))
           # gotta set out scatterplot to differentiate between fills and colors
           if (input$chart_type == 'scatterplot' | input$chart_type == 'step' | input$chart_type == 'line')
           {
             if (input$labels == '')
             {
-              p <- p + scale_color_manual(values = gao_palette[1:stop])        
+              p <- p + scale_color_manual(values = gao_palette[1:level_count])        
             }
             else
             {
               plot_labels <- unlist(strsplit(input$labels, ',', fixed = TRUE))
               print(plot_labels)
-              p <- p + scale_color_manual(values = gao_palette[1:stop], labels = plot_labels)       
+              p <- p + scale_color_manual(values = gao_palette[1:level_count], labels = plot_labels)       
             }
           }
           else
           {
             if (input$labels == '')
             {
-              p <- p + scale_fill_manual(values = gao_palette[1:stop])    
+              p <- p + scale_fill_manual(values = gao_palette[1:level_count])    
             }
             else
             {
               plot_labels <- unlist(strsplit(input$labels, ',', fixed = TRUE))
-              p <- p + scale_fill_manual(values = gao_palette[1:stop], labels = plot_labels)    
+              p <- p + scale_fill_manual(values = gao_palette[1:level_count], labels = plot_labels)    
             }
           }
           p <- p + which_geom_z()
