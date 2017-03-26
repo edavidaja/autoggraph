@@ -145,14 +145,8 @@ shinyServer(function(input, output, session) {
     }
     else if (input$x != '' & input$y != '' & input$z != '')
     {
-      # gotta set out scatterplot to differentiate between fills and colors
-      if (input$chart_type == 'scatterplot')
-      {
-        aes_string(x = as.name(input$x), y = as.name(input$y), colour = as.name(input$z))  
-      } else {
-        aes_string(x = as.name(input$x), y = as.name(input$y), fill = as.name(input$z))
+         aes_string(x = as.name(input$x), y = as.name(input$y), fill = as.name(input$z))
       } 
-    }
   })
 
   which_geom <- reactive({
@@ -172,7 +166,7 @@ shinyServer(function(input, output, session) {
      },
      'density' = geom_density(fill = '#044F91'),
      'step' = geom_step(fill = '#044F91'),
-     'scatterplot' = geom_point(fill = '#044F91'),
+     'scatterplot' = geom_point(shape = 21, size = 2),
      'bar' = geom_bar(position = 'dodge', stat = "identity", fill = '#044F91'),
      'pointrange' = geom_pointrange(
        aes_string(
@@ -210,7 +204,7 @@ shinyServer(function(input, output, session) {
       'line' = geom_line(),
       'step' = geom_step(fill = '#044F91'),
       'boxplot' = geom_boxplot(),
-      'scatterplot' = geom_point(fill = '#044F91'),
+      'scatterplot' = geom_point(shape = 21, size = 2, colour = "white"),
       'stacked bar' = geom_bar(stat = "identity", position = "stack"),
       'clustered bar' = geom_bar(stat = "identity", position = "dodge"), 
       'pointrange' = geom_pointrange(
