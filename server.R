@@ -22,15 +22,6 @@ gao_palette <- c('#99CCFF', '#3F9993', '#044F91', '#330033')
 # server ----------------------------------------------------------------------
 shinyServer(function(input, output, session) {
 
-  # output$third_variable <- renderUI({
-  #   req(input$z)
-  #   
-  #   labels <-  unlist(unique(graph_data()[,input$z]))
-  #   lapply(1:length(labels), function(i) {
-  #     textInput(as.character(labels[i]), paste0(as.character(labels[i]), " factor label"))
-  #   })
-  #   
-  # })
   # plot specific options block based on dynamic ui example -------------------
   # http://shiny.rstudio.com/gallery/dynamic-ui.html
   output$plot_options <- renderUI({
@@ -140,26 +131,26 @@ shinyServer(function(input, output, session) {
 
     if (input$x != '' & input$y == '' & input$z == '')
     {
-      aes_string(x=as.name(input$x))
+      aes_string(x = as.name(input$x))
     }
     # x and z
     else if (input$x != '' & input$y == '' & input$z != '')
     {
-      aes_string(x=as.name(input$x), fill = as.name(input$z))
+      aes_string(x = as.name(input$x), fill = as.name(input$z))
     }    
     # x and y
     else if (input$x != '' & input$y != '' & input$z == '')
     {
-      aes_string(x=as.name(input$x), y=as.name(input$y))
+      aes_string(x = as.name(input$x), y = as.name(input$y))
     }
     else if (input$x != '' & input$y != '' & input$z != '')
     {
       # gotta set out scatterplot to differentiate between fills and colors
       if (input$chart_type == 'scatterplot')
       {
-        aes_string(x=as.name(input$x), y=as.name(input$y), colour=as.name(input$z))  
+        aes_string(x = as.name(input$x), y = as.name(input$y), colour = as.name(input$z))  
       } else {
-        aes_string(x=as.name(input$x), y=as.name(input$y), fill=as.name(input$z))
+        aes_string(x = as.name(input$x), y = as.name(input$y), fill = as.name(input$z))
       } 
     }
   })
