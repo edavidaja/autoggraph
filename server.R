@@ -133,6 +133,9 @@ shinyServer(function(input, output, session) {
 
   which_aes <- reactive({
 
+    # return aesthetics based on which combinations of  
+    # data input fields are selected
+
     if (input$x != '' & input$y == '' & input$z == '')
     {
       aes_string(x = as.name(input$x))
@@ -154,6 +157,9 @@ shinyServer(function(input, output, session) {
  })
 
   which_geom <- reactive({
+
+    # select geom based on selected chart type for the univariate or
+    # two-variable case.
 
     print (sapply(graph_data()[,input$x], class))
     
@@ -186,10 +192,11 @@ shinyServer(function(input, output, session) {
       )
      )
   })
-  # added an extra which_geom function for z vars to override the default color
-  # changed the these function from switch to if to handle some extra logic
+
   which_geom_z <- reactive({
 
+    # select geom based on selected chart type for the 3 variable case.
+    
     print (sapply(graph_data()[,input$x], class))
 
     req(graph_data())
@@ -239,11 +246,14 @@ shinyServer(function(input, output, session) {
     
     p <- ggplot(data = graph_data()) + which_aes() + labs(y = "", title = input$y)
 
+    ## render which_geom() if no z-var is selected
     if (input$z == '')
     {
       p <- p + which_geom()
     }
 
+    # count the number of levels of z and, if necessary, apply custom factor
+    # level names
     else if (input$z != '')
     {
       level_count <- nrow(unique(graph_data()[input$z]))
@@ -261,6 +271,9 @@ shinyServer(function(input, output, session) {
       p <- p + which_geom_z()
     }
 
+    ## additional geom layers -------------------------------------------------
+    ## apply smoother to scatter plot
+
     if (! is.null(input[[paste0(plot_opts, 'scatter_option_smooth')]]))
     {
       if (input[[paste0(plot_opts, 'scatter_option_smooth')]] == 'linear' | input[[paste0(plot_opts, 'scatter_option_smooth')]] == 'loess')
@@ -268,7 +281,7 @@ shinyServer(function(input, output, session) {
         p <- p + which_smoother()
       }          
     }
-
+    ## custom labels ----------------------------------------------------------
     if (input$x_label != '')
     {
       p <- p + xlab(input$x_label)
@@ -284,7 +297,6 @@ shinyServer(function(input, output, session) {
     print ('successful print')
     p <- p + theme_gao
     p
-
 
   })
 })
