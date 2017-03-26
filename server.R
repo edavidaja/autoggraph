@@ -121,7 +121,11 @@ shinyServer(function(input, output, session) {
   which_smoother <- reactive({
 
     switch(input[[paste0(plot_opts, 'scatter_option_smooth')]],
-      'loess' = geom_smooth(method = 'loess', span = input[[paste0(plot_opts, 'scatter_option_span')]], se = input[[paste0(plot_opts, 'scatter_option_se')]]),
+      'loess' = geom_smooth(
+        method = 'loess', 
+        span = input[[paste0(plot_opts, 'scatter_option_span')]], 
+        se = input[[paste0(plot_opts, 'scatter_option_se')]]
+        ),
       'linear' = geom_smooth(method = 'lm')
       )
   })
@@ -202,7 +206,7 @@ shinyServer(function(input, output, session) {
       },
       'density' = geom_density(fill = '#044F91'),
       'column' = geom_col(),
-      'line' = geom_line(aes_string(linetype = input$z, color = input$z)),
+      'line' = geom_line(aes_string(color = input$z)),
       'step' = geom_step(aes_string(color = input$z)),
       'boxplot' = geom_boxplot(),
       'scatterplot' = geom_point(shape = 21, size = 2, color = "white"),
@@ -246,13 +250,13 @@ shinyServer(function(input, output, session) {
       if (input$labels == '')
       {
         p <- p + scale_fill_manual(values = gao_palette[1:level_count])    
-        # p <- p + scale_color_manual(values = gao_palette[1:level_count])    
+        p <- p + scale_color_manual(values = gao_palette[1:level_count])    
       }
       else
       {
         plot_labels <- unlist(strsplit(input$labels, ',', fixed = TRUE))
         p <- p + scale_fill_manual(values = gao_palette[1:level_count], labels = plot_labels)    
-        # p <- p + scale_color_manual(values = gao_palette[1:level_count], labels = plot_labels)    
+        p <- p + scale_color_manual(values = gao_palette[1:level_count], labels = plot_labels)    
       }
       p <- p + which_geom_z()
     }
@@ -279,7 +283,6 @@ shinyServer(function(input, output, session) {
     }
     print ('successful print')
     p <- p + theme_gao
-    print(p$mapping)
     p
 
 
