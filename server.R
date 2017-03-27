@@ -195,7 +195,6 @@ shinyServer(function(input, output, session) {
     req(graph_data())
 
     switch(input$chart_type,
-      'bar' = geom_bar(position = 'dodge', stat = "identity", fill = '#044F91'),
       'histogram' = {
         if (sapply(graph_data()[,input$x], class) %in% c("character", "factor")) {
           print ('ok')
@@ -210,8 +209,28 @@ shinyServer(function(input, output, session) {
       'step' = geom_step(aes_string(color = input$z)),
       'boxplot' = geom_boxplot(),
       'scatterplot' = geom_point(shape = 21, size = 2, color = "white"),
-      'stacked bar' = geom_bar(stat = "identity", position = "stack"),
-      'clustered bar' = geom_bar(stat = "identity", position = "dodge"), 
+      'bar' = geom_bar(position = 'dodge', stat = "identity", fill = '#044F91'),
+      'stacked bar' = {
+        if (input$y == '') {  
+        geom_bar(position = "stack")
+        } else {
+          geom_bar(position =  "stack", stat = "identity")
+        }
+        },
+      'clustered bar' = {
+        if (input$y == '') {  
+          geom_bar(position = "dodge")
+        } else {
+          geom_bar(position =  "dodge", stat = "identity")
+        }
+        },
+      'filled bar' = {
+         if (input$y == '') {  
+          geom_bar(position = "fill")
+        } else {
+          geom_bar(position =  "fill", stat = "identity")
+        }
+        },
       'pointrange' = geom_pointrange(
         aes_string(
           ymin = input[[paste0(plot_opts, 'pointrange_option_lower')]],
