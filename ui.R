@@ -29,7 +29,7 @@ shinyUI(
            uiOutput("variable_selector")
            ),
          wellPanel(
-          h4("plot-specific options:"),
+          h4("plot specifics"),
           uiOutput("plot_options")
           )
          ),

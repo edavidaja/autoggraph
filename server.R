@@ -53,7 +53,12 @@ shinyServer(function(input, output, session) {
       "pie" = 
       a(p("no. pie charts are the worst."), 
         href = "http://www.businessinsider.com/pie-charts-are-the-worst-2013-6"
-        )
+        ),
+      "histogram" = bar_copy,
+      "bar" = bar_copy,
+      "stacked bar" = bar_copy,
+      "clustered bar" = bar_copy,
+      "filled bar" = bar_copy
       ) 
   })
 
