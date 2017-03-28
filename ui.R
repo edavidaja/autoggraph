@@ -18,7 +18,7 @@ shinyUI(
               `select a chart type` = "",
               `univariate` = c("histogram", "density", "pie"),
               `multivariate` = c("bar", "line", "step", "scatterplot", "boxplot",
-                "stacked bar", "clustered bar", "bubble chart"),
+                "stacked bar", "clustered bar", "filled bar", "bubble chart"),
               `statistical` = c("pointrange", "error bar"),
               `experimental` = c("hex bins", "heatmap", "contour")
               )
@@ -29,7 +29,7 @@ shinyUI(
            uiOutput("variable_selector")
            ),
          wellPanel(
-          h4("plot-specific options:"),
+          h4("plot specifics"),
           uiOutput("plot_options")
           )
          ),
