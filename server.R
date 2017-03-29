@@ -27,21 +27,7 @@ shinyServer(function(input, output, session) {
   output$plot_options <- renderUI({
 
     req(input$chart_type)
-    # if (exists('chart_type')){
-    #   if (input$chart_type != chart_type)
-    #   {
-    # 
-    #     
-    #     tmp_id <<- paste0(round(runif(1, 1, 100), 0), '_')
-    #   }
-    # }
-    # else
-    # {
-    #   tmp_id <<- paste0(round(runif(1, 1, 100), 0), '_')
-    #   
-    # }
-    
-    
+
     chart_type <<- input$chart_type
     plot_opts <<- paste0(round(runif(1, 1, 100), 0), '_')
     plot_opts <<- as.character(plot_opts)
@@ -104,6 +90,17 @@ shinyServer(function(input, output, session) {
     }
 
   })
+  
+  # Download file ------ 
+  
+  output$raster_download <- downloadHandler(
+    
+      filename = function() { paste(input$infile$name, '.png', sep='') },
+      content = function(file) {
+        ggsave(file, plot = graph_it(), device = "png")
+      }
+      
+  )
 
   # Variable selectors ----------------------------------------------------------
   output$variable_selector <- renderUI({
@@ -273,23 +270,20 @@ shinyServer(function(input, output, session) {
       )
   })
 
-
-
-  output$graph <- renderPlot({
-
+  graph_it <- reactive({
     # require chart type, data to be loaded, 
     # and an x variable to be selected before
     # rendering a plot
     req(input$chart_type, graph_data(), input$x)
     
     p <- ggplot(data = graph_data()) + which_aes() + labs(y = "", title = input$y)
-
+    
     ## render which_geom() if no z-var is selected
     if (input$z == '')
     {
       p <- p + which_geom()
     }
-
+    
     # count the number of levels of z and, if necessary, apply custom factor
     # level names
     else if (input$z != '')
@@ -308,10 +302,10 @@ shinyServer(function(input, output, session) {
       }
       p <- p + which_geom_z()
     }
-
+    
     ## additional geom layers -------------------------------------------------
     ## apply smoother to scatter plot
-
+    
     if (! is.null(input[[paste0(plot_opts, 'scatter_option_smooth')]]))
     {
       if (input[[paste0(plot_opts, 'scatter_option_smooth')]] == 'linear' | input[[paste0(plot_opts, 'scatter_option_smooth')]] == 'loess')
@@ -337,6 +331,12 @@ shinyServer(function(input, output, session) {
     }
     p <- p + theme_gao
     p
+    
+  })
+
+  output$graph <- renderPlot({
+
+    graph_it()
 
   })
 })
