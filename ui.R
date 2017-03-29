@@ -16,10 +16,9 @@ shinyUI(
            selectInput("chart_type", "which chart would you like to use?",
             choices = list(
               `select a chart type` = "",
-              `one variable` = c("bar", "histogram", "density", "pie"),
-              `two variable` = c("column", "line", "step", "scatterplot", "boxplot"),
-              `three variable` = c("stacked bar", "clustered bar", "scatterplot"),
-              `four variable` = c("bubble chart", ""),
+              `univariate` = c("histogram", "density", "pie"),
+              `multivariate` = c("bar", "line", "step", "scatterplot", "boxplot",
+                "stacked bar", "clustered bar", "filled bar", "bubble chart"),
               `statistical` = c("pointrange", "error bar"),
               `experimental` = c("hex bins", "heatmap", "contour")
               )
@@ -30,7 +29,7 @@ shinyUI(
            uiOutput("variable_selector")
            ),
          wellPanel(
-          h4("plot-specific options:"),
+          h4("plot specifics"),
           uiOutput("plot_options")
           )
          ),
@@ -39,13 +38,11 @@ shinyUI(
          ),
         column(3, 
          wellPanel(
-          # TODO(): it may make sense to move this to a dynamic UI if we can
-          # get number of variable inputs to depend on option group in chart
-          # selector
           h4("plot labels"),
           textInput("x_label", "x-axis label"),
           textInput("y_label", "y-axis label"),
-          textInput("labels", "third variable labels"),
+          textInput("labels", "third variable labels, separated by commas",
+            placeholder = "one, two, three"),
           textInput("source_label", "source label",
             placeholder = "Source: GAO analysis...")
           ),         
