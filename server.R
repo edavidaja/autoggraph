@@ -27,23 +27,25 @@ shinyServer(function(input, output, session) {
   output$plot_options <- renderUI({
 
     req(input$chart_type)
-    if (exists('chart_type')){
-      if (input$chart_type != chart_type)
-      {
-        print ('new id. no?')
-        print(input[[paste0(tmp_id, 'scatter_option_smooth')]])
-        
-        tmp_id <<- paste0(round(runif(1, 1, 100), 0), '_')
-      }
-    }
-    else
-    {
-      tmp_id <<- paste0(round(runif(1, 1, 100), 0), '_')
-      
-    }
+    # if (exists('chart_type')){
+    #   if (input$chart_type != chart_type)
+    #   {
+    # 
+    #     
+    #     tmp_id <<- paste0(round(runif(1, 1, 100), 0), '_')
+    #   }
+    # }
+    # else
+    # {
+    #   tmp_id <<- paste0(round(runif(1, 1, 100), 0), '_')
+    #   
+    # }
+    
     
     chart_type <<- input$chart_type
     plot_opts <<- paste0(round(runif(1, 1, 100), 0), '_')
+    plot_opts <<- as.character(plot_opts)
+    
     switch(input$chart_type,
       "scatterplot" = 
       list(
@@ -53,17 +55,13 @@ shinyServer(function(input, output, session) {
         ),
       "pointrange" = 
       list(
-        selectInput(inputId = paste0(plot_opts, "pointrange_option_lower"), "lower bound:", 
-          choices = c('lower bound variable' = '', names(graph_data()))),
-        selectInput(inputId = paste0(plot_opts, "pointrange_option_upper"), "upper bound:", 
-          choices = c('upper bound variable' = '', names(graph_data())))
+        selectInput(inputId = paste0(plot_opts, "pointrange"), "bounds", 
+          choices = c('bound variable' = '', names(graph_data())))
         ),
       "error bar" = 
       list(
-        selectInput(inputId = paste0(plot_opts, "stat_option_lower"), "lower bound:", 
-          choices = c('lower bound variable' = '', names(graph_data()))),
-        selectInput(inputId = paste0(plot_opts, "stat_option_upper"), "upper bound:", 
-          choices = c('upper bound variable' = '', names(graph_data())))
+        selectInput(inputId = paste0(plot_opts, "stat_option"), "bounds:", 
+          choices = c('bound variable' = '', names(graph_data())))
         ),
       "pie" = 
       a(p("no. pie charts are the worst."), 
@@ -74,7 +72,7 @@ shinyServer(function(input, output, session) {
       "stacked bar" = bar_copy,
       "clustered bar" = bar_copy,
       "filled bar" = bar_copy
-      ) 
+      )
   })
 
   # Ingest file -----------------------------------------------------------------
@@ -138,18 +136,41 @@ shinyServer(function(input, output, session) {
 
   # Graphs ----------------------------------------------------------------
 
-
-  which_smoother <- reactive({
-
-    switch(input[[paste0(plot_opts, 'scatter_option_smooth')]],
-      'loess' = geom_smooth(
-        method = 'loess', 
-        span = input[[paste0(plot_opts, 'scatter_option_span')]], 
-        se = input[[paste0(plot_opts, 'scatter_option_se')]]
-        ),
-      'linear' = geom_smooth(method = 'lm')
-      )
+  which_error <- reactive({
+    
+    req(input[[paste0(plot_opts, "stat_option")]])
+    
+    verbage1 <- paste(input$y, '+', input[[paste0(plot_opts, 'stat_option')]]) 
+    verbage2 <- paste(input$y, '-', input[[paste0(plot_opts, 'stat_option')]]) 
+    limits <- aes_string(ymax=verbage1, ymin=verbage2)
+    geom_errorbar(limits, position='dodge')
+    
   })
+  
+  which_point_range <- reactive({
+    
+    req(input[[paste0(plot_opts, "pointrange")]])
+    
+    verbage1 <- paste(input$y, '+', input[[paste0(plot_opts, 'pointrange')]]) 
+    verbage2 <- paste(input$y, '-', input[[paste0(plot_opts, 'pointrange')]]) 
+    limits <- aes_string(ymax=verbage1, ymin=verbage2)
+    geom_pointrange(limits, position='dodge')
+    
+  })
+  
+  get_loess <- reactive({
+    geom_smooth(
+      method = 'loess', 
+      span = input[[paste0(plot_opts, 'scatter_option_span')]], 
+      se = input[[paste0(plot_opts, 'scatter_option_se')]]
+    )
+  })
+  
+  get_lm <- reactive({
+    geom_smooth(method = 'lm')
+  })
+  
+
 
 
   which_aes <- reactive({
@@ -182,14 +203,12 @@ shinyServer(function(input, output, session) {
     # select geom based on selected chart type for the univariate or
     # two-variable case.
     
-    print (sapply(graph_data()[,input$x], class))
-    
+
     req(graph_data())
     
     switch(input$chart_type,
            'histogram' = {
              if (sapply(graph_data()[,input$x], class) %in% c("character", "factor")) {
-               print ('ok')
                stat_count(color = '#044F91', fill = '#044F91')
              } else { 
                geom_histogram(color = '#044F91', fill = '#044F91')
@@ -200,17 +219,8 @@ shinyServer(function(input, output, session) {
            'step' = geom_step(fill = '#044F91'),
            'scatterplot' = geom_point(),
            'bar' = geom_bar(position = 'dodge', stat = "identity", fill = '#044F91'),
-           'pointrange' = geom_pointrange(
-             aes_string(
-               ymin = input[[paste0(plot_opts, 'pointrange_option_lower')]],
-               ymax = input[[paste0(plot_opts, 'pointrange_option_upper')]] 
-             ), fill = '#044F91'),
-           'error bar' = geom_errorbar(
-             aes_string(
-               ymin = input[[paste0(plot_opts, 'stat_option_lower')]],
-               ymax = input[[paste0(plot_opts, 'stat_option_upper')]]
-             )
-           )
+           'pointrange' = which_point_range(),
+           'error bar' = which_error()
     )
   })
   # added an extra which_geom function for z vars to overrtmp_ide the default color
@@ -222,7 +232,6 @@ shinyServer(function(input, output, session) {
     switch(input$chart_type,
       'histogram' = {
         if (sapply(graph_data()[,input$x], class) %in% c("character", "factor")) {
-          print ('ok')
           stat_count(color = '#044F91', fill = '#044F91')
         } else { 
           geom_histogram(color = '#044F91', fill = '#044F91')
@@ -256,16 +265,8 @@ shinyServer(function(input, output, session) {
           geom_bar(position =  "fill", stat = "identity")
         }
         },
-      'pointrange' = geom_pointrange(
-        aes_string(
-          ymin = input[[paste0(plot_opts, 'pointrange_option_lower')]],
-          ymax = input[[paste0(plot_opts, 'pointrange_option_upper')]] 
-          ), fill = '#044F91'),
-      'error bar' = geom_errorbar(
-        aes_string(
-          ymin = input[[paste0(plot_opts, 'stat_option_lower')]],
-          ymax = input[[paste0(plot_opts, 'stat_option_upper')]]
-          ), fill = '#044F91'),
+      'pointrange' = which_point_range(),
+      'error bar' = which_error(),
       'hex bins' = geom_hex(fill = '#044F91'),
       'heatmap' = geom_tile(),
       'contour' = geom_contour()
@@ -315,7 +316,10 @@ shinyServer(function(input, output, session) {
     {
       if (input[[paste0(plot_opts, 'scatter_option_smooth')]] == 'linear' | input[[paste0(plot_opts, 'scatter_option_smooth')]] == 'loess')
       {
-        p <- p + which_smoother()
+        switch(input[[paste0(plot_opts, 'scatter_option_smooth')]],
+               'loess' = p <- p + get_loess(),
+               'linear' = p <- p + get_lm()
+        )
       }          
     }
     ## custom labels ----------------------------------------------------------
@@ -331,7 +335,6 @@ shinyServer(function(input, output, session) {
     {
       p <- p + labs(caption = input$source_label)
     }
-    print ('successful print')
     p <- p + theme_gao
     p
 
