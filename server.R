@@ -21,16 +21,33 @@ shinyServer(function(input, output, session) {
 
     req(input$chart_type)
     
-    id <<- paste0(round(runif(1, 1, 100), 0), '_')
+    
+    if (exists('chart_type')){
+      if (input$chart_type != chart_type)
+      {
+        print ('new id. no?')
+        print(input[[paste0(tmp_id, 'scatter_option_smooth')]])
+        
+        tmp_id <<- paste0(round(runif(1, 1, 100), 0), '_')
+      }
+    }
+    else
+    {
+      tmp_id <<- paste0(round(runif(1, 1, 100), 0), '_')
+      
+    }
+    
+    chart_type <<- input$chart_type
+    
     switch(input$chart_type,
       "scatterplot" = 
       list(
-        selectInput(inputId = paste0(id, "scatter_option_smooth"), "add a smoother:", choices = c("smoother" = '', "loess", "linear")),
-        sliderInput(inputId = paste0(id, "scatter_option_span"), "wiggle", min = 0, max = 1, value = .7, step = .1, ticks = FALSE),
-        checkboxInput(inputId = paste0(id, "scatter_option_se"), "confidence interval?", value = TRUE)
+        selectInput(inputId = paste0(tmp_id, "scatter_option_smooth"), "add a smoother:", choices = c("smoother" = '', "loess", "linear")),
+        sliderInput(inputId = paste0(tmp_id, "scatter_option_span"), "wiggle", min = 0, max = 1, value = .7, step = .1, ticks = FALSE),
+        checkboxInput(inputId = paste0(tmp_id, "scatter_option_se"), "confidence interval?", value = NULL)
         ),
-      "bar" = radioButtons(inputId = paste0(id, "dynamic"), "error bars:", choices = c('', names(graph_data()))),
-      "pie" = a(p("no. pie charts are the worst."), href = "http://www.businessinsider.com/pie-charts-are-the-worst-2013-6")
+      "bar" = radioButtons(inputId = paste0(tmp_id, "dynamic"), "error bars:", choices = c('', names(graph_data()))),
+      "pie" = a(p("no. pie charts are the worst."), href = "http://www.businessinstmp_ider.com/pie-charts-are-the-worst-2013-6")
       ) 
   }
 
@@ -99,18 +116,17 @@ shinyServer(function(input, output, session) {
   # Graphs ----------------------------------------------------------------
   which_error <- reactive({
 
-    verbage1 <- paste(input$y, '+', input[[paste0(id, 'dynamic')]]) 
-    verbage2 <- paste(input$y, '-', input[[paste0(id, 'dynamic')]]) 
+    verbage1 <- paste(input$y, '+', input[[paste0(tmp_id, 'dynamic')]]) 
+    verbage2 <- paste(input$y, '-', input[[paste0(tmp_id, 'dynamic')]]) 
     limits <- aes_string(ymax=verbage1, ymin=verbage2)
     geom_errorbar(limits, position='dodge')
 
   })
 
   which_smoother <- reactive({
-
-    switch(input[[paste0(id, 'scatter_option_smooth')]],
-      'loess' = geom_smooth(method = 'loess', span = input[[paste0(id, 'scatter_option_span')]], se = input[[paste0(id, 'scatter_option_se')]]),
-      'linear' = geom_smooth(method = 'lm')
+    switch(input[[paste0(tmp_id, 'scatter_option_smooth')]],
+      'loess' = geom_smooth(method = 'loess', span = input[[paste0(tmp_id, 'scatter_option_span')]], se = input[[paste0(tmp_id, 'scatter_option_se')]]),
+      'linear' = geom_smooth(method = 'lm', se = input[[paste0(tmp_id, 'scatter_option_se')]])
       )
   })
 
@@ -145,14 +161,12 @@ shinyServer(function(input, output, session) {
 
   which_geom <- reactive({
     
-    print (sapply(graph_data()[,input$x], class))
-    
+
     req(graph_data())
     
     switch(input$chart_type,
            'histogram' = {
              if (sapply(graph_data()[,input$x], class) %in% c("character", "factor")) {
-               print ('ok')
                stat_count(color = '#044F91', fill = '#044F91')
              } else { 
                geom_histogram(color = '#044F91', fill = '#044F91')
@@ -164,11 +178,9 @@ shinyServer(function(input, output, session) {
            'bar' = geom_bar(position = 'dodge', stat = "identity", fill = '#044F91')
     )
   })
-  # added an extra which_geom function for z vars to override the default color
+  # added an extra which_geom function for z vars to overrtmp_ide the default color
   # changed the these function from switch to if to handle some extra logic
   which_geom_z <- reactive({
-    print (input$chart_type)
-
     req(graph_data())
     
     switch(input$chart_type,
@@ -184,7 +196,7 @@ shinyServer(function(input, output, session) {
       'density' = geom_density(),
       'step' = geom_step(),
       'scatterplot' = geom_point(),
-      'bar' = geom_bar(position = 'dodge', stat = "identity", fun.y = "mean")
+      'bar' = geom_bar(position = 'dodge', stat = "tmp_identity", fun.y = "mean")
       )
 
   })
@@ -235,8 +247,6 @@ shinyServer(function(input, output, session) {
             else
             {
               plot_labels <- unlist(strsplit(input$labels, ',', fixed = TRUE))
-              print(plot_labels)
-              p <- p + scale_color_manual(values = gao_pallete[1:stop], labels = plot_labels)       
             }
           }
           else
@@ -254,17 +264,17 @@ shinyServer(function(input, output, session) {
           p <- p + which_geom_z()
         }
 
-        if (! is.null(input[[paste0(id, 'scatter_option_smooth')]]))
+        if (! is.null(input[[paste0(tmp_id, 'scatter_option_smooth')]]))
         {
-          if (input[[paste0(id, 'scatter_option_smooth')]] == 'linear' | input[[paste0(id, 'scatter_option_smooth')]] == 'loess')
+          if (input[[paste0(tmp_id, 'scatter_option_smooth')]] == 'linear' | input[[paste0(tmp_id, 'scatter_option_smooth')]] == 'loess')
           {
             p <- p + which_smoother()
           }          
         }
         
-        if (! is.null(input[[paste0(id, 'dynamic')]]))
+        if (! is.null(input[[paste0(tmp_id, 'dynamic')]]))
         {
-          if (input[[paste0(id, 'dynamic')]] != '')
+          if (input[[paste0(tmp_id, 'dynamic')]] != '')
           {
             p <- p + which_error()  
           }
@@ -280,7 +290,6 @@ shinyServer(function(input, output, session) {
           p <- p + ylab(input$y_label)
         }
         print (p + gao_theme)
-        print ('successful print')
       }
     }
   })
