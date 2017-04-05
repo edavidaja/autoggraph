@@ -93,15 +93,30 @@ shinyServer(function(input, output, session) {
   
   # Download file ------ 
   
+  output$code_download <- downloadHandler(
+    
+    filename = function() { paste(input$infile$name, '.Rdata', sep='') },
+    content = function(filename) {
+      graph_save <- graph
+      save(graph_save, file = file)
+    }
+    
+  )
+  
   output$raster_download <- downloadHandler(
     
       filename = function() { paste(input$infile$name, '.png', sep='') },
-      content = function(file) {
+      content = function(filename) {
         ggsave(file, plot = graph_it(), device = "png")
       }
       
   )
 
+
+  
+  
+  
+  
   # Variable selectors ----------------------------------------------------------
   output$variable_selector <- renderUI({
 
@@ -277,10 +292,10 @@ shinyServer(function(input, output, session) {
     req(input$chart_type, graph_data(), input$x)
     
     p <- ggplot(data = graph_data()) + which_aes() + labs(y = "", title = input$y)
-    
-    ## render which_geom() if no z-var is selected
+
     if (input$z == '')
     {
+
       p <- p + which_geom()
     }
     
@@ -330,8 +345,10 @@ shinyServer(function(input, output, session) {
       p <- p + labs(caption = input$source_label)
     }
     p <- p + theme_gao
-    p
+    graph <<- p
     
+    p
+
   })
 
   output$graph <- renderPlot({
