@@ -93,15 +93,30 @@ shinyServer(function(input, output, session) {
   
   # Download file ------ 
   
+  output$code_download <- downloadHandler(
+    
+    filename = function() { paste(input$infile$name, '.Rdata', sep='') },
+    content = function(filename) {
+      graph_save <- graph
+      save(graph_save, file = file)
+    }
+    
+  )
+  
   output$raster_download <- downloadHandler(
     
       filename = function() { paste(input$infile$name, '.png', sep='') },
-      content = function(file) {
+      content = function(filename) {
         ggsave(file, plot = graph_it(), device = "png")
       }
       
   )
 
+
+  
+  
+  
+  
   # Variable selectors ----------------------------------------------------------
   output$variable_selector <- renderUI({
 
@@ -174,25 +189,32 @@ shinyServer(function(input, output, session) {
 
     # return aesthetics based on which combinations of  
     # data input fields are selected
-
     if (input$x != '' & input$y == '' & input$z == '')
     {
       aes_string(x = as.name(input$x))
     }
     # x and z
-    else if (input$x != '' & input$y == '' & input$z != '')
+    else if (input$x != '' & input$y == '' & input$z != '' & input$w == '')
     {
       aes_string(x = as.name(input$x), fill = as.name(input$z))
     }    
     # x and y
-    else if (input$x != '' & input$y != '' & input$z == '')
+    else if (input$x != '' & input$y != '' & input$z == '' & input$w == '')
     {
       aes_string(x = as.name(input$x), y = as.name(input$y))
     }
-    else if (input$x != '' & input$y != '' & input$z != '')
+    else if (input$x != '' & input$y != '' & input$z != '' & input$w == '')
     {
      aes_string(x = as.name(input$x), y = as.name(input$y), fill = as.name(input$z))
-   } 
+    } 
+    else if (input$x != '' & input$y != '' & input$z == '' & input$w != '')
+    {
+      aes_string(x = as.name(input$x), y = as.name(input$y), colour = as.name(input$w))
+    }
+    else if (input$x != '' & input$y != '' & input$z != '' & input$w != '')
+    {
+      aes_string(x = as.name(input$x), y = as.name(input$y), fill = as.name(input$z))
+    }    
  })
 
   which_geom <- reactive({
@@ -270,6 +292,14 @@ shinyServer(function(input, output, session) {
       )
   })
 
+  
+
+  which_geom_w_z <- reactive({
+    switch(input$chart_type,
+           'bubblemap' =  geom_point(shape = 21, aes_string(size = input$w), color = "white")
+    )
+  })
+  
   graph_it <- reactive({
     # require chart type, data to be loaded, 
     # and an x variable to be selected before
@@ -277,12 +307,20 @@ shinyServer(function(input, output, session) {
     req(input$chart_type, graph_data(), input$x)
     
     p <- ggplot(data = graph_data()) + which_aes() + labs(y = "", title = input$y)
-    
-    ## render which_geom() if no z-var is selected
+    print(which_aes())
     if (input$z == '')
     {
+
       p <- p + which_geom()
     }
+    
+    else if (input$w != '')
+    {
+
+      p <- p + which_geom_w_z()
+    
+    }
+    
     
     # count the number of levels of z and, if necessary, apply custom factor
     # level names
@@ -330,8 +368,10 @@ shinyServer(function(input, output, session) {
       p <- p + labs(caption = input$source_label)
     }
     p <- p + theme_gao
-    p
+    graph <<- p
     
+    p
+
   })
 
   output$graph <- renderPlot({
