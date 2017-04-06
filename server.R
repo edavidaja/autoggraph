@@ -91,32 +91,48 @@ shinyServer(function(input, output, session) {
 
   })
   
-  # Download file ------ 
-  
+  # Download file -------------------------------------------------------------
+  ## strip the extension from the name of the uploaded file and use that to
+  ## generate names for the download files
   output$code_download <- downloadHandler(
     
-    filename = function() { paste(input$infile$name, '.Rdata', sep='') },
-    content = function(filename) {
+    filename = function() { 
+      ext <- tools::file_ext(input$infile$name)
+      paste(
+        str_replace(input$infile$name, paste0(".",ext), ""), '.rds', sep='') 
+      },
+    content = function(file) {
       graph_save <- graph
-      save(graph_save, file = file)
+      write_rds(graph_save, file, compress = "none")
     }
-    
   )
   
   output$raster_download <- downloadHandler(
     
-      filename = function() { paste(input$infile$name, '.png', sep='') },
-      content = function(filename) {
+    filename = function() { 
+      ext <- tools::file_ext(input$infile$name)
+      paste(
+        str_replace(input$infile$name, paste0(".",ext), ""), '.png', sep='') 
+      },
+      content = function(file) {
         ggsave(file, plot = graph_it(), device = "png")
       }
       
   )
 
+  output$vector_download <- downloadHandler(
+    
+    filename = function() { 
+      ext <- tools::file_ext(input$infile$name)
+      paste(
+        str_replace(input$infile$name, paste0(".",ext), ""), '.svg', sep='') 
+      },
+      content = function(file) {
+        ggsave(file, plot = graph_it(), device = "svg")
+      }
+      
+  )
 
-  
-  
-  
-  
   # Variable selectors ----------------------------------------------------------
   output$variable_selector <- renderUI({
 
@@ -213,8 +229,7 @@ shinyServer(function(input, output, session) {
   which_geom <- reactive({
     
     # select geom based on selected chart type for the univariate or
-    # two-variable case.
-    
+    # two-variable case.    
 
     req(graph_data())
     
