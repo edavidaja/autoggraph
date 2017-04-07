@@ -112,11 +112,6 @@ shinyServer(function(input, output, session) {
       
   )
 
-
-  
-  
-  
-  
   # Variable selectors ----------------------------------------------------------
   output$variable_selector <- renderUI({
 
