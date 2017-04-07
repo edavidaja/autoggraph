@@ -282,7 +282,8 @@ shinyServer(function(input, output, session) {
         }
         },
       'pointrange' = which_point_range(),
-      'error bar' = which_error()
+      'error bar' = which_error(),
+      'area' = list(geom_area(alpha = .1), geom_line(aes_string(color = input$z), size= 1.1, position = "stack"))
       )
   })
 
