@@ -129,13 +129,13 @@ shinyServer(function(input, output, session) {
        ),
 
       selectInput("z",
-       "add a third variable:",
-       choices =  c("third variable (e.g. color)" = "", names(graph_data()))
+       "add an additional discrete variable:",
+       choices =  c("discrete variable" = "", names(graph_data()))
        ),
 
       selectInput("w",
-       "add a fourth variable:",
-       choices =  c("fourth variable (e.g. point size)" = "", names(graph_data()))
+       "add an additional continuous variable:",
+       choices =  c("continuous variable" = "", names(graph_data()))
        )
       )
   })
@@ -216,8 +216,7 @@ shinyServer(function(input, output, session) {
     
     # select geom based on selected chart type for the univariate or
     # two-variable case.
-    
-
+  
     req(graph_data())
     
     switch(input$chart_type,
@@ -280,10 +279,7 @@ shinyServer(function(input, output, session) {
         }
         },
       'pointrange' = which_point_range(),
-      'error bar' = which_error(),
-      'hex bins' = geom_hex(fill = '#044F91'),
-      'heatmap' = geom_tile(),
-      'contour' = geom_contour()
+      'error bar' = which_error()
       )
   })
 
@@ -291,7 +287,7 @@ shinyServer(function(input, output, session) {
 
   which_geom_w_z <- reactive({
     switch(input$chart_type,
-           'bubblemap' =  geom_point(shape = 21, aes_string(size = input$w), color = "white")
+           'bubble chart' =  geom_point(shape = 21, aes_string(size = input$w), color = "white")
     )
   })
   
