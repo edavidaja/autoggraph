@@ -198,14 +198,17 @@ shinyServer(function(input, output, session) {
     {
       aes_string(x = as.name(input$x), y = as.name(input$y))
     }
+    #  x, y and, z
     else if (input$x != '' & input$y != '' & input$z != '' & input$w == '')
     {
      aes_string(x = as.name(input$x), y = as.name(input$y), fill = as.name(input$z))
     } 
+    # x, y, and w
     else if (input$x != '' & input$y != '' & input$z == '' & input$w != '')
     {
       aes_string(x = as.name(input$x), y = as.name(input$y), colour = as.name(input$w))
     }
+    # x, y, z, and ws
     else if (input$x != '' & input$y != '' & input$z != '' & input$w != '')
     {
       aes_string(x = as.name(input$x), y = as.name(input$y), fill = as.name(input$z))
@@ -311,7 +314,6 @@ shinyServer(function(input, output, session) {
       p <- p + which_geom_w_z()
     
     }
-    
     
     # count the number of levels of z and, if necessary, apply custom factor
     # level names
