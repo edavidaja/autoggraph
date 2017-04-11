@@ -58,7 +58,7 @@ shinyUI(
           br(),
           br(),
           downloadLink("code_download", 
-            "share the plot generating code with your data analyst:")
+            "share the plot with your data analyst:")
           ) 
          )
         )
