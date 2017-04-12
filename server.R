@@ -139,6 +139,25 @@ shinyServer(function(input, output, session) {
       
   )
 
+    output$logs <- downloadHandler(
+    
+    filename = function() {
+      paste("autoggraph-", input$chart_type, ".txt", sep = "" ) 
+      },
+      content = function(file) {
+        write_lines(
+          paste(
+            "input file:", input$infile$name, "\r\n",
+            "size:", input$infile$size, "\r\n",
+            "date and time:", Sys.time(), "\r\n",
+            sep = " " 
+            ),
+          file
+          )
+      }
+      
+  )
+
   # Variable selectors ----------------------------------------------------------
   output$variable_selector <- renderUI({
 
