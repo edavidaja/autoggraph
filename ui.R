@@ -9,7 +9,7 @@ shinyUI(
       ),
     # plot UI -----------------------------------------------------------------
     tabPanel("plots",
-    includeCSS("www/simplex.css"),
+      includeCSS("www/simplex.css"),
       fluidRow(  
         column(3,
          wellPanel(
@@ -35,7 +35,7 @@ shinyUI(
          ),
         column(6,
           plotOutput("graph")
-         ),
+          ),
         column(3, 
          wellPanel(
           h4("plot labels"),
@@ -58,7 +58,11 @@ shinyUI(
           br(),
           br(),
           downloadLink("code_download", 
-            "share the plot with your data analyst:")
+            "share the plot with your data analyst:"),
+          br(),
+          br(),
+          downloadLink("logs",
+            "of course it does logs")
           ) 
          )
         )
