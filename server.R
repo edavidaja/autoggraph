@@ -5,17 +5,23 @@ library(ggplot2)
 library(stringr)
 
 # gao theme -------------------------------------------------------------------
-theme_gao <-  theme_minimal() + theme(
-  plot.caption = element_text(hjust = 0, size = 6),
-  legend.position = "bottom",
-  legend.justification = "left",
-  legend.title = element_text(size = 7),
-  plot.title = element_text(size = 7, face = "bold"),
-  axis.title.x = element_text(hjust = 0, size = 7, face = "bold"),
-  axis.text = element_text(size = 7, face = "bold"),
-  panel.grid = element_blank()
+theme_gao <- list(
+  theme_minimal(), 
+  theme(
+    plot.caption = element_text(hjust = 0, size = 6),
+    legend.position = "bottom",
+    legend.justification = "left",
+    legend.title = element_text(size = 7),
+    plot.title = element_text(size = 7, face = "bold"),
+    axis.title.x = element_text(hjust = 0, size = 7, face = "bold"),
+    axis.text = element_text(size = 7, face = "bold"),
+    panel.grid = element_blank()
+    ), 
+  guides(
+    color = guide_legend(title.position = "top", ncol = 1),
+    fill = guide_legend(title.position = "top", ncol = 1)
   )
-
+)
 # gao custom palette
 gao_palette <- c('#99CCFF', '#3F9993', '#044F91', '#330033')
 
