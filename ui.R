@@ -33,8 +33,8 @@ shinyUI(
           uiOutput("plot_options")
           )
          ),
-        column(6, 
-         mainPanel(plotOutput("graph"))
+        column(6,
+          plotOutput("graph")
          ),
         column(3, 
          wellPanel(
