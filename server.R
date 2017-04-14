@@ -5,17 +5,23 @@ library(ggplot2)
 library(stringr)
 
 # gao theme -------------------------------------------------------------------
-theme_gao <-  theme_minimal() + theme(
-  plot.caption = element_text(hjust = 0, size = 6),
-  legend.position = "bottom",
-  legend.justification = "left",
-  legend.title = element_text(size = 7),
-  plot.title = element_text(size = 7, face = "bold"),
-  axis.title.x = element_text(hjust = 0, size = 7, face = "bold"),
-  axis.text = element_text(size = 7, face = "bold"),
-  panel.grid = element_blank()
+theme_gao <- list(
+  theme_minimal(), 
+  theme(
+    plot.caption = element_text(hjust = 0, size = 6),
+    legend.position = "bottom",
+    legend.justification = "left",
+    legend.title = element_text(size = 7),
+    plot.title = element_text(size = 7, face = "bold"),
+    axis.title.x = element_text(hjust = 0, size = 7, face = "bold"),
+    axis.text = element_text(size = 7, face = "bold"),
+    panel.grid = element_blank()
+    ), 
+  guides(
+    color = guide_legend(title.position = "top", ncol = 1),
+    fill = guide_legend(title.position = "top", ncol = 1)
   )
-
+)
 # gao custom palette
 gao_palette <- c('#99CCFF', '#3F9993', '#044F91', '#330033')
 
@@ -91,13 +97,63 @@ shinyServer(function(input, output, session) {
 
   })
   
-  # Download file ------ 
+  # Download file -------------------------------------------------------------
+  ## strip the extension from the name of the uploaded file and use that to
+  ## generate names for the download files
+  output$code_download <- downloadHandler(
+    
+    filename = function() { 
+      ext <- tools::file_ext(input$infile$name)
+      paste(
+        str_replace(input$infile$name, paste0(".",ext), ""), '.rds', sep='') 
+      },
+    content = function(file) {
+      graph_save <- graph
+      write_rds(graph_save, file, compress = "none")
+    }
+  )
   
   output$raster_download <- downloadHandler(
     
-      filename = function() { paste(input$infile$name, '.png', sep='') },
+    filename = function() { 
+      ext <- tools::file_ext(input$infile$name)
+      paste(
+        str_replace(input$infile$name, paste0(".",ext), ""), '.png', sep='') 
+      },
       content = function(file) {
         ggsave(file, plot = graph_it(), device = "png")
+      }
+      
+  )
+
+  output$vector_download <- downloadHandler(
+    
+    filename = function() { 
+      ext <- tools::file_ext(input$infile$name)
+      paste(
+        str_replace(input$infile$name, paste0(".",ext), ""), '.svg', sep='') 
+      },
+      content = function(file) {
+        ggsave(file, plot = graph_it(), device = "svg")
+      }
+      
+  )
+
+    output$logs <- downloadHandler(
+    
+    filename = function() {
+      paste("autoggraph-", input$chart_type, ".txt", sep = "" ) 
+      },
+      content = function(file) {
+        write_lines(
+          paste(
+            "input file:", input$infile$name, "\r\n",
+            "size:", input$infile$size, "\r\n",
+            "date and time:", Sys.time(), "\r\n",
+            sep = " " 
+            ),
+          file
+          )
       }
       
   )
@@ -198,8 +254,7 @@ shinyServer(function(input, output, session) {
   which_geom <- reactive({
     
     # select geom based on selected chart type for the univariate or
-    # two-variable case.
-    
+    # two-variable case.    
 
     req(graph_data())
     
@@ -277,10 +332,10 @@ shinyServer(function(input, output, session) {
     req(input$chart_type, graph_data(), input$x)
     
     p <- ggplot(data = graph_data()) + which_aes() + labs(y = "", title = input$y)
-    
-    ## render which_geom() if no z-var is selected
+
     if (input$z == '')
     {
+
       p <- p + which_geom()
     }
     
@@ -330,8 +385,10 @@ shinyServer(function(input, output, session) {
       p <- p + labs(caption = input$source_label)
     }
     p <- p + theme_gao
-    p
+    graph <<- p
     
+    p
+
   })
 
   output$graph <- renderPlot({

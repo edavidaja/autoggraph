@@ -3,9 +3,8 @@ title: "instructions"
 output: html_document
 ---
 
-# welcome to tablol
-graphs when you want them, how you want them.
-
+# welcome to autoggraph
+brought to you by the grammar of graphics.
 
 ## instructions
 
