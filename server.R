@@ -117,15 +117,6 @@ shinyServer(function(input, output, session) {
     }
   )
   
-  output$code_download <- downloadHandler(
-    
-    filename = function() { paste(input$infile$name, '.Rdata', sep='') },
-    content = function(filename) {
-      graph_save <- graph
-      save(graph_save, file = file)
-    }
-    
-  )
   
   output$raster_download <- downloadHandler(
     
@@ -190,13 +181,13 @@ shinyServer(function(input, output, session) {
        ),
 
       selectInput("z",
-       "add a third variable:",
-       choices =  c("third variable (e.g. color)" = "", names(graph_data()))
+       "add an additional discrete variable:",
+       choices =  c("discrete variable" = "", names(graph_data()))
        ),
 
       selectInput("w",
-       "add a fourth variable:",
-       choices =  c("fourth variable (e.g. point size)" = "", names(graph_data()))
+       "add an additional continuous variable:",
+       choices =  c("continuous variable" = "", names(graph_data()))
        )
       )
   })
@@ -206,20 +197,18 @@ shinyServer(function(input, output, session) {
 
   which_error <- reactive({
     
-    req(input[[paste0(plot_opts, "error_lower_bound", "error_upper_bound")]])
-    
+    req(input[[paste0(plot_opts, "error_lower_bound")]], input[[paste0(plot_opts, "error_upper_bound")]])
 
-    limits <- aes_string(ymax=input[['error_upper_bound']], ymin=input[['error_lower_bound']])
+    limits <- aes_string(ymax=input[[paste0(plot_opts, "error_upper_bound")]], ymin=input[[paste0(plot_opts, "error_lower_bound")]])
     geom_errorbar(limits, position='dodge')
     
   })
   
   which_point_range <- reactive({
     
-    req(input[[paste0(plot_opts, "pointrange")]])
+    req(input[[paste0(plot_opts, "lower_pointrange")]], input[[paste0(plot_opts, "upper_pointrange")]])
     
-
-    limits <- aes_string(ymax=verbage1, ymin=verbage2)
+    limits <- aes_string(ymax=input[[paste0(plot_opts, "lower_pointrange")]], ymin=input[[paste0(plot_opts, "upper_pointrange")]])
     geom_pointrange(limits, position='dodge')
     
   })
@@ -257,14 +246,17 @@ shinyServer(function(input, output, session) {
     {
       aes_string(x = as.name(input$x), y = as.name(input$y))
     }
+    #  x, y and, z
     else if (input$x != '' & input$y != '' & input$z != '' & input$w == '')
     {
      aes_string(x = as.name(input$x), y = as.name(input$y), fill = as.name(input$z))
     } 
+    # x, y, and w
     else if (input$x != '' & input$y != '' & input$z == '' & input$w != '')
     {
       aes_string(x = as.name(input$x), y = as.name(input$y), colour = as.name(input$w))
     }
+    # x, y, z, and ws
     else if (input$x != '' & input$y != '' & input$z != '' & input$w != '')
     {
       aes_string(x = as.name(input$x), y = as.name(input$y), colour = as.name(input$z))
@@ -275,6 +267,7 @@ shinyServer(function(input, output, session) {
     
     # select geom based on selected chart type for the univariate or
     # two-variable case.    
+
 
     req(graph_data())
     
@@ -340,19 +333,23 @@ shinyServer(function(input, output, session) {
         }
         },
       'pointrange' = which_point_range(),
-      'error bar' = which_error(),
-      'hex bins' = geom_hex(fill = '#044F91'),
-      'heatmap' = geom_tile(),
-      'contour' = geom_contour()
+      'error bar' = which_error()
       )
   })
 
   
 
   which_geom_w_z <- reactive({
-    switch(input$chart_type,
-           'scatterplot' =  geom_point(shape = 21, aes_string(size = input$w))
-    )
+    
+    if (is.null(input$z))
+    {
+      geom_point(size = 21, aes_string(size = input$w, colour = 'white'))
+    }
+    else
+    {
+      geom_point(aes_string(size = input$w, colour = input$z))
+    }
+
   })
   
   graph_it <- reactive({
@@ -373,17 +370,25 @@ shinyServer(function(input, output, session) {
     {
 
       level_count <- nrow(unique(graph_data()[input$z]))
-      
-      limits <- c(min(graph_data()[,input$w], na.rm = T), max(graph_data()[,input$w], na.rm = T))
+      if (input$labels == '')
+      {
+        p <- p + scale_fill_manual(values = gao_palette[1:level_count])    
+        p <- p + scale_color_manual(values = gao_palette[1:level_count])    
+      }
+      else
+      {
+        plot_labels <- unlist(strsplit(input$labels, ',', fixed = TRUE))
+        p <- p + scale_fill_manual(values = gao_palette[1:level_count], labels = plot_labels)    
+        p <- p + scale_color_manual(values = gao_palette[1:level_count], labels = plot_labels)    
+      }
       # TO DO SEPARATE OUT FOR CONTINUOUS AND FACTOR W'S!!!!
       p <- p + which_geom_w_z()
-      p <- p + scale_colour_gradient(
-          limits = limits, low = gao_palette[1], high = gao_palette[4]
-        )
+      # p <- p + scale_colour_gradient(
+      #     limits = limits, low = gao_palette[1], high = gao_palette[4]
+      #   )
       print ('made it')
 
     }
-    
     
     # count the number of levels of z and, if necessary, apply custom factor
     # level names
