@@ -41,13 +41,17 @@ shinyServer(function(input, output, session) {
         ),
       "pointrange" = 
       list(
-        selectInput(inputId = paste0(plot_opts, "pointrange"), "bounds", 
-          choices = c('bound variable' = '', names(graph_data())))
+        selectInput(inputId = paste0(plot_opts, "lower_pointrange"), "lower bound", 
+          choices = c('lower bound' = '', names(graph_data()))),
+        selectInput(inputId = paste0(plot_opts, "upper_pointrange"), "upper bound", 
+                    choices = c('upper bound' = '', names(graph_data())))
         ),
       "error bar" = 
       list(
-        selectInput(inputId = paste0(plot_opts, "stat_option"), "bounds:", 
-          choices = c('bound variable' = '', names(graph_data())))
+        selectInput(inputId = paste0(plot_opts, "error_lower_bound"), "lower bound", 
+          choices = c('lower bound' = '', names(graph_data()))),
+        selectInput(inputId = paste0(plot_opts, "error_upper_bound"), "upper bound", 
+                    choices = c('upper bound' = '', names(graph_data())))
         ),
       "pie" = 
       a(p("no. pie charts are the worst."), 
@@ -150,11 +154,10 @@ shinyServer(function(input, output, session) {
 
   which_error <- reactive({
     
-    req(input[[paste0(plot_opts, "stat_option")]])
+    req(input[[paste0(plot_opts, "error_lower_bound", "error_upper_bound")]])
     
-    verbage1 <- paste(input$y, '+', input[[paste0(plot_opts, 'stat_option')]]) 
-    verbage2 <- paste(input$y, '-', input[[paste0(plot_opts, 'stat_option')]]) 
-    limits <- aes_string(ymax=verbage1, ymin=verbage2)
+
+    limits <- aes_string(ymax=input[['error_upper_bound']], ymin=input[['error_lower_bound']])
     geom_errorbar(limits, position='dodge')
     
   })
@@ -163,8 +166,7 @@ shinyServer(function(input, output, session) {
     
     req(input[[paste0(plot_opts, "pointrange")]])
     
-    verbage1 <- paste(input$y, '+', input[[paste0(plot_opts, 'pointrange')]]) 
-    verbage2 <- paste(input$y, '-', input[[paste0(plot_opts, 'pointrange')]]) 
+
     limits <- aes_string(ymax=verbage1, ymin=verbage2)
     geom_pointrange(limits, position='dodge')
     
@@ -213,7 +215,7 @@ shinyServer(function(input, output, session) {
     }
     else if (input$x != '' & input$y != '' & input$z != '' & input$w != '')
     {
-      aes_string(x = as.name(input$x), y = as.name(input$y), fill = as.name(input$z))
+      aes_string(x = as.name(input$x), y = as.name(input$y), colour = as.name(input$z))
     }    
  })
 
@@ -224,6 +226,8 @@ shinyServer(function(input, output, session) {
     
 
     req(graph_data())
+    
+    print('HI')
     
     switch(input$chart_type,
            'histogram' = {
@@ -296,7 +300,7 @@ shinyServer(function(input, output, session) {
 
   which_geom_w_z <- reactive({
     switch(input$chart_type,
-           'bubblemap' =  geom_point(shape = 21, aes_string(size = input$w), color = "white")
+           'scatterplot' =  geom_point(shape = 21, aes_string(size = input$w))
     )
   })
   
@@ -307,7 +311,7 @@ shinyServer(function(input, output, session) {
     req(input$chart_type, graph_data(), input$x)
     
     p <- ggplot(data = graph_data()) + which_aes() + labs(y = "", title = input$y)
-    print(which_aes())
+
     if (input$z == '')
     {
 
@@ -317,8 +321,16 @@ shinyServer(function(input, output, session) {
     else if (input$w != '')
     {
 
+      level_count <- nrow(unique(graph_data()[input$z]))
+      
+      limits <- c(min(graph_data()[,input$w], na.rm = T), max(graph_data()[,input$w], na.rm = T))
+      # TO DO SEPARATE OUT FOR CONTINUOUS AND FACTOR W'S!!!!
       p <- p + which_geom_w_z()
-    
+      p <- p + scale_colour_gradient(
+          limits = limits, low = gao_palette[1], high = gao_palette[4]
+        )
+      print ('made it')
+
     }
     
     
