@@ -5,17 +5,23 @@ library(ggplot2)
 library(stringr)
 
 # gao theme -------------------------------------------------------------------
-theme_gao <-  theme_minimal() + theme(
-  plot.caption = element_text(hjust = 0, size = 6),
-  legend.position = "bottom",
-  legend.justification = "left",
-  legend.title = element_text(size = 7),
-  plot.title = element_text(size = 7, face = "bold"),
-  axis.title.x = element_text(hjust = 0, size = 7, face = "bold"),
-  axis.text = element_text(size = 7, face = "bold"),
-  panel.grid = element_blank()
+theme_gao <- list(
+  theme_minimal(), 
+  theme(
+    plot.caption = element_text(hjust = 0, size = 6),
+    legend.position = "bottom",
+    legend.justification = "left",
+    legend.title = element_text(size = 7),
+    plot.title = element_text(size = 7, face = "bold"),
+    axis.title.x = element_text(hjust = 0, size = 7, face = "bold"),
+    axis.text = element_text(size = 7, face = "bold"),
+    panel.grid = element_blank()
+    ), 
+  guides(
+    color = guide_legend(title.position = "top", ncol = 1),
+    fill = guide_legend(title.position = "top", ncol = 1)
   )
-
+)
 # gao custom palette
 gao_palette <- c('#99CCFF', '#3F9993', '#044F91', '#330033')
 
@@ -41,13 +47,17 @@ shinyServer(function(input, output, session) {
         ),
       "pointrange" = 
       list(
-        selectInput(inputId = paste0(plot_opts, "pointrange"), "bounds", 
-          choices = c('bound variable' = '', names(graph_data())))
+        selectInput(inputId = paste0(plot_opts, "lower_pointrange"), "lower bound", 
+          choices = c('lower bound' = '', names(graph_data()))),
+        selectInput(inputId = paste0(plot_opts, "upper_pointrange"), "upper bound", 
+                    choices = c('upper bound' = '', names(graph_data())))
         ),
       "error bar" = 
       list(
-        selectInput(inputId = paste0(plot_opts, "stat_option"), "bounds:", 
-          choices = c('bound variable' = '', names(graph_data())))
+        selectInput(inputId = paste0(plot_opts, "error_lower_bound"), "lower bound", 
+          choices = c('lower bound' = '', names(graph_data()))),
+        selectInput(inputId = paste0(plot_opts, "error_upper_bound"), "upper bound", 
+                    choices = c('upper bound' = '', names(graph_data())))
         ),
       "pie" = 
       a(p("no. pie charts are the worst."), 
@@ -91,23 +101,65 @@ shinyServer(function(input, output, session) {
 
   })
   
-  # Download file ------ 
-  
+  # Download file -------------------------------------------------------------
+  ## strip the extension from the name of the uploaded file and use that to
+  ## generate names for the download files
   output$code_download <- downloadHandler(
     
-    filename = function() { paste(input$infile$name, '.Rdata', sep='') },
-    content = function(filename) {
+    filename = function() { 
+      ext <- tools::file_ext(input$infile$name)
+      paste(
+        str_replace(input$infile$name, paste0(".",ext), ""), '.rds', sep='') 
+      },
+    content = function(file) {
       graph_save <- graph
-      save(graph_save, file = file)
+      write_rds(graph_save, file, compress = "none")
     }
-    
   )
+  
   
   output$raster_download <- downloadHandler(
     
-      filename = function() { paste(input$infile$name, '.png', sep='') },
-      content = function(filename) {
+    filename = function() { 
+      ext <- tools::file_ext(input$infile$name)
+      paste(
+        str_replace(input$infile$name, paste0(".",ext), ""), '.png', sep='') 
+      },
+      content = function(file) {
         ggsave(file, plot = graph_it(), device = "png")
+      }
+      
+  )
+
+
+  output$vector_download <- downloadHandler(
+    
+    filename = function() { 
+      ext <- tools::file_ext(input$infile$name)
+      paste(
+        str_replace(input$infile$name, paste0(".",ext), ""), '.svg', sep='') 
+      },
+      content = function(file) {
+        ggsave(file, plot = graph_it(), device = "svg")
+      }
+      
+  )
+
+    output$logs <- downloadHandler(
+    
+    filename = function() {
+      paste("autoggraph-", input$chart_type, ".txt", sep = "" ) 
+      },
+      content = function(file) {
+        write_lines(
+          paste(
+            "input file:", input$infile$name, "\r\n",
+            "size:", input$infile$size, "\r\n",
+            "date and time:", Sys.time(), "\r\n",
+            sep = " " 
+            ),
+          file
+          )
       }
       
   )
@@ -145,22 +197,18 @@ shinyServer(function(input, output, session) {
 
   which_error <- reactive({
     
-    req(input[[paste0(plot_opts, "stat_option")]])
-    
-    verbage1 <- paste(input$y, '+', input[[paste0(plot_opts, 'stat_option')]]) 
-    verbage2 <- paste(input$y, '-', input[[paste0(plot_opts, 'stat_option')]]) 
-    limits <- aes_string(ymax=verbage1, ymin=verbage2)
+    req(input[[paste0(plot_opts, "error_lower_bound")]], input[[paste0(plot_opts, "error_upper_bound")]])
+
+    limits <- aes_string(ymax=input[[paste0(plot_opts, "error_upper_bound")]], ymin=input[[paste0(plot_opts, "error_lower_bound")]])
     geom_errorbar(limits, position='dodge')
     
   })
   
   which_point_range <- reactive({
     
-    req(input[[paste0(plot_opts, "pointrange")]])
+    req(input[[paste0(plot_opts, "lower_pointrange")]], input[[paste0(plot_opts, "upper_pointrange")]])
     
-    verbage1 <- paste(input$y, '+', input[[paste0(plot_opts, 'pointrange')]]) 
-    verbage2 <- paste(input$y, '-', input[[paste0(plot_opts, 'pointrange')]]) 
-    limits <- aes_string(ymax=verbage1, ymin=verbage2)
+    limits <- aes_string(ymax=input[[paste0(plot_opts, "lower_pointrange")]], ymin=input[[paste0(plot_opts, "upper_pointrange")]])
     geom_pointrange(limits, position='dodge')
     
   })
@@ -211,16 +259,19 @@ shinyServer(function(input, output, session) {
     # x, y, z, and ws
     else if (input$x != '' & input$y != '' & input$z != '' & input$w != '')
     {
-      aes_string(x = as.name(input$x), y = as.name(input$y), fill = as.name(input$z))
+      aes_string(x = as.name(input$x), y = as.name(input$y), colour = as.name(input$z))
     }    
  })
 
   which_geom <- reactive({
     
     # select geom based on selected chart type for the univariate or
-    # two-variable case.
-  
+    # two-variable case.    
+
+
     req(graph_data())
+    
+    print('HI')
     
     switch(input$chart_type,
            'histogram' = {
@@ -290,9 +341,16 @@ shinyServer(function(input, output, session) {
   
 
   which_geom_w_z <- reactive({
-    switch(input$chart_type,
-           'bubble chart' =  geom_point(shape = 21, aes_string(size = input$w), color = "white")
-    )
+    
+    if (is.null(input$z))
+    {
+      geom_point(size = 21, aes_string(size = input$w, colour = 'white'))
+    }
+    else
+    {
+      geom_point(aes_string(size = input$w, colour = input$z))
+    }
+
   })
   
   graph_it <- reactive({
@@ -302,7 +360,7 @@ shinyServer(function(input, output, session) {
     req(input$chart_type, graph_data(), input$x)
     
     p <- ggplot(data = graph_data()) + which_aes() + labs(y = "", title = input$y)
-    print(which_aes())
+
     if (input$z == '')
     {
 
@@ -312,8 +370,25 @@ shinyServer(function(input, output, session) {
     else if (input$w != '')
     {
 
+      level_count <- nrow(unique(graph_data()[input$z]))
+      if (input$labels == '')
+      {
+        p <- p + scale_fill_manual(values = gao_palette[1:level_count])    
+        p <- p + scale_color_manual(values = gao_palette[1:level_count])    
+      }
+      else
+      {
+        plot_labels <- unlist(strsplit(input$labels, ',', fixed = TRUE))
+        p <- p + scale_fill_manual(values = gao_palette[1:level_count], labels = plot_labels)    
+        p <- p + scale_color_manual(values = gao_palette[1:level_count], labels = plot_labels)    
+      }
+      # TO DO SEPARATE OUT FOR CONTINUOUS AND FACTOR W'S!!!!
       p <- p + which_geom_w_z()
-    
+      # p <- p + scale_colour_gradient(
+      #     limits = limits, low = gao_palette[1], high = gao_palette[4]
+      #   )
+      print ('made it')
+
     }
     
     # count the number of levels of z and, if necessary, apply custom factor

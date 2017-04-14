@@ -1,0 +1,90 @@
+---
+title: "101060 Scatterplot"
+author: "E. David Aja, Senior Data Analyst"
+date: 2017-03-14
+output: word_document
+---
+
+```{r}
+setwd("R:/AjaE/viz/101060")
+
+# load readxl to I/O, dplyr for data manipulation, and ggplot2 for graphs
+library(readxl)
+library(ggplot2)
+library(dplyr)
+
+# read in data on hospitals
+hospitals <- read_excel("ALL_STAFF-#1957369-v2-101060__HVBP_SCATTERPLOT_DATA_FOR_VCA.XLSX") %>%
+  rename(quality = QUAL_SCORE, efficiency = EFF_WGTD_DOM_SCORE, bonus = NET_CHANGE_BASE_OP_DRG_AMT  )
+
+# split data by whether hospital was assessed penalty or bonus:
+# bonus if bonus is greater than or equal to zero
+# penalty if bonus is less than 0
+# split penalties and bonuses into quartiles;
+# offset penalties by -4, so that levels can be recombined into one dataset
+penalty <- hospitals %>% filter(bonus < 0) %>%
+  mutate(quartile =  ntile(bonus, 4) - 4 )
+bonus <- hospitals %>% filter(bonus >= 0) %>%
+  mutate(quartile =  ntile(bonus, 4))
+  
+# recombine data ses
+bucketed <- bind_rows(penalty, bonus) %>%
+  mutate(should_receive_bonus = ntile(quality, 2))
+
+# plot code
+ggplot(bucketed, aes(x = efficiency, y = quality, color = quartile)) +
+  geom_jitter(aes(shape = factor(should_receive_bonus))) + 
+  scale_color_gradientn(
+    # use color brewer to set diverging palette with eight levels
+    colors = RColorBrewer::brewer.pal(8, "RdYlBu"),
+    breaks = c(-3,4),
+    labels = c("Penalties", "Bonuses")
+  ) +
+  geom_hline(aes(yintercept = median(hospitals$quality),
+                 linetype = "Median weighted composite quality")
+  ) +
+  scale_linetype_manual(values = 2) +
+  scale_shape_manual(values = c(4, 19), name = "Placeholder", labels = c("Penalties", "Bonuses")) +
+  theme_minimal() +
+  labs(title = "Weighted composite quality score",
+       x = "Weighted efficiency score",
+       y = "",
+       linetype = "", 
+       color = "Payment adjustments",
+       caption = "Source: GAO analysis of Centers for Medicare & Medicaid data. | GAO-XX-XXX"
+  ) + 
+  theme(
+    plot.caption = element_text(hjust = 0, size = 6),
+    legend.position = "bottom",
+    legend.justification = "left",
+    legend.title = element_text(size = 7, face = "bold"),
+    plot.title = element_text(size = 7, face = "bold"),
+    axis.title.x = element_text(hjust = 0, size = 7, face = "bold"),
+    axis.text = element_text(size = 7, face = "bold"),
+    panel.grid = element_blank(),
+    axis.line.x = element_line(size = 1)
+  ) +
+  guides(
+    color = guide_colorbar(
+      direction = "horizontal",
+      ticks = FALSE,
+      title.position = "top",
+      order = 1,
+      label.theme = element_text(size = 7, angle = 0)
+    ),
+    linetype = guide_legend(
+      label.theme = (element_text(size = 7, angle = 0))
+    ),
+    shape = guide_legend(
+      order = 3,
+      direction = "vertical",
+      title.position = "top",
+      label.theme = (element_text(size = 7, angle = 0))
+    )
+  )
+
+# png files for report drafts, vector files for VCA edits
+# sizes are consistent with GAO standards for 2/3 page graphics
+ggsave("efficiency_quality_scatter_101060.png", width = 7.58, height = 6.83)
+ggsave("efficiency_quality_scatter_101060.svg", width = 7.58, height = 6.83)
+```

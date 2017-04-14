@@ -2,14 +2,14 @@
 library(shiny)
 
 shinyUI(
-  navbarPage("tablol", id = "which_panel",
+  navbarPage("autoggraph", id = "which_panel",
     # instructions UI ---------------------------------------------------------
     tabPanel("instructions",
       includeMarkdown("www/instructions.Rmd")
       ),
     # plot UI -----------------------------------------------------------------
     tabPanel("plots",
-    includeCSS("www/simplex.css"),
+      includeCSS("www/simplex.css"),
       fluidRow(  
         column(3,
          wellPanel(
@@ -32,9 +32,9 @@ shinyUI(
           uiOutput("plot_options")
           )
          ),
-        column(6, 
-         mainPanel(plotOutput("graph"))
-         ),
+        column(6,
+          plotOutput("graph")
+          ),
         column(3, 
          wellPanel(
           h4("plot labels"),
@@ -42,6 +42,8 @@ shinyUI(
           textInput("y_label", "y-axis label"),
           textInput("labels", "third variable labels, separated by commas",
             placeholder = "one, two, three"),
+          textInput("labels_w", "fourth variable labels, separated by commas",
+                    placeholder = "one, two, three"),
           textInput("source_label", "source label",
             placeholder = "Source: GAO analysis...")
           ),         
@@ -57,7 +59,11 @@ shinyUI(
           br(),
           br(),
           downloadLink("code_download", 
-            "share the plot generating code with your data analyst:")
+            "share the plot with your data analyst:"),
+          br(),
+          br(),
+          downloadLink("logs",
+            "of course it does logs")
           ) 
          )
         )
