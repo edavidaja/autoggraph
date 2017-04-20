@@ -43,7 +43,7 @@ shinyUI(
           textInput("labels", "third variable labels, separated by commas",
             placeholder = "one, two, three"),
           textInput("labels_w", "fourth variable labels, separated by commas",
-                    placeholder = "one, two, three"),
+            placeholder = "one, two, three"),
           textInput("source_label", "source label",
             placeholder = "Source: GAO analysis...")
           ),         
@@ -63,7 +63,13 @@ shinyUI(
           br(),
           br(),
           downloadLink("logs",
-            "of course it does logs")
+            "of course it does logs"
+            ),
+          br(),
+          br(),
+          downloadLink("bundle",
+            "zip bundle"
+            )
           ) 
          )
         )
