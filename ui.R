@@ -2,7 +2,7 @@
 library(shiny)
 
 shinyUI(
-  navbarPage(paste("autoggraph", version), id = "which_panel",
+  navbarPage(paste("autoggraph"), id = "which_panel",
     # instructions UI ---------------------------------------------------------
     tabPanel("instructions",
       includeMarkdown("www/instructions.Rmd")
