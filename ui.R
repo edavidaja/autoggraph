@@ -50,26 +50,7 @@ shinyUI(
        ## links to outputs of application -------------------------------------
          wellPanel(
           h4("export:"),
-          downloadLink("raster_download", 
-            "download raster files for use in drafts or presentations:"),
-          br(),
-          br(),
-          downloadLink("vector_download", 
-            "download vector files for further VCA customization:"),
-          br(),
-          br(),
-          downloadLink("code_download", 
-            "share the plot with your data analyst:"),
-          br(),
-          br(),
-          downloadLink("logs",
-            "of course it does logs"
-            ),
-          br(),
-          br(),
-          downloadLink("bundle",
-            "zip bundle"
-            )
+          downloadButton(outputId = "bundle", label = "results")
           ) 
          )
         )
