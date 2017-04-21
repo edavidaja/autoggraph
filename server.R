@@ -47,13 +47,17 @@ shinyServer(function(input, output, session) {
         ),
       "pointrange" = 
       list(
-        selectInput(inputId = paste0(plot_opts, "pointrange"), "bounds", 
-          choices = c('bound variable' = '', names(graph_data())))
+        selectInput(inputId = paste0(plot_opts, "lower_pointrange"), "lower bound", 
+          choices = c('lower bound' = '', names(graph_data()))),
+        selectInput(inputId = paste0(plot_opts, "upper_pointrange"), "upper bound", 
+                    choices = c('upper bound' = '', names(graph_data())))
         ),
       "error bar" = 
       list(
-        selectInput(inputId = paste0(plot_opts, "stat_option"), "bounds:", 
-          choices = c('bound variable' = '', names(graph_data())))
+        selectInput(inputId = paste0(plot_opts, "error_lower_bound"), "lower bound", 
+          choices = c('lower bound' = '', names(graph_data()))),
+        selectInput(inputId = paste0(plot_opts, "error_upper_bound"), "upper bound", 
+                    choices = c('upper bound' = '', names(graph_data())))
         ),
       "pie" = 
       a(p("no. pie charts are the worst."), 
@@ -113,6 +117,7 @@ shinyServer(function(input, output, session) {
     }
   )
   
+  
   output$raster_download <- downloadHandler(
     
     filename = function() { 
@@ -125,6 +130,7 @@ shinyServer(function(input, output, session) {
       }
       
   )
+
 
   output$vector_download <- downloadHandler(
     
@@ -175,13 +181,13 @@ shinyServer(function(input, output, session) {
        ),
 
       selectInput("z",
-       "add a third variable:",
-       choices =  c("third variable (e.g. color)" = "", names(graph_data()))
+       "add an additional discrete variable:",
+       choices =  c("discrete variable" = "", names(graph_data()))
        ),
 
       selectInput("w",
-       "add a fourth variable:",
-       choices =  c("fourth variable (e.g. point size)" = "", names(graph_data()))
+       "add an additional continuous variable:",
+       choices =  c("continuous variable" = "", names(graph_data()))
        )
       )
   })
@@ -191,22 +197,18 @@ shinyServer(function(input, output, session) {
 
   which_error <- reactive({
     
-    req(input[[paste0(plot_opts, "stat_option")]])
-    
-    verbage1 <- paste(input$y, '+', input[[paste0(plot_opts, 'stat_option')]]) 
-    verbage2 <- paste(input$y, '-', input[[paste0(plot_opts, 'stat_option')]]) 
-    limits <- aes_string(ymax=verbage1, ymin=verbage2)
+    req(input[[paste0(plot_opts, "error_lower_bound")]], input[[paste0(plot_opts, "error_upper_bound")]])
+
+    limits <- aes_string(ymax=input[[paste0(plot_opts, "error_upper_bound")]], ymin=input[[paste0(plot_opts, "error_lower_bound")]])
     geom_errorbar(limits, position='dodge')
     
   })
   
   which_point_range <- reactive({
     
-    req(input[[paste0(plot_opts, "pointrange")]])
+    req(input[[paste0(plot_opts, "lower_pointrange")]], input[[paste0(plot_opts, "upper_pointrange")]])
     
-    verbage1 <- paste(input$y, '+', input[[paste0(plot_opts, 'pointrange')]]) 
-    verbage2 <- paste(input$y, '-', input[[paste0(plot_opts, 'pointrange')]]) 
-    limits <- aes_string(ymax=verbage1, ymin=verbage2)
+    limits <- aes_string(ymax=input[[paste0(plot_opts, "lower_pointrange")]], ymin=input[[paste0(plot_opts, "upper_pointrange")]])
     geom_pointrange(limits, position='dodge')
     
   })
@@ -230,25 +232,35 @@ shinyServer(function(input, output, session) {
 
     # return aesthetics based on which combinations of  
     # data input fields are selected
-
     if (input$x != '' & input$y == '' & input$z == '')
     {
       aes_string(x = as.name(input$x))
     }
     # x and z
-    else if (input$x != '' & input$y == '' & input$z != '')
+    else if (input$x != '' & input$y == '' & input$z != '' & input$w == '')
     {
       aes_string(x = as.name(input$x), fill = as.name(input$z))
     }    
     # x and y
-    else if (input$x != '' & input$y != '' & input$z == '')
+    else if (input$x != '' & input$y != '' & input$z == '' & input$w == '')
     {
       aes_string(x = as.name(input$x), y = as.name(input$y))
     }
-    else if (input$x != '' & input$y != '' & input$z != '')
+    #  x, y and, z
+    else if (input$x != '' & input$y != '' & input$z != '' & input$w == '')
     {
      aes_string(x = as.name(input$x), y = as.name(input$y), fill = as.name(input$z))
-   } 
+    } 
+    # x, y, and w
+    else if (input$x != '' & input$y != '' & input$z == '' & input$w != '')
+    {
+      aes_string(x = as.name(input$x), y = as.name(input$y), colour = as.name(input$w))
+    }
+    # x, y, z, and ws
+    else if (input$x != '' & input$y != '' & input$z != '' & input$w != '')
+    {
+      aes_string(x = as.name(input$x), y = as.name(input$y), colour = as.name(input$z))
+    }    
  })
 
   which_geom <- reactive({
@@ -256,7 +268,10 @@ shinyServer(function(input, output, session) {
     # select geom based on selected chart type for the univariate or
     # two-variable case.    
 
+
     req(graph_data())
+    
+    print('HI')
     
     switch(input$chart_type,
            'histogram' = {
@@ -319,12 +334,25 @@ shinyServer(function(input, output, session) {
         },
       'pointrange' = which_point_range(),
       'error bar' = which_error(),
-      'hex bins' = geom_hex(fill = '#044F91'),
-      'heatmap' = geom_tile(),
-      'contour' = geom_contour()
+      'area' = list(geom_area(alpha = .1), geom_line(aes_string(color = input$z), size= 1.1, position = "stack"))
       )
   })
 
+  
+
+  which_geom_w_z <- reactive({
+    
+    if (is.null(input$z))
+    {
+      geom_point(size = 21, aes_string(size = input$w, colour = 'white'))
+    }
+    else
+    {
+      geom_point(aes_string(size = input$w, colour = input$z))
+    }
+
+  })
+  
   graph_it <- reactive({
     # require chart type, data to be loaded, 
     # and an x variable to be selected before
@@ -337,6 +365,30 @@ shinyServer(function(input, output, session) {
     {
 
       p <- p + which_geom()
+    }
+    
+    else if (input$w != '')
+    {
+
+      level_count <- nrow(unique(graph_data()[input$z]))
+      if (input$labels == '')
+      {
+        p <- p + scale_fill_manual(values = gao_palette[1:level_count])    
+        p <- p + scale_color_manual(values = gao_palette[1:level_count])    
+      }
+      else
+      {
+        plot_labels <- unlist(strsplit(input$labels, ',', fixed = TRUE))
+        p <- p + scale_fill_manual(values = gao_palette[1:level_count], labels = plot_labels)    
+        p <- p + scale_color_manual(values = gao_palette[1:level_count], labels = plot_labels)    
+      }
+      # TO DO SEPARATE OUT FOR CONTINUOUS AND FACTOR W'S!!!!
+      p <- p + which_geom_w_z()
+      # p <- p + scale_colour_gradient(
+      #     limits = limits, low = gao_palette[1], high = gao_palette[4]
+      #   )
+      print ('made it')
+
     }
     
     # count the number of levels of z and, if necessary, apply custom factor

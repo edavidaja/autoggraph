@@ -17,10 +17,9 @@ shinyUI(
             choices = list(
               `select a chart type` = "",
               `univariate` = c("histogram", "density", "pie"),
-              `multivariate` = c("bar", "line", "step", "scatterplot", "boxplot",
+              `multivariate` = c("bar", "line", "step", "area", "scatterplot", "boxplot",
                 "stacked bar", "clustered bar", "filled bar", "bubble chart"),
-              `statistical` = c("pointrange", "error bar"),
-              `experimental` = c("hex bins", "heatmap", "contour")
+              `statistical` = c("pointrange", "error bar")
               )
             ),
 
@@ -43,6 +42,8 @@ shinyUI(
           textInput("y_label", "y-axis label"),
           textInput("labels", "third variable labels, separated by commas",
             placeholder = "one, two, three"),
+          textInput("labels_w", "fourth variable labels, separated by commas",
+                    placeholder = "one, two, three"),
           textInput("source_label", "source label",
             placeholder = "Source: GAO analysis...")
           ),         
