@@ -108,12 +108,13 @@ shinyServer(function(input, output, session) {
       paste("autoggraph-", input$chart_type, ".zip", sep = "" ) 
       },
      content = function(file) {
-      vector_out  <- tempfile(fileext = ".svg")
+      # TODO(ajae): restore vector output after installing svg lite
+      # vector_out  <- tempfile(fileext = ".svg")
       raster_out  <- tempfile(fileext = ".png")
       plotobj_out <- tempfile(fileext = ".rds")
       log_out     <- tempfile(fileext = ".txt")
 
-      ggsave(vector_out, width = 6.83, height = 7.58)
+      # ggsave(vector_out, width = 6.83, height = 7.58)
       ggsave(raster_out, width = 6.83, height = 7.58)
 
       graph_save <- graph
@@ -130,7 +131,8 @@ shinyServer(function(input, output, session) {
             ),
           log_out
           )
-      zip(zipfile = file, files = c(vector_out, raster_out, plotobj_out, log_out))
+      # zip(zipfile = file, files = c(vector_out, raster_out, plotobj_out, log_out))
+      zip(zipfile = file, files = c(raster_out, plotobj_out, log_out))
      } 
     )
 

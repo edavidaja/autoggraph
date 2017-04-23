@@ -9,3 +9,6 @@ bar_copy <- list(
 	 br(),
 	 p("for bar charts with record level data, put the primary category in x, and the second category in z.")
 	)
+
+# set location of zip for export
+Sys.setenv(R_ZIPCMD="/usr/bin/zip")
