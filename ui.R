@@ -2,7 +2,7 @@
 library(shiny)
 
 shinyUI(
-  navbarPage("autoggraph", id = "which_panel",
+  navbarPage(paste("autoggraph"), id = "which_panel",
     # instructions UI ---------------------------------------------------------
     tabPanel("instructions",
       includeMarkdown("www/instructions.Rmd")
@@ -43,27 +43,14 @@ shinyUI(
           textInput("labels", "third variable labels, separated by commas",
             placeholder = "one, two, three"),
           textInput("labels_w", "fourth variable labels, separated by commas",
-                    placeholder = "one, two, three"),
+            placeholder = "one, two, three"),
           textInput("source_label", "source label",
             placeholder = "Source: GAO analysis...")
           ),         
        ## links to outputs of application -------------------------------------
          wellPanel(
           h4("export:"),
-          downloadLink("raster_download", 
-            "download raster files for use in drafts or presentations:"),
-          br(),
-          br(),
-          downloadLink("vector_download", 
-            "download vector files for further VCA customization:"),
-          br(),
-          br(),
-          downloadLink("code_download", 
-            "share the plot with your data analyst:"),
-          br(),
-          br(),
-          downloadLink("logs",
-            "of course it does logs")
+          downloadButton(outputId = "bundle", label = "results")
           ) 
          )
         )
