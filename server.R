@@ -93,6 +93,8 @@ shinyServer(function(input, output, session) {
     ext <- tools::file_ext(input$infile$name)
     if (ext %in% c("xls", "xlsx")) {
 
+      req(input$which_sheet)
+
       file.rename(input$infile$datapath, paste(input$infile$datapath, ext, sep="."))
       read_excel(paste(input$infile$datapath, ext, sep="."), sheet = input$which_sheet)
     } else if (ext == "csv") {
