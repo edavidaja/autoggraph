@@ -2,7 +2,12 @@
 library(shiny)
 
 shinyUI(
-  navbarPage(paste("autoggraph"), id = "which_panel",
+
+
+  navbarPage("autoggraph", id = "which_panel",
+   tags$head(
+    tags$link(rel = "icon", type = "image/png", href = "favicon-32x32.png")
+    ),
     # instructions UI ---------------------------------------------------------
     tabPanel("instructions",
       includeMarkdown("www/instructions.Rmd")
