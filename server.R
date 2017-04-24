@@ -162,7 +162,8 @@ shinyServer(function(input, output, session) {
       selectInput("w",
        "add an additional continuous variable:",
        choices =  c("continuous variable" = "", names(graph_data()))
-       )
+       ),
+      actionButton("do_plot", "can i have your autoggraph?", icon = icon("area-chart"))
       )
   })
 
@@ -327,7 +328,7 @@ shinyServer(function(input, output, session) {
 
   })
   
-  graph_it <- reactive({
+  graph_it <- eventReactive(input$do_plot, {
     # require chart type, data to be loaded, 
     # and an x variable to be selected before
     # rendering a plot
