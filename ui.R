@@ -8,7 +8,7 @@ shinyUI(
     # instructions UI ---------------------------------------------------------
     tabPanel("instructions",
      tags$head(
-      tags$link(rel = "icon", type = "image/png", href = "favicon-32x32.png")
+      tags$link(rel = "icon", type = "image/png", href = "favicon.png")
       ),
       includeMarkdown("www/instructions.Rmd")
       ),
