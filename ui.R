@@ -5,11 +5,11 @@ shinyUI(
 
 
   navbarPage("autoggraph", id = "which_panel",
-   tags$head(
-    tags$link(rel = "icon", type = "image/png", href = "favicon-32x32.png")
-    ),
     # instructions UI ---------------------------------------------------------
     tabPanel("instructions",
+     tags$head(
+      tags$link(rel = "icon", type = "image/png", href = "favicon-32x32.png")
+      ),
       includeMarkdown("www/instructions.Rmd")
       ),
     # plot UI -----------------------------------------------------------------
