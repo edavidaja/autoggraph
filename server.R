@@ -116,8 +116,8 @@ shinyServer(function(input, output, session) {
       plotobj_out <- tempfile(fileext = ".rds")
       log_out     <- tempfile(fileext = ".txt")
 
-      # ggsave(vector_out, width = 6.83, height = 7.58)
-      ggsave(raster_out, width = 6.83, height = 7.58)
+      # ggsave(vector_out, width = 7.58, height = 6.83)
+      ggsave(raster_out, width = 7.58, height = 6.83)
 
       graph_save <- graph
       write_rds(graph_save, plotobj_out, compress = "none")
