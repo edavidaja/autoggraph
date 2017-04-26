@@ -1,5 +1,5 @@
 # version number
-version <- numeric_version("0.0.0.9001")
+version <- numeric_version("0.0.0.9002")
 
 # lengthy copy objects
 bar_copy <- list(
@@ -11,4 +11,4 @@ bar_copy <- list(
 	)
 
 # set location of zip for export
-Sys.setenv(R_ZIPCMD="/usr/bin/zip")
+# Sys.setenv(R_ZIPCMD="/usr/bin/zip")
