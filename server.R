@@ -346,14 +346,14 @@ shinyServer(function(input, output, session) {
     {
 
       level_count <- nrow(unique(graph_data()[input$z]))
-      if (input$labels == '')
+      if (input$z_label == '')
       {
         p <- p + scale_fill_manual(values = gao_palette[1:level_count])    
         p <- p + scale_color_manual(values = gao_palette[1:level_count])    
       }
       else
       {
-        plot_labels <- unlist(strsplit(input$labels, ',', fixed = TRUE))
+        plot_labels <- unlist(strsplit(input$z_label, ',', fixed = TRUE))
         p <- p + scale_fill_manual(values = gao_palette[1:level_count], labels = plot_labels)    
         p <- p + scale_color_manual(values = gao_palette[1:level_count], labels = plot_labels)    
       }
@@ -371,14 +371,14 @@ shinyServer(function(input, output, session) {
     else if (input$z != '')
     {
       level_count <- nrow(unique(graph_data()[input$z]))
-      if (input$labels == '')
+      if (input$z_label == '')
       {
         p <- p + scale_fill_manual(values = gao_palette[1:level_count])    
         p <- p + scale_color_manual(values = gao_palette[1:level_count])    
       }
       else
       {
-        plot_labels <- unlist(strsplit(input$labels, ',', fixed = TRUE))
+        plot_labels <- unlist(strsplit(input$z_label, ',', fixed = TRUE))
         p <- p + scale_fill_manual(values = gao_palette[1:level_count], labels = plot_labels)    
         p <- p + scale_color_manual(values = gao_palette[1:level_count], labels = plot_labels)    
       }
