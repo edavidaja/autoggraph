@@ -1,5 +1,5 @@
 # version number
-version <- numeric_version("0.0.0.9002")
+version <- numeric_version("0.0.0.9003")
 
 # lengthy copy objects
 bar_copy <- list(
