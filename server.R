@@ -29,35 +29,40 @@ gao_palette <- c('#99CCFF', '#3F9993', '#044F91', '#330033')
 # server ----------------------------------------------------------------------
 shinyServer(function(input, output, session) {
 
+  plot_opts <- eventReactive(input$chart_type, {
+      
+      print ('i am in the plot opts')
+      as.character(paste0(round(runif(1, 1, 100), 0), '_'))
+  })
+  
+  
   # plot specific options block based on dynamic ui example -------------------
   # http://shiny.rstudio.com/gallery/dynamic-ui.html
   output$plot_options <- renderUI({
 
     req(input$chart_type)
-
-    chart_type <<- input$chart_type
-    plot_opts <<- paste0(round(runif(1, 1, 100), 0), '_')
-    plot_opts <<- as.character(plot_opts)
     
+    print(plot_opts())
+    #chart_type <<- input$chart_type
     switch(input$chart_type,
       "scatterplot" = 
       list(
-        selectInput(inputId = paste0(plot_opts, "scatter_option_smooth"), "add a smoother:", choices = c("smoother" = '', "loess", "linear")),
-        sliderInput(inputId = paste0(plot_opts, "scatter_option_span"), "wiggle", min = 0, max = 1, value = .7, step = .1, ticks = FALSE),
-        checkboxInput(inputId = paste0(plot_opts, "scatter_option_se"), "confidence interval?", value = TRUE)
+        selectInput(inputId = paste0(plot_opts(), "scatter_option_smooth"), "add a smoother:", choices = c("smoother" = '', "loess", "linear")),
+        sliderInput(inputId = paste0(plot_opts(), "scatter_option_span"), "wiggle", min = 0, max = 1, value = .7, step = .1, ticks = FALSE),
+        checkboxInput(inputId = paste0(plot_opts(), "scatter_option_se"), "confidence interval?", value = TRUE)
         ),
       "pointrange" = 
       list(
-        selectInput(inputId = paste0(plot_opts, "lower_pointrange"), "lower bound", 
+        selectInput(inputId = paste0(plot_opts(), "lower_pointrange"), "lower bound", 
           choices = c('lower bound' = '', names(graph_data()))),
-        selectInput(inputId = paste0(plot_opts, "upper_pointrange"), "upper bound", 
+        selectInput(inputId = paste0(plot_opts(), "upper_pointrange"), "upper bound", 
                     choices = c('upper bound' = '', names(graph_data())))
         ),
       "error bar" = 
       list(
-        selectInput(inputId = paste0(plot_opts, "error_lower_bound"), "lower bound", 
+        selectInput(inputId = paste0(plot_opts(), "error_lower_bound"), "lower bound", 
           choices = c('lower bound' = '', names(graph_data()))),
-        selectInput(inputId = paste0(plot_opts, "error_upper_bound"), "upper bound", 
+        selectInput(inputId = paste0(plot_opts(), "error_upper_bound"), "upper bound", 
                     choices = c('upper bound' = '', names(graph_data())))
         ),
       "pie" = 
@@ -173,27 +178,28 @@ shinyServer(function(input, output, session) {
 
   which_error <- reactive({
     
-    req(input[[paste0(plot_opts, "error_lower_bound")]], input[[paste0(plot_opts, "error_upper_bound")]])
+    req(input[[paste0(plot_opts(), "error_lower_bound")]], input[[paste0(plot_opts(), "error_upper_bound")]])
 
-    limits <- aes_string(ymax=input[[paste0(plot_opts, "error_upper_bound")]], ymin=input[[paste0(plot_opts, "error_lower_bound")]])
+    limits <- aes_string(ymax=input[[paste0(plot_opts(), "error_upper_bound")]], ymin=input[[paste0(plot_opts(), "error_lower_bound")]])
     geom_errorbar(limits, position='dodge')
     
   })
   
   which_point_range <- reactive({
     
-    req(input[[paste0(plot_opts, "lower_pointrange")]], input[[paste0(plot_opts, "upper_pointrange")]])
+    req(input[[paste0(plot_opts(), "lower_pointrange")]], input[[paste0(plot_opts(), "upper_pointrange")]])
     
-    limits <- aes_string(ymax=input[[paste0(plot_opts, "lower_pointrange")]], ymin=input[[paste0(plot_opts, "upper_pointrange")]])
+    limits <- aes_string(ymax=input[[paste0(plot_opts(), "lower_pointrange")]], ymin=input[[paste0(plot_opts(), "upper_pointrange")]])
     geom_pointrange(limits, position='dodge')
     
   })
   
   get_loess <- reactive({
-    geom_smooth(
+      print('hi...')
+      geom_smooth(
       method = 'loess', 
-      span = input[[paste0(plot_opts, 'scatter_option_span')]], 
-      se = input[[paste0(plot_opts, 'scatter_option_se')]]
+      span = input[[paste0(plot_opts(), 'scatter_option_span')]], 
+      se = input[[paste0(plot_opts(), 'scatter_option_se')]]
     )
   })
   
@@ -246,8 +252,6 @@ shinyServer(function(input, output, session) {
 
 
     req(graph_data())
-    
-    print('HI')
     
     switch(input$chart_type,
            'histogram' = {
@@ -329,6 +333,10 @@ shinyServer(function(input, output, session) {
 
   })
   
+
+  
+
+  
   graph_it <- eventReactive(input$do_plot, {
     # require chart type, data to be loaded, 
     # and an x variable to be selected before
@@ -389,11 +397,11 @@ shinyServer(function(input, output, session) {
     ## additional geom layers -------------------------------------------------
     ## apply smoother to scatter plot
     
-    if (! is.null(input[[paste0(plot_opts, 'scatter_option_smooth')]]))
+    if (! is.null(input[[paste0(plot_opts(), 'scatter_option_smooth')]]))
     {
-      if (input[[paste0(plot_opts, 'scatter_option_smooth')]] == 'linear' | input[[paste0(plot_opts, 'scatter_option_smooth')]] == 'loess')
+      if (input[[paste0(plot_opts(), 'scatter_option_smooth')]] == 'linear' | input[[paste0(plot_opts(), 'scatter_option_smooth')]] == 'loess')
       {
-        switch(input[[paste0(plot_opts, 'scatter_option_smooth')]],
+        switch(input[[paste0(plot_opts(), 'scatter_option_smooth')]],
                'loess' = p <- p + get_loess(),
                'linear' = p <- p + get_lm()
         )
@@ -428,7 +436,6 @@ shinyServer(function(input, output, session) {
   })
 
   output$graph <- renderPlot({
-
     graph_it()
 
   })
