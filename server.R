@@ -19,7 +19,8 @@ theme_gao <- list(
     ), 
   guides(
     color = guide_legend(title.position = "top", ncol = 1),
-    fill = guide_legend(title.position = "top", ncol = 1)
+    fill = guide_legend(title.position = "top", ncol = 1),
+    size = guide_legend(title.position = "top", ncol = 1)
   )
 )
 # gao custom palette
@@ -346,14 +347,14 @@ shinyServer(function(input, output, session) {
     {
 
       level_count <- nrow(unique(graph_data()[input$z]))
-      if (input$labels == '')
+      if (input$z_label == '')
       {
         p <- p + scale_fill_manual(values = gao_palette[1:level_count])    
         p <- p + scale_color_manual(values = gao_palette[1:level_count])    
       }
       else
       {
-        plot_labels <- unlist(strsplit(input$labels, ',', fixed = TRUE))
+        plot_labels <- unlist(strsplit(input$z_label, ',', fixed = TRUE))
         p <- p + scale_fill_manual(values = gao_palette[1:level_count], labels = plot_labels)    
         p <- p + scale_color_manual(values = gao_palette[1:level_count], labels = plot_labels)    
       }
@@ -371,14 +372,14 @@ shinyServer(function(input, output, session) {
     else if (input$z != '')
     {
       level_count <- nrow(unique(graph_data()[input$z]))
-      if (input$labels == '')
+      if (input$z_label == '')
       {
         p <- p + scale_fill_manual(values = gao_palette[1:level_count])    
         p <- p + scale_color_manual(values = gao_palette[1:level_count])    
       }
       else
       {
-        plot_labels <- unlist(strsplit(input$labels, ',', fixed = TRUE))
+        plot_labels <- unlist(strsplit(input$z_label, ',', fixed = TRUE))
         p <- p + scale_fill_manual(values = gao_palette[1:level_count], labels = plot_labels)    
         p <- p + scale_color_manual(values = gao_palette[1:level_count], labels = plot_labels)    
       }
@@ -401,7 +402,7 @@ shinyServer(function(input, output, session) {
     ## custom labels ----------------------------------------------------------
     if (input$x_label != '')
     {
-      p <- p + xlab(input$x_label)
+      p <- p + labs(x = input$x_label)
     }
     if (input$y_label != '')
     {
@@ -410,6 +411,15 @@ shinyServer(function(input, output, session) {
     if (input$source_label != '') 
     {
       p <- p + labs(caption = input$source_label)
+    }
+    if (input$z_guide != "") {
+      p <- p + labs(color = input$z_guide) 
+      p <- p + labs(fill = input$z_guide)
+    }
+    if (input$w_guide != "") {
+      p <- p + labs(size = input$w_guide) 
+      p <- p + labs(color = input$w_guide) 
+      p <- p + labs(fill = input$w_guide)
     }
     p <- p + theme_gao
     
