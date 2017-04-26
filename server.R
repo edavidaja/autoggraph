@@ -119,8 +119,8 @@ shinyServer(function(input, output, session) {
       # ggsave(vector_out, width = 7.58, height = 6.83)
       ggsave(raster_out, width = 7.58, height = 6.83)
 
-      graph_save <- graph
-      write_rds(graph_save, plotobj_out, compress = "none")
+      
+      write_rds(graph_it(), plotobj_out, compress = "none")
       # TODO(ajae): write rds checksum into log file if needed
       
       write_lines(
@@ -412,7 +412,6 @@ shinyServer(function(input, output, session) {
       p <- p + labs(caption = input$source_label)
     }
     p <- p + theme_gao
-    graph <<- p
     
     p
 
