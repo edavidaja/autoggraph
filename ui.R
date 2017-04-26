@@ -47,10 +47,10 @@ shinyUI(
           textInput("y_label", "y-axis label"),
           textInput("z_label", "third variable labels, separated by commas",
             placeholder = "one, two, three, ..."),
-          textInput("z_guide", "add'l discrete variable label"),
-          textInput("labels_w", "fourth variable labels, separated by commas",
+          textInput("z_guide", "additional discrete variable label"),
+          textInput("w_label", "fourth variable labels, separated by commas",
             placeholder = "one, two, three, ..."),
-          textInput("w_guide", "add'l continuous variable label"),
+          textInput("w_guide", "additional continuous variable label"),
           textInput("source_label", "source label",
             placeholder = "Source: GAO analysis...")
           ),         
