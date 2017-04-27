@@ -30,7 +30,6 @@ gao_palette <- c('#99CCFF', '#3F9993', '#044F91', '#330033')
 shinyServer(function(input, output, session) {
 
   plot_opts <- eventReactive(input$chart_type, {
-      
       print ('i am in the plot opts')
       as.character(paste0(round(runif(1, 1, 100), 0), '_'))
   })
@@ -173,7 +172,6 @@ shinyServer(function(input, output, session) {
       )
   })
 
-
   # Graphs ----------------------------------------------------------------
 
   which_error <- reactive({
@@ -207,9 +205,6 @@ shinyServer(function(input, output, session) {
     geom_smooth(method = 'lm')
   })
   
-
-
-
   which_aes <- reactive({
 
     # return aesthetics based on which combinations of  
@@ -249,8 +244,6 @@ shinyServer(function(input, output, session) {
     
     # select geom based on selected chart type for the univariate or
     # two-variable case.    
-
-
     req(graph_data())
     
     switch(input$chart_type,
@@ -270,6 +263,7 @@ shinyServer(function(input, output, session) {
            'error bar' = which_error()
     )
   })
+
   # added an extra which_geom function for z vars to overrtmp_ide the default color
   # changed the these function from switch to if to handle some extra logic
   which_geom_z <- reactive({
@@ -318,8 +312,6 @@ shinyServer(function(input, output, session) {
       )
   })
 
-  
-
   which_geom_w_z <- reactive({
     
     if (is.null(input$z))
@@ -332,11 +324,7 @@ shinyServer(function(input, output, session) {
     }
 
   })
-  
-
-  
-
-  
+    
   graph_it <- eventReactive(input$do_plot, {
     # require chart type, data to be loaded, 
     # and an x variable to be selected before
@@ -437,6 +425,6 @@ shinyServer(function(input, output, session) {
 
   output$graph <- renderPlot({
     graph_it()
-
   })
+
 })
