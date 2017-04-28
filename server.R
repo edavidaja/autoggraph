@@ -267,6 +267,7 @@ shinyServer(function(input, output, session) {
      'step' = geom_step(fill = '#044F91'),
      'scatterplot' = geom_point(),
      'bar' = geom_bar(position = 'dodge', stat = "identity", fill = '#044F91'),
+     'boxplot' = geom_boxplot(),
      'pointrange' = which_point_range(),
      'error bar' = which_error()
      )
@@ -290,7 +291,7 @@ shinyServer(function(input, output, session) {
       'column' = geom_col(),
       'line' = geom_line(aes_string(color = input$z)),
       'step' = geom_step(aes_string(color = input$z)),
-      'boxplot' = geom_boxplot(),
+      'boxplot' = geom_boxplot(aes_string(color = input$z)),
       'scatterplot' = geom_point(shape = 21, size = 2, color = "white"),
       'bar' = geom_bar(position = 'dodge', stat = "identity", fill = '#044F91'),
       'stacked bar' = {
@@ -324,7 +325,7 @@ shinyServer(function(input, output, session) {
 
     if (is.null(input$z))
     {
-      geom_point(size = 21, aes_string(size = input$w, colour = 'white'))
+      geom_point(shape = 21, aes_string(size = input$w, colour = 'white'))
     }
     else
     {
