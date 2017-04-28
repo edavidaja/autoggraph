@@ -31,7 +31,7 @@ gao_palette <- c('#99CCFF', '#3F9993', '#044F91', '#330033')
 shinyServer(function(input, output, session) {
 
   plot_opts <- eventReactive(input$chart_type, {
-      print ('i am in the plot opts')
+      print ('plot opts fired')
       as.character(paste0(round(runif(1, 1, 100), 0), '_'))
   })
   
@@ -197,7 +197,7 @@ shinyServer(function(input, output, session) {
   })
   
   get_loess <- reactive({
-      print('hi...')
+      print('loess fired')
       geom_smooth(
       method = 'loess', 
       span = input[[paste0(plot_opts(), 'scatter_option_span')]], 
@@ -366,7 +366,7 @@ shinyServer(function(input, output, session) {
       # p <- p + scale_colour_gradient(
       #     limits = limits, low = gao_palette[1], high = gao_palette[4]
       #   )
-      print ('made it')
+      print ('w fired')
     }
     
     # count the number of levels of z and, if necessary, apply custom factor
