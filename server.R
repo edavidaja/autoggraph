@@ -169,7 +169,7 @@ shinyServer(function(input, output, session) {
        ),
       conditionalPanel(condition = "input.z != '' | input.w != ''",
         selectInput("which_palette", label = "select a color palette", 
-          choices = c("palette" = "", "sequential" = "seq", "diverging" = "div", "qualitative" = "qual")
+          choices = c("palette" = "", "sequential" = "Blues", "diverging" = "RdYlBu", "qualitative" = "Set1")
           )
         ),
       actionButton("do_plot", "can i have your autoggraph?", icon = icon("area-chart"))
@@ -349,22 +349,24 @@ shinyServer(function(input, output, session) {
       level_count <- nrow(unique(graph_data()[input$z]))
       if (input$z_label == '')
       {
-        p <- p + scale_fill_manual(values = gao_palette[1:level_count])    
-        p <- p + scale_color_manual(values = gao_palette[1:level_count])    
+        p <- p + scale_fill_manual(values = brewer.pal(level_count, input$which_palette))    
+        p <- p + scale_color_manual(values = brewer.pal(level_count, input$which_palette))    
       }
       else
       {
         plot_labels <- unlist(strsplit(input$z_label, ',', fixed = TRUE))
-        p <- p + scale_fill_manual(values = gao_palette[1:level_count], labels = plot_labels)    
-        p <- p + scale_color_manual(values = gao_palette[1:level_count], labels = plot_labels)    
+        p <- p + scale_fill_manual(values = brewer.pal(level_count, input$which_palette), labels = plot_labels)    
+        p <- p + scale_color_manual(values = brewer.pal(level_count, input$which_palette), labels = plot_labels)    
       }
-      # TO DO SEPARATE OUT FOR CONTINUOUS AND FACTOR W'S!!!!
+      # TODO(portnows): palette application currently defaults to the discrete variable z; need to provide the
+      # allowing it to apply either.
+      # in the case where only an additional continuous variable is selected,
+      # only sequential and diverging palettes should be available
       p <- p + which_geom_w_z()
       # p <- p + scale_colour_gradient(
       #     limits = limits, low = gao_palette[1], high = gao_palette[4]
       #   )
       print ('made it')
-
     }
     
     # count the number of levels of z and, if necessary, apply custom factor
@@ -374,14 +376,14 @@ shinyServer(function(input, output, session) {
       level_count <- nrow(unique(graph_data()[input$z]))
       if (input$z_label == '')
       {
-        p <- p + scale_fill_manual(values = gao_palette[1:level_count])    
-        p <- p + scale_color_manual(values = gao_palette[1:level_count])    
+        p <- p + scale_fill_manual(values = brewer.pal(level_count, input$which_palette))    
+        p <- p + scale_color_manual(values = brewer.pal(level_count, input$which_palette))    
       }
       else
       {
         plot_labels <- unlist(strsplit(input$z_label, ',', fixed = TRUE))
-        p <- p + scale_fill_manual(values = gao_palette[1:level_count], labels = plot_labels)    
-        p <- p + scale_color_manual(values = gao_palette[1:level_count], labels = plot_labels)    
+        p <- p + scale_fill_manual(values = brewer.pal(level_count, input$which_palette), labels = plot_labels)    
+        p <- p + scale_color_manual(values = brewer.pal(level_count, input$which_palette), labels = plot_labels)    
       }
       p <- p + which_geom_z()
     }
