@@ -3,6 +3,7 @@ library(readr)
 library(readxl)
 library(ggplot2)
 library(stringr)
+library(RColorBrewer)
 
 # gao theme -------------------------------------------------------------------
 theme_gao <- list(
@@ -166,9 +167,9 @@ shinyServer(function(input, output, session) {
        "add an additional continuous variable:",
        choices =  c("continuous variable" = "", names(graph_data()))
        ),
-      radioButtons("which_palette", label = "select a color palette", 
-        choices = c("sequential", "diverging", "qualitative"),
-          inline = TRUE),
+      selectInput("which_palette", label = "select a color palette", 
+        choices = c("palette" = "", "sequential" = "seq", "diverging" = "div", "qualitative" = "qual")
+        ),
       actionButton("do_plot", "can i have your autoggraph?", icon = icon("area-chart"))
       )
   })
