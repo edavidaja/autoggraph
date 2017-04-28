@@ -97,10 +97,8 @@ shinyServer(function(input, output, session) {
 
     ext <- tools::file_ext(input$infile$name)
     if (ext %in% c("xls", "xlsx")) {
-
-      req(input$which_sheet)
-
       file.rename(input$infile$datapath, paste(input$infile$datapath, ext, sep="."))
+      req(input$which_sheet)
       read_excel(paste(input$infile$datapath, ext, sep="."), sheet = input$which_sheet)
     } else if (ext == "csv") {
       read_csv(input$infile$datapath)
@@ -168,6 +166,9 @@ shinyServer(function(input, output, session) {
        "add an additional continuous variable:",
        choices =  c("continuous variable" = "", names(graph_data()))
        ),
+      radioButtons("which_palette", label = "select a color palette", 
+        choices = c("sequential", "diverging", "qualitative"),
+          inline = TRUE),
       actionButton("do_plot", "can i have your autoggraph?", icon = icon("area-chart"))
       )
   })
