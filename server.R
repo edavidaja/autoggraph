@@ -168,8 +168,12 @@ shinyServer(function(input, output, session) {
        choices =  c("continuous variable" = "", names(graph_data()))
        ),
       conditionalPanel(condition = "input.z != '' | input.w != ''",
-        selectInput("which_palette", label = "select a color palette", 
-          choices = c("palette" = "", "sequential" = "Blues", "diverging" = "RdYlBu", "qualitative" = "Set1")
+        radioButtons("which_palette", label = "select a color palette", 
+          choices = c(
+            "qualitative" = "Set1",
+            "sequential" = "Blues", 
+            "diverging" = "RdYlBu"
+            ), inline = TRUE
           )
         ),
       actionButton("do_plot", "can i have your autoggraph?", icon = icon("area-chart"))
