@@ -53,16 +53,16 @@ shinyServer(function(input, output, session) {
         ),
       "pointrange" = 
       list(
-        selectInput(inputId = paste0(plot_opts(), "lower_pointrange"), "lower bound", 
+        selectInput(inputId = paste0(plot_opts(), "pointrange_lower"), "lower bound", 
           choices = c('lower bound' = '', names(graph_data()))),
-        selectInput(inputId = paste0(plot_opts(), "upper_pointrange"), "upper bound", 
+        selectInput(inputId = paste0(plot_opts(), "pointrange_upper"), "upper bound", 
           choices = c('upper bound' = '', names(graph_data())))
         ),
       "error bar" = 
       list(
-        selectInput(inputId = paste0(plot_opts(), "error_lower_bound"), "lower bound", 
+        selectInput(inputId = paste0(plot_opts(), "errorbar_lower"), "lower bound", 
           choices = c('lower bound' = '', names(graph_data()))),
-        selectInput(inputId = paste0(plot_opts(), "error_upper_bound"), "upper bound", 
+        selectInput(inputId = paste0(plot_opts(), "errorbar_upper"), "upper bound", 
           choices = c('upper bound' = '', names(graph_data())))
         ),
       "pie" = 
@@ -182,24 +182,6 @@ shinyServer(function(input, output, session) {
 
   # Graphs ----------------------------------------------------------------
 
-  which_error <- reactive({
-
-    req(input[[paste0(plot_opts(), "error_lower_bound")]], input[[paste0(plot_opts(), "error_upper_bound")]])
-
-    limits <- aes_string(ymax=input[[paste0(plot_opts(), "error_upper_bound")]], ymin=input[[paste0(plot_opts(), "error_lower_bound")]])
-    geom_errorbar(limits, position='dodge')
-    
-  })
-  
-  which_point_range <- reactive({
-
-    req(input[[paste0(plot_opts(), "lower_pointrange")]], input[[paste0(plot_opts(), "upper_pointrange")]])
-    
-    limits <- aes_string(ymax=input[[paste0(plot_opts(), "lower_pointrange")]], ymin=input[[paste0(plot_opts(), "upper_pointrange")]])
-    geom_pointrange(limits, position='dodge')
-    
-  })
-  
   get_loess <- reactive({
     print('loess fired')
     geom_smooth(
@@ -268,8 +250,18 @@ shinyServer(function(input, output, session) {
      'scatterplot' = geom_point(),
      'bar' = geom_bar(position = 'dodge', stat = "identity", fill = '#044F91'),
      'boxplot' = geom_boxplot(),
-     'pointrange' = which_point_range(),
-     'error bar' = which_error()
+     'pointrange' = geom_pointrange(
+        aes_string(
+          ymin = input[[paste0(plot_opts(), "pointrange_lower")]],
+          ymax = input[[paste0(plot_opts(), "pointrange_upper")]] 
+          )
+        ),
+     'error bar' = geom_errorbar(
+      aes_string(
+        ymin = input[[paste0(plot_opts(), "errorbar_lower")]],
+        ymax = input[[paste0(plot_opts(), "errorbar_upper")]]
+        )
+      )
      )
   })
 
@@ -315,9 +307,25 @@ shinyServer(function(input, output, session) {
         geom_bar(position =  "fill", stat = "identity")
       }
     },
-    'pointrange' = which_point_range(),
-    'error bar' = which_error(),
-    'area' = list(geom_area(alpha = .1), geom_line(aes_string(color = input$z), size= 1.1, position = "stack"))
+     'pointrange' = geom_pointrange(
+      aes_string(
+        ymin  = input[[paste0(plot_opts(), "pointrange_lower")]],
+        ymax  = input[[paste0(plot_opts(), "pointrange_upper")]],
+        color = input$z 
+        )
+      ),
+    'error bar' = geom_errorbar(
+      aes_string(
+        ymin  = input[[paste0(plot_opts(), "errorbar_lower")]],
+        ymax  = input[[paste0(plot_opts(), "errorbar_upper")]],
+        color = input$z
+        )
+      ),
+    'area' = list(
+      geom_area(alpha = .1), 
+      geom_line(
+        aes_string(color = input$z), size= 1.1, position = "stack")
+      )
     )
   })
 
