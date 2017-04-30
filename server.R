@@ -264,7 +264,7 @@ shinyServer(function(input, output, session) {
      'density' = geom_density(fill = '#044F91'),
      'line' = geom_line(),
      'step' = geom_step(fill = '#044F91'),
-     'scatterplot' = geom_point(),
+     'scatterplot' = geom_point(alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]]),
      'bar' = geom_bar(position = 'dodge', stat = "identity", fill = '#044F91'),
      'boxplot' = geom_boxplot(),
      'pointrange' = geom_pointrange(
@@ -301,7 +301,8 @@ shinyServer(function(input, output, session) {
       'line' = geom_line(aes_string(color = input$z)),
       'step' = geom_step(aes_string(color = input$z)),
       'boxplot' = geom_boxplot(aes_string(color = input$z)),
-      'scatterplot' = geom_point(shape = 21, size = 2, color = "white"),
+      'scatterplot' = geom_point(shape = 21, size = 2, color = "white",
+        alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]]),
       'bar' = geom_bar(position = 'dodge', stat = "identity", fill = '#044F91'),
       'stacked bar' = {
         if (input$y == '') {  
@@ -350,11 +351,24 @@ shinyServer(function(input, output, session) {
 
     if (is.null(input$z))
     {
-      geom_point(shape = 21, aes_string(size = input$w, colour = 'white'))
+      geom_point(
+        aes_string(
+          size = input$w
+          ),
+        shape = 21, 
+        colour = 'white',
+        alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]]
+        ) 
     }
     else
     {
-      geom_point(aes_string(size = input$w, colour = input$z))
+      geom_point(
+        aes_string(
+          size = input$w,
+          colour = input$z
+          ),
+        alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]]
+        )
     }
 
   })
