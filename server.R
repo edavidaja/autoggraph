@@ -7,7 +7,7 @@ library(RColorBrewer)
 
 # gao theme -------------------------------------------------------------------
 theme_gao <- list(
-  theme_minimal(), 
+  theme_minimal(),
   theme(
     plot.caption = element_text(hjust = 0, size = 6),
     legend.position = "bottom",
@@ -17,7 +17,7 @@ theme_gao <- list(
     axis.title.x = element_text(hjust = 0, size = 7, face = "bold"),
     axis.text = element_text(size = 7, face = "bold"),
     panel.grid = element_blank()
-    ), 
+    ),
   guides(
     color = guide_legend(title.position = "top", ncol = 1),
     fill = guide_legend(title.position = "top", ncol = 1),
@@ -25,17 +25,16 @@ theme_gao <- list(
     )
   )
 # gao custom palette
-gao_palette <- c('#99CCFF', '#3F9993', '#044F91', '#330033')
+# gao_palette <- c('#99CCFF', '#3F9993', '#044F91', '#330033')
 
 # server ----------------------------------------------------------------------
 shinyServer(function(input, output, session) {
 
   plot_opts <- eventReactive(input$chart_type, {
-    print ('plot opts fired')
-    as.character(paste0(round(runif(1, 1, 100), 0), '_'))
+    print ("plot opts fired")
+    as.character(paste0(round(runif(1, 1, 100), 0), "_"))
   })
-  
-  
+
   # plot specific options block based on dynamic ui example -------------------
   # http://shiny.rstudio.com/gallery/dynamic-ui.html
   output$plot_options <- renderUI({
@@ -43,30 +42,60 @@ shinyServer(function(input, output, session) {
     req(input$chart_type)
     
     print(plot_opts())
-    #chart_type <<- input$chart_type
     switch(input$chart_type,
       "scatterplot" = 
       list(
-        selectInput(inputId = paste0(plot_opts(), "scatter_option_smooth"), "add a smoother:", choices = c("smoother" = '', "loess", "linear")),
-        sliderInput(inputId = paste0(plot_opts(), "scatter_option_span"), "wiggle", min = 0, max = 1, value = .7, step = .1, ticks = FALSE),
-        checkboxInput(inputId = paste0(plot_opts(), "scatter_option_se"), "confidence interval?", value = TRUE)
+        sliderInput(
+          inputId = paste0(plot_opts(), "scatter_option_alpha"), 
+          "point transparency", 
+          min = 0, max = 1, value = 1, step = .01,
+          ticks = FALSE
+          ),
+        selectInput(
+          inputId = paste0(plot_opts(), "scatter_option_smooth"),
+          "add a smoother:", 
+          choices = c("smoother" = "", "loess", "linear")
+          ),
+        sliderInput(
+          inputId = paste0(plot_opts(), "scatter_option_span"),
+          "wiggle", min = 0, max = 1, value = .7, step = .1,
+          ticks = FALSE
+          ),
+        radioButtons(
+          inputId = paste0(plot_opts(), "scatter_option_se"),
+          "confidence interval?",
+          choices = c("yes" = TRUE, "no" = FALSE)
+          )
         ),
       "pointrange" = 
       list(
-        selectInput(inputId = paste0(plot_opts(), "lower_pointrange"), "lower bound", 
-          choices = c('lower bound' = '', names(graph_data()))),
-        selectInput(inputId = paste0(plot_opts(), "upper_pointrange"), "upper bound", 
-          choices = c('upper bound' = '', names(graph_data())))
+        selectInput(
+          inputId = paste0(plot_opts(), "pointrange_lower"),
+          "lower bound", 
+          choices = c("lower bound" = "", names(graph_data()))
+          ),
+        selectInput(
+          inputId = paste0(plot_opts(), "pointrange_upper"),
+          "upper bound", 
+          choices = c("upper bound" = "", names(graph_data()))
+          )
         ),
       "error bar" = 
       list(
-        selectInput(inputId = paste0(plot_opts(), "error_lower_bound"), "lower bound", 
-          choices = c('lower bound' = '', names(graph_data()))),
-        selectInput(inputId = paste0(plot_opts(), "error_upper_bound"), "upper bound", 
-          choices = c('upper bound' = '', names(graph_data())))
+        selectInput(
+          inputId = paste0(plot_opts(), "errorbar_lower"),
+          "lower bound", 
+          choices = c("lower bound" = "", names(graph_data()))
+          ),
+        selectInput(
+          inputId = paste0(plot_opts(), "errorbar_upper"),
+          "upper bound", 
+          choices = c("upper bound" = "", names(graph_data()))
+          )
         ),
       "pie" = 
-      a(p("no. pie charts are the worst."), 
+      a(
+        p("no. pie charts are the worst."), 
         href = "http://www.businessinsider.com/pie-charts-are-the-worst-2013-6"
         ),
       "histogram" = bar_copy,
@@ -182,70 +211,33 @@ shinyServer(function(input, output, session) {
 
   # Graphs ----------------------------------------------------------------
 
-  which_error <- reactive({
-
-    req(input[[paste0(plot_opts(), "error_lower_bound")]], input[[paste0(plot_opts(), "error_upper_bound")]])
-
-    limits <- aes_string(ymax=input[[paste0(plot_opts(), "error_upper_bound")]], ymin=input[[paste0(plot_opts(), "error_lower_bound")]])
-    geom_errorbar(limits, position='dodge')
-    
-  })
-  
-  which_point_range <- reactive({
-
-    req(input[[paste0(plot_opts(), "lower_pointrange")]], input[[paste0(plot_opts(), "upper_pointrange")]])
-    
-    limits <- aes_string(ymax=input[[paste0(plot_opts(), "lower_pointrange")]], ymin=input[[paste0(plot_opts(), "upper_pointrange")]])
-    geom_pointrange(limits, position='dodge')
-    
-  })
-  
-  get_loess <- reactive({
-    print('loess fired')
-    geom_smooth(
-      method = 'loess', 
-      span = input[[paste0(plot_opts(), 'scatter_option_span')]], 
-      se = input[[paste0(plot_opts(), 'scatter_option_se')]]
-      )
-  })
-  
-  get_lm <- reactive({
-    geom_smooth(method = 'lm')
-  })
-  
   which_aes <- reactive({
 
-      # return aesthetics based on which combinations of  
-      # data input fields are selected
-      if (input$x != '' & input$y == '' & input$z == '')
-      {
-        aes_string(x = as.name(input$x))
-      }
-      # x and z
-      else if (input$x != '' & input$y == '' & input$z != '' & input$w == '')
-      {
-        aes_string(x = as.name(input$x), fill = as.name(input$z))
-      }    
-      # x and y
-      else if (input$x != '' & input$y != '' & input$z == '' & input$w == '')
-      {
-        aes_string(x = as.name(input$x), y = as.name(input$y))
-      }
-      #  x, y and, z
-      else if (input$x != '' & input$y != '' & input$z != '' & input$w == '')
-      {
-       aes_string(x = as.name(input$x), y = as.name(input$y), fill = as.name(input$z))
-     } 
-      # x, y, and w
-     else if (input$x != '' & input$y != '' & input$z == '' & input$w != '')
-     {
+    # return aesthetics based on which combinations of  
+    # data input fields are selected
+    if (input$x != "" & input$y == "" & input$z == "") {
+      aes_string(x = as.name(input$x))
+    }
+    # x and z
+    else if (input$x != "" & input$y == "" & input$z != "" & input$w == "") {
+      aes_string(x = as.name(input$x), fill = as.name(input$z))
+    }
+    # x and y
+    else if (input$x != "" & input$y != "" & input$z == "" & input$w == "") {
+      aes_string(x = as.name(input$x), y = as.name(input$y))
+    }
+    #  x, y and, z
+    else if (input$x != "" & input$y != "" & input$z != "" & input$w == "") {
+      aes_string(x = as.name(input$x), y = as.name(input$y), fill = as.name(input$z))
+    } 
+    # x, y, and w
+    else if (input$x != "" & input$y != "" & input$z == "" & input$w != "") {
       aes_string(x = as.name(input$x), y = as.name(input$y), colour = as.name(input$w))
     }
-      # x, y, z, and w
-    else if (input$x != '' & input$y != '' & input$z != '' & input$w != '')
-    {
+    # x, y, z, and w
+    else if (input$x != "" & input$y != "" & input$z != "" & input$w != "") {
       aes_string(x = as.name(input$x), y = as.name(input$y), colour = as.name(input$z))
-    }    
+    }
   })
 
   which_geom <- reactive({
@@ -255,21 +247,31 @@ shinyServer(function(input, output, session) {
     req(graph_data())
     
     switch(input$chart_type,
-     'histogram' = {
+     "histogram" = {
        if (sapply(graph_data()[,input$x], class) %in% c("character", "factor")) {
-         stat_count(color = '#044F91', fill = '#044F91')
+         stat_count(color = "#044F91", fill = "#044F91")
        } else { 
-         geom_histogram(color = '#044F91', fill = '#044F91')
+         geom_histogram(color = "#044F91", fill = "#044F91")
        }
      },
-     'density' = geom_density(fill = '#044F91'),
-     'line' = geom_line(),
-     'step' = geom_step(fill = '#044F91'),
-     'scatterplot' = geom_point(),
-     'bar' = geom_bar(position = 'dodge', stat = "identity", fill = '#044F91'),
-     'boxplot' = geom_boxplot(),
-     'pointrange' = which_point_range(),
-     'error bar' = which_error()
+     "density" = geom_density(fill = "#044F91"),
+     "line" = geom_line(),
+     "step" = geom_step(fill = "#044F91"),
+     "scatterplot" = geom_point(alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]]),
+     "bar" = geom_bar(position = "dodge", stat = "identity", fill = "#044F91"),
+     "boxplot" = geom_boxplot(),
+     "pointrange" = geom_pointrange(
+        aes_string(
+          ymin = input[[paste0(plot_opts(), "pointrange_lower")]],
+          ymax = input[[paste0(plot_opts(), "pointrange_upper")]] 
+          )
+        ),
+     "error bar" = geom_errorbar(
+      aes_string(
+        ymin = input[[paste0(plot_opts(), "errorbar_lower")]],
+        ymax = input[[paste0(plot_opts(), "errorbar_upper")]]
+        )
+      )
      )
   })
 
@@ -280,58 +282,84 @@ shinyServer(function(input, output, session) {
     req(graph_data())
 
     switch(input$chart_type,
-      'histogram' = {
+      "histogram" = {
         if (sapply(graph_data()[,input$x], class) %in% c("character", "factor")) {
-          stat_count(color = '#044F91', fill = '#044F91')
+          stat_count(color = "#044F91", fill = "#044F91")
         } else { 
-          geom_histogram(color = '#044F91', fill = '#044F91')
+          geom_histogram(color = "#044F91", fill = "#044F91")
         }
       },
-      'density' = geom_density(fill = '#044F91'),
-      'column' = geom_col(),
-      'line' = geom_line(aes_string(color = input$z)),
-      'step' = geom_step(aes_string(color = input$z)),
-      'boxplot' = geom_boxplot(aes_string(color = input$z)),
-      'scatterplot' = geom_point(shape = 21, size = 2, color = "white"),
-      'bar' = geom_bar(position = 'dodge', stat = "identity", fill = '#044F91'),
-      'stacked bar' = {
-        if (input$y == '') {  
+      "density" = geom_density(fill = "#044F91"),
+      "column" = geom_col(),
+      "line" = geom_line(aes_string(color = input$z)),
+      "step" = geom_step(aes_string(color = input$z)),
+      "boxplot" = geom_boxplot(aes_string(color = input$z)),
+      "scatterplot" = geom_point(shape = 21, size = 2, color = "white",
+        alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]]),
+      "bar" = geom_bar(position = "dodge", stat = "identity", fill = "#044F91"),
+      "stacked bar" = {
+        if (input$y == "") {  
           geom_bar(position = "stack")
         } else {
           geom_bar(position =  "stack", stat = "identity")
         }
       },
-      'clustered bar' = {
-        if (input$y == '') {  
+      "clustered bar" = {
+        if (input$y == "") {  
           geom_bar(position = "dodge")
         } else {
           geom_bar(position =  "dodge", stat = "identity")
         }
       },
-      'filled bar' = {
-       if (input$y == '') {  
+      "filled bar" = {
+       if (input$y == "") {  
         geom_bar(position = "fill")
-      } else {
+        } else {
         geom_bar(position =  "fill", stat = "identity")
-      }
-    },
-    'pointrange' = which_point_range(),
-    'error bar' = which_error(),
-    'area' = list(geom_area(alpha = .1), geom_line(aes_string(color = input$z), size= 1.1, position = "stack"))
+        }
+      },
+     "pointrange" = geom_pointrange(
+      aes_string(
+        ymin  = input[[paste0(plot_opts(), "pointrange_lower")]],
+        ymax  = input[[paste0(plot_opts(), "pointrange_upper")]],
+        color = input$z 
+        )
+      ),
+    "error bar" = geom_errorbar(
+      aes_string(
+        ymin  = input[[paste0(plot_opts(), "errorbar_lower")]],
+        ymax  = input[[paste0(plot_opts(), "errorbar_upper")]],
+        color = input$z
+        )
+      ),
+    "area" = list(
+      geom_area(alpha = .1), 
+      geom_line(
+        aes_string(color = input$z), size= 1.1, position = "stack")
+      )
     )
   })
 
   which_geom_w_z <- reactive({
 
-    if (is.null(input$z))
-    {
-      geom_point(shape = 21, aes_string(size = input$w, colour = 'white'))
+    if (is.null(input$z)) {
+      geom_point(
+        aes_string(
+          size = input$w
+          ),
+        shape = 21, 
+        colour = "white",
+        alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]]
+        ) 
+    } else {
+      geom_point(
+        aes_string(
+          size = input$w,
+          colour = input$z
+          ),
+        alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]]
+      )
     }
-    else
-    {
-      geom_point(aes_string(size = input$w, colour = input$z))
-    }
-
   })
 
   graph_it <- eventReactive(input$do_plot, {
@@ -342,24 +370,17 @@ shinyServer(function(input, output, session) {
     
     p <- ggplot(data = graph_data()) + which_aes() + labs(y = "", title = input$y)
 
-    if (input$z == '')
-    {
-
+    if (input$z == "") {
       p <- p + which_geom()
     }
-    
-    else if (input$w != '')
-    {
+    else if (input$w != "") {
 
       level_count <- nrow(unique(graph_data()[input$z]))
-      if (input$z_label == '')
-      {
+      if (input$z_label == "") {
         p <- p + scale_fill_manual(values = brewer.pal(level_count, input$which_palette))    
         p <- p + scale_color_manual(values = brewer.pal(level_count, input$which_palette))    
-      }
-      else
-      {
-        plot_labels <- unlist(strsplit(input$z_label, ',', fixed = TRUE))
+      } else {
+        plot_labels <- unlist(strsplit(input$z_label, ",", fixed = TRUE))
         p <- p + scale_fill_manual(values = brewer.pal(level_count, input$which_palette), labels = plot_labels)    
         p <- p + scale_color_manual(values = brewer.pal(level_count, input$which_palette), labels = plot_labels)    
       }
@@ -371,22 +392,18 @@ shinyServer(function(input, output, session) {
       # p <- p + scale_colour_gradient(
       #     limits = limits, low = gao_palette[1], high = gao_palette[4]
       #   )
-      print ('w fired')
+      print ("w fired")
     }
     
     # count the number of levels of z and, if necessary, apply custom factor
     # level names
-    else if (input$z != '')
-    {
+    else if (input$z != "") {
       level_count <- nrow(unique(graph_data()[input$z]))
-      if (input$z_label == '')
-      {
+      if (input$z_label == "") {
         p <- p + scale_fill_manual(values = brewer.pal(level_count, input$which_palette))    
         p <- p + scale_color_manual(values = brewer.pal(level_count, input$which_palette))    
-      }
-      else
-      {
-        plot_labels <- unlist(strsplit(input$z_label, ',', fixed = TRUE))
+      } else {
+        plot_labels <- unlist(strsplit(input$z_label, ",", fixed = TRUE))
         p <- p + scale_fill_manual(values = brewer.pal(level_count, input$which_palette), labels = plot_labels)    
         p <- p + scale_color_manual(values = brewer.pal(level_count, input$which_palette), labels = plot_labels)    
       }
@@ -396,27 +413,26 @@ shinyServer(function(input, output, session) {
     ## additional geom layers -------------------------------------------------
     ## apply smoother to scatter plot
     
-    if (! is.null(input[[paste0(plot_opts(), 'scatter_option_smooth')]]))
-    {
-      if (input[[paste0(plot_opts(), 'scatter_option_smooth')]] == 'linear' | input[[paste0(plot_opts(), 'scatter_option_smooth')]] == 'loess')
-      {
-        switch(input[[paste0(plot_opts(), 'scatter_option_smooth')]],
-         'loess' = p <- p + get_loess(),
-         'linear' = p <- p + get_lm()
-         )
-      }          
+    if (!is.null(input[[paste0(plot_opts(), "scatter_option_smooth")]])) {
+      switch(input[[paste0(plot_opts(), "scatter_option_smooth")]],
+        "loess" = 
+          p <- p + geom_smooth(
+            method = "loess", 
+            span = input[[paste0(plot_opts(), "scatter_option_span")]], 
+            se = input[[paste0(plot_opts(), "scatter_option_se")]]
+            ),
+        "linear" = 
+          p <- p + geom_smooth(method = "lm")
+      )
     }
     ## custom labels ----------------------------------------------------------
-    if (input$x_label != '')
-    {
+    if (input$x_label != "") {
       p <- p + labs(x = input$x_label)
     }
-    if (input$y_label != '')
-    {
+    if (input$y_label != "") {
       p <- p + labs(y = "", title = input$y_label)
     }
-    if (input$source_label != '') 
-    {
+    if (input$source_label != "") {
       p <- p + labs(caption = input$source_label)
     }
     if (input$z_guide != "") {
