@@ -47,26 +47,57 @@ shinyServer(function(input, output, session) {
     switch(input$chart_type,
       "scatterplot" = 
       list(
-        selectInput(inputId = paste0(plot_opts(), "scatter_option_smooth"), "add a smoother:", choices = c("smoother" = '', "loess", "linear")),
-        sliderInput(inputId = paste0(plot_opts(), "scatter_option_span"), "wiggle", min = 0, max = 1, value = .7, step = .1, ticks = FALSE),
-        checkboxInput(inputId = paste0(plot_opts(), "scatter_option_se"), "confidence interval?", value = TRUE)
+        sliderInput(
+          inputId = paste0(plot_opts(), "scatter_option_alpha"), 
+          "point transparency", 
+          min = 0, max = 1, value = 1, step = .01,
+          ticks = FALSE
+          ),
+        selectInput(
+          inputId = paste0(plot_opts(), "scatter_option_smooth"),
+          "add a smoother:", 
+          choices = c("smoother" = '', "loess", "linear")
+          ),
+        sliderInput(
+          inputId = paste0(plot_opts(), "scatter_option_span"),
+          "wiggle", min = 0, max = 1, value = .7, step = .1,
+          ticks = FALSE
+          ),
+        radioButtons(
+          inputId = paste0(plot_opts(), "scatter_option_se"),
+          "confidence interval?",
+          choices = c("yes" = TRUE, "no" = FALSE)
+          )
         ),
       "pointrange" = 
       list(
-        selectInput(inputId = paste0(plot_opts(), "pointrange_lower"), "lower bound", 
-          choices = c('lower bound' = '', names(graph_data()))),
-        selectInput(inputId = paste0(plot_opts(), "pointrange_upper"), "upper bound", 
-          choices = c('upper bound' = '', names(graph_data())))
+        selectInput(
+          inputId = paste0(plot_opts(), "pointrange_lower"),
+          "lower bound", 
+          choices = c('lower bound' = '', names(graph_data()))
+          ),
+        selectInput(
+          inputId = paste0(plot_opts(), "pointrange_upper"),
+          "upper bound", 
+          choices = c('upper bound' = '', names(graph_data()))
+          )
         ),
       "error bar" = 
       list(
-        selectInput(inputId = paste0(plot_opts(), "errorbar_lower"), "lower bound", 
-          choices = c('lower bound' = '', names(graph_data()))),
-        selectInput(inputId = paste0(plot_opts(), "errorbar_upper"), "upper bound", 
-          choices = c('upper bound' = '', names(graph_data())))
+        selectInput(
+          inputId = paste0(plot_opts(), "errorbar_lower"),
+          "lower bound", 
+          choices = c('lower bound' = '', names(graph_data()))
+          ),
+        selectInput(
+          inputId = paste0(plot_opts(), "errorbar_upper"),
+          "upper bound", 
+          choices = c('upper bound' = '', names(graph_data()))
+          )
         ),
       "pie" = 
-      a(p("no. pie charts are the worst."), 
+      a(
+        p("no. pie charts are the worst."), 
         href = "http://www.businessinsider.com/pie-charts-are-the-worst-2013-6"
         ),
       "histogram" = bar_copy,
