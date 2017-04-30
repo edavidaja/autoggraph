@@ -43,7 +43,6 @@ shinyServer(function(input, output, session) {
     req(input$chart_type)
     
     print(plot_opts())
-    #chart_type <<- input$chart_type
     switch(input$chart_type,
       "scatterplot" = 
       list(
@@ -213,19 +212,6 @@ shinyServer(function(input, output, session) {
 
   # Graphs ----------------------------------------------------------------
 
-  get_loess <- reactive({
-    print('loess fired')
-    geom_smooth(
-      method = 'loess', 
-      span = input[[paste0(plot_opts(), 'scatter_option_span')]], 
-      se = input[[paste0(plot_opts(), 'scatter_option_se')]]
-      )
-  })
-  
-  get_lm <- reactive({
-    geom_smooth(method = 'lm')
-  })
-  
   which_aes <- reactive({
 
       # return aesthetics based on which combinations of  
@@ -440,8 +426,12 @@ shinyServer(function(input, output, session) {
       if (input[[paste0(plot_opts(), 'scatter_option_smooth')]] == 'linear' | input[[paste0(plot_opts(), 'scatter_option_smooth')]] == 'loess')
       {
         switch(input[[paste0(plot_opts(), 'scatter_option_smooth')]],
-         'loess' = p <- p + get_loess(),
-         'linear' = p <- p + get_lm()
+         'loess' = p <- p + geom_smooth(
+          method = 'loess', 
+          span = input[[paste0(plot_opts(), 'scatter_option_span')]], 
+          se = input[[paste0(plot_opts(), 'scatter_option_se')]]
+          ),
+         'linear' = p <- p + geom_smooth(method = 'lm')
          )
       }          
     }
