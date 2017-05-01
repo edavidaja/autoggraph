@@ -18,13 +18,13 @@ theme_gao <- list(
     axis.text = element_text(size = 7, face = "bold"),
     panel.grid = element_blank()
     # ),
-  )
+    )
   # guides(
   #   color = guide_legend(title.position = "top", ncol = 1),
   #   fill = guide_legend(title.position = "top", ncol = 1),
   #   size = guide_legend(title.position = "top", ncol = 1)
   #   )
-)
+  )
 
 # server ----------------------------------------------------------------------
 shinyServer(function(input, output, session) {
@@ -262,11 +262,11 @@ shinyServer(function(input, output, session) {
      "bar" = geom_bar(position = "dodge", stat = "identity", fill = "#044F91"),
      "boxplot" = geom_boxplot(),
      "pointrange" = geom_pointrange(
-        aes_string(
-          ymin = input[[paste0(plot_opts(), "pointrange_lower")]],
-          ymax = input[[paste0(plot_opts(), "pointrange_upper")]] 
-          )
-        ),
+      aes_string(
+        ymin = input[[paste0(plot_opts(), "pointrange_lower")]],
+        ymax = input[[paste0(plot_opts(), "pointrange_upper")]] 
+        )
+      ),
      "error bar" = geom_errorbar(
       aes_string(
         ymin = input[[paste0(plot_opts(), "errorbar_lower")]],
@@ -313,11 +313,11 @@ shinyServer(function(input, output, session) {
       "filled bar" = {
        if (input$y == "") {  
         geom_bar(position = "fill")
-        } else {
+      } else {
         geom_bar(position =  "fill", stat = "identity")
-        }
-      },
-     "pointrange" = geom_pointrange(
+      }
+    },
+    "pointrange" = geom_pointrange(
       aes_string(
         ymin  = input[[paste0(plot_opts(), "pointrange_lower")]],
         ymax  = input[[paste0(plot_opts(), "pointrange_upper")]],
@@ -340,7 +340,7 @@ shinyServer(function(input, output, session) {
   })
 
   which_geom_w <- reactive({
-    
+
     req(graph_data())
 
     geom_point(
@@ -360,7 +360,7 @@ shinyServer(function(input, output, session) {
         colour = input$z
         ),
       alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]]
-    )
+      )
   })
 
   # plot builder --------------------------------------------------------------
@@ -448,14 +448,14 @@ shinyServer(function(input, output, session) {
     if (!is.null(input[[paste0(plot_opts(), "scatter_option_smooth")]])) {
       switch(input[[paste0(plot_opts(), "scatter_option_smooth")]],
         "loess" = 
-          p <- p + geom_smooth(
-            method = "loess", 
-            span = input[[paste0(plot_opts(), "scatter_option_span")]], 
-            se = input[[paste0(plot_opts(), "scatter_option_se")]]
-            ),
+        p <- p + geom_smooth(
+          method = "loess", 
+          span = input[[paste0(plot_opts(), "scatter_option_span")]], 
+          se = input[[paste0(plot_opts(), "scatter_option_se")]]
+          ),
         "linear" = 
-          p <- p + geom_smooth(method = "lm")
-      )
+        p <- p + geom_smooth(method = "lm")
+        )
     }
     ## custom labels ----------------------------------------------------------
     if (input$x_label != "") {
