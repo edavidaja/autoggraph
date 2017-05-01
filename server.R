@@ -3,10 +3,11 @@ library(readr)
 library(readxl)
 library(ggplot2)
 library(stringr)
+library(RColorBrewer)
 
 # gao theme -------------------------------------------------------------------
 theme_gao <- list(
-  theme_minimal(), 
+  theme_minimal(),
   theme(
     plot.caption = element_text(hjust = 0, size = 6),
     legend.position = "bottom",
@@ -16,25 +17,23 @@ theme_gao <- list(
     axis.title.x = element_text(hjust = 0, size = 7, face = "bold"),
     axis.text = element_text(size = 7, face = "bold"),
     panel.grid = element_blank()
-    ), 
-  guides(
-    color = guide_legend(title.position = "top", ncol = 1),
-    fill = guide_legend(title.position = "top", ncol = 1),
-    size = guide_legend(title.position = "top", ncol = 1)
+    # ),
   )
+  # guides(
+  #   color = guide_legend(title.position = "top", ncol = 1),
+  #   fill = guide_legend(title.position = "top", ncol = 1),
+  #   size = guide_legend(title.position = "top", ncol = 1)
+  #   )
 )
-# gao custom palette
-gao_palette <- c('#99CCFF', '#3F9993', '#044F91', '#330033')
 
 # server ----------------------------------------------------------------------
 shinyServer(function(input, output, session) {
 
   plot_opts <- eventReactive(input$chart_type, {
-      print ('i am in the plot opts')
-      as.character(paste0(round(runif(1, 1, 100), 0), '_'))
+    print ("plot opts fired")
+    as.character(paste0(round(runif(1, 1, 100), 0), "_"))
   })
-  
-  
+
   # plot specific options block based on dynamic ui example -------------------
   # http://shiny.rstudio.com/gallery/dynamic-ui.html
   output$plot_options <- renderUI({
@@ -42,30 +41,60 @@ shinyServer(function(input, output, session) {
     req(input$chart_type)
     
     print(plot_opts())
-    #chart_type <<- input$chart_type
     switch(input$chart_type,
       "scatterplot" = 
       list(
-        selectInput(inputId = paste0(plot_opts(), "scatter_option_smooth"), "add a smoother:", choices = c("smoother" = '', "loess", "linear")),
-        sliderInput(inputId = paste0(plot_opts(), "scatter_option_span"), "wiggle", min = 0, max = 1, value = .7, step = .1, ticks = FALSE),
-        checkboxInput(inputId = paste0(plot_opts(), "scatter_option_se"), "confidence interval?", value = TRUE)
+        sliderInput(
+          inputId = paste0(plot_opts(), "scatter_option_alpha"), 
+          "point transparency", 
+          min = 0, max = 1, value = 1, step = .01,
+          ticks = FALSE
+          ),
+        selectInput(
+          inputId = paste0(plot_opts(), "scatter_option_smooth"),
+          "add a smoother:", 
+          choices = c("smoother" = "", "loess", "linear")
+          ),
+        sliderInput(
+          inputId = paste0(plot_opts(), "scatter_option_span"),
+          "wiggle", min = 0, max = 1, value = .7, step = .1,
+          ticks = FALSE
+          ),
+        radioButtons(
+          inputId = paste0(plot_opts(), "scatter_option_se"),
+          "confidence interval?",
+          choices = c("yes" = TRUE, "no" = FALSE)
+          )
         ),
       "pointrange" = 
       list(
-        selectInput(inputId = paste0(plot_opts(), "lower_pointrange"), "lower bound", 
-          choices = c('lower bound' = '', names(graph_data()))),
-        selectInput(inputId = paste0(plot_opts(), "upper_pointrange"), "upper bound", 
-                    choices = c('upper bound' = '', names(graph_data())))
+        selectInput(
+          inputId = paste0(plot_opts(), "pointrange_lower"),
+          "lower bound", 
+          choices = c("lower bound" = "", names(graph_data()))
+          ),
+        selectInput(
+          inputId = paste0(plot_opts(), "pointrange_upper"),
+          "upper bound", 
+          choices = c("upper bound" = "", names(graph_data()))
+          )
         ),
       "error bar" = 
       list(
-        selectInput(inputId = paste0(plot_opts(), "error_lower_bound"), "lower bound", 
-          choices = c('lower bound' = '', names(graph_data()))),
-        selectInput(inputId = paste0(plot_opts(), "error_upper_bound"), "upper bound", 
-                    choices = c('upper bound' = '', names(graph_data())))
+        selectInput(
+          inputId = paste0(plot_opts(), "errorbar_lower"),
+          "lower bound", 
+          choices = c("lower bound" = "", names(graph_data()))
+          ),
+        selectInput(
+          inputId = paste0(plot_opts(), "errorbar_upper"),
+          "upper bound", 
+          choices = c("upper bound" = "", names(graph_data()))
+          )
         ),
       "pie" = 
-      a(p("no. pie charts are the worst."), 
+      a(
+        p("no. pie charts are the worst."), 
         href = "http://www.businessinsider.com/pie-charts-are-the-worst-2013-6"
         ),
       "histogram" = bar_copy,
@@ -97,10 +126,8 @@ shinyServer(function(input, output, session) {
 
     ext <- tools::file_ext(input$infile$name)
     if (ext %in% c("xls", "xlsx")) {
-
-      req(input$which_sheet)
-
       file.rename(input$infile$datapath, paste(input$infile$datapath, ext, sep="."))
+      req(input$which_sheet)
       read_excel(paste(input$infile$datapath, ext, sep="."), sheet = input$which_sheet)
     } else if (ext == "csv") {
       read_csv(input$infile$datapath)
@@ -113,8 +140,8 @@ shinyServer(function(input, output, session) {
     contentType = "application/zip",
     filename = function() {
       paste("autoggraph-", input$chart_type, ".zip", sep = "" ) 
-      },
-     content = function(file) {
+    },
+    content = function(file) {
       # TODO(ajae): restore vector output after installing svg lite
       # vector_out  <- tempfile(fileext = ".svg")
       raster_out  <- tempfile(fileext = ".png")
@@ -124,23 +151,22 @@ shinyServer(function(input, output, session) {
       # ggsave(vector_out, width = 7.58, height = 6.83)
       ggsave(raster_out, width = 7.58, height = 6.83)
 
-      
       write_rds(graph_it(), plotobj_out, compress = "none")
       # TODO(ajae): write rds checksum into log file if needed
       
       write_lines(
-          paste(
-            "generated by autoggraph v.", version, "\r\n",
-            "generated on:", Sys.time(), "\r\n",
-            "input file:", input$infile$name, "\r\n",
-            "size:", input$infile$size, "\r\n",
-            sep = " ", collapse = "\r\n" 
-            ),
-          log_out
-          )
+        paste(
+          "generated by autoggraph v.", version, "\r\n",
+          "generated on:", Sys.time(), "\r\n",
+          "input file:", input$infile$name, "\r\n",
+          "size:", input$infile$size, "\r\n",
+          sep = " ", collapse = "\r\n" 
+          ),
+        log_out
+        )
       # zip(zipfile = file, files = c(vector_out, raster_out, plotobj_out, log_out))
       zip(zipfile = file, files = c(raster_out, plotobj_out, log_out))
-     } 
+    } 
     )
 
   # Variable selectors ----------------------------------------------------------
@@ -168,244 +194,277 @@ shinyServer(function(input, output, session) {
        "add an additional continuous variable:",
        choices =  c("continuous variable" = "", names(graph_data()))
        ),
+      conditionalPanel(condition = "input.z != '' | input.w != ''",
+        radioButtons("which_palette", label = "select a color palette", 
+          choices = c(
+            "qualitative" = "Set1",
+            "sequential" = "Blues", 
+            "diverging" = "RdYlBu"
+            ), inline = TRUE
+          )
+        ),
       actionButton("do_plot", "can i have your autoggraph?", icon = icon("area-chart"))
       )
   })
 
-  # Graphs ----------------------------------------------------------------
+  # aesthetics ----------------------------------------------------------------
 
-  which_error <- reactive({
-    
-    req(input[[paste0(plot_opts(), "error_lower_bound")]], input[[paste0(plot_opts(), "error_upper_bound")]])
-
-    limits <- aes_string(ymax=input[[paste0(plot_opts(), "error_upper_bound")]], ymin=input[[paste0(plot_opts(), "error_lower_bound")]])
-    geom_errorbar(limits, position='dodge')
-    
-  })
-  
-  which_point_range <- reactive({
-    
-    req(input[[paste0(plot_opts(), "lower_pointrange")]], input[[paste0(plot_opts(), "upper_pointrange")]])
-    
-    limits <- aes_string(ymax=input[[paste0(plot_opts(), "lower_pointrange")]], ymin=input[[paste0(plot_opts(), "upper_pointrange")]])
-    geom_pointrange(limits, position='dodge')
-    
-  })
-  
-  get_loess <- reactive({
-      print('hi...')
-      geom_smooth(
-      method = 'loess', 
-      span = input[[paste0(plot_opts(), 'scatter_option_span')]], 
-      se = input[[paste0(plot_opts(), 'scatter_option_se')]]
-    )
-  })
-  
-  get_lm <- reactive({
-    geom_smooth(method = 'lm')
-  })
-  
   which_aes <- reactive({
 
     # return aesthetics based on which combinations of  
     # data input fields are selected
-    if (input$x != '' & input$y == '' & input$z == '')
-    {
+    # x only
+    if (input$x != "" & input$y == "" & input$z == "" & input$w == "") {
       aes_string(x = as.name(input$x))
     }
-    # x and z
-    else if (input$x != '' & input$y == '' & input$z != '' & input$w == '')
-    {
-      aes_string(x = as.name(input$x), fill = as.name(input$z))
-    }    
     # x and y
-    else if (input$x != '' & input$y != '' & input$z == '' & input$w == '')
-    {
+    else if (input$x != "" & input$y != "" & input$z == "" & input$w == "") {
       aes_string(x = as.name(input$x), y = as.name(input$y))
     }
+    # x and z
+    else if (input$x != "" & input$y == "" & input$z != "" & input$w == "") {
+      aes_string(x = as.name(input$x), fill = as.name(input$z))
+    }
     #  x, y and, z
-    else if (input$x != '' & input$y != '' & input$z != '' & input$w == '')
-    {
-     aes_string(x = as.name(input$x), y = as.name(input$y), fill = as.name(input$z))
+    else if (input$x != "" & input$y != "" & input$z != "" & input$w == "") {
+      aes_string(x = as.name(input$x), y = as.name(input$y), fill = as.name(input$z))
     } 
     # x, y, and w
-    else if (input$x != '' & input$y != '' & input$z == '' & input$w != '')
-    {
+    else if (input$x != "" & input$y != "" & input$z == "" & input$w != "") {
       aes_string(x = as.name(input$x), y = as.name(input$y), colour = as.name(input$w))
     }
-    # x, y, z, and ws
-    else if (input$x != '' & input$y != '' & input$z != '' & input$w != '')
-    {
+    # x, y, z, and w
+    else if (input$x != "" & input$y != "" & input$z != "" & input$w != "") {
       aes_string(x = as.name(input$x), y = as.name(input$y), colour = as.name(input$z))
-    }    
- })
+    }
+  })
 
-  which_geom <- reactive({
-    
+  # geometries ----------------------------------------------------------------
+
+  which_geom_xy <- reactive({
+
     # select geom based on selected chart type for the univariate or
     # two-variable case.    
     req(graph_data())
     
     switch(input$chart_type,
-           'histogram' = {
-             if (sapply(graph_data()[,input$x], class) %in% c("character", "factor")) {
-               stat_count(color = '#044F91', fill = '#044F91')
-             } else { 
-               geom_histogram(color = '#044F91', fill = '#044F91')
-             }
-           },
-           'density' = geom_density(fill = '#044F91'),
-           'line' = geom_line(),
-           'step' = geom_step(fill = '#044F91'),
-           'scatterplot' = geom_point(),
-           'bar' = geom_bar(position = 'dodge', stat = "identity", fill = '#044F91'),
-           'pointrange' = which_point_range(),
-           'error bar' = which_error()
-    )
+     "histogram" = {
+       if (sapply(graph_data()[,input$x], class) %in% c("character", "factor")) {
+         stat_count(color = "#044F91", fill = "#044F91")
+       } else { 
+         geom_histogram(color = "#044F91", fill = "#044F91")
+       }
+     },
+     "density" = geom_density(fill = "#044F91"),
+     "line" = geom_line(),
+     "step" = geom_step(fill = "#044F91"),
+     "scatterplot" = geom_point(alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]]),
+     "bar" = geom_bar(position = "dodge", stat = "identity", fill = "#044F91"),
+     "boxplot" = geom_boxplot(),
+     "pointrange" = geom_pointrange(
+        aes_string(
+          ymin = input[[paste0(plot_opts(), "pointrange_lower")]],
+          ymax = input[[paste0(plot_opts(), "pointrange_upper")]] 
+          )
+        ),
+     "error bar" = geom_errorbar(
+      aes_string(
+        ymin = input[[paste0(plot_opts(), "errorbar_lower")]],
+        ymax = input[[paste0(plot_opts(), "errorbar_upper")]]
+        )
+      )
+     )
   })
 
-  # added an extra which_geom function for z vars to overrtmp_ide the default color
-  # changed the these function from switch to if to handle some extra logic
   which_geom_z <- reactive({
-    
+
     req(graph_data())
 
     switch(input$chart_type,
-      'histogram' = {
+      "histogram" = {
         if (sapply(graph_data()[,input$x], class) %in% c("character", "factor")) {
-          stat_count(color = '#044F91', fill = '#044F91')
+          stat_count(color = "#044F91", fill = "#044F91")
         } else { 
-          geom_histogram(color = '#044F91', fill = '#044F91')
+          geom_histogram(color = "#044F91", fill = "#044F91")
         }
       },
-      'density' = geom_density(fill = '#044F91'),
-      'column' = geom_col(),
-      'line' = geom_line(aes_string(color = input$z)),
-      'step' = geom_step(aes_string(color = input$z)),
-      'boxplot' = geom_boxplot(),
-      'scatterplot' = geom_point(shape = 21, size = 2, color = "white"),
-      'bar' = geom_bar(position = 'dodge', stat = "identity", fill = '#044F91'),
-      'stacked bar' = {
-        if (input$y == '') {  
-        geom_bar(position = "stack")
+      "density" = geom_density(fill = "#044F91"),
+      "column" = geom_col(),
+      "line" = geom_line(aes_string(color = input$z)),
+      "step" = geom_step(aes_string(color = input$z)),
+      "boxplot" = geom_boxplot(aes_string(color = input$z)),
+      "scatterplot" = geom_point(shape = 21, size = 2, color = "white",
+        alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]]),
+      "bar" = geom_bar(position = "dodge", stat = "identity", fill = "#044F91"),
+      "stacked bar" = {
+        if (input$y == "") {  
+          geom_bar(position = "stack")
         } else {
           geom_bar(position =  "stack", stat = "identity")
         }
-        },
-      'clustered bar' = {
-        if (input$y == '') {  
+      },
+      "clustered bar" = {
+        if (input$y == "") {  
           geom_bar(position = "dodge")
         } else {
           geom_bar(position =  "dodge", stat = "identity")
         }
-        },
-      'filled bar' = {
-         if (input$y == '') {  
-          geom_bar(position = "fill")
+      },
+      "filled bar" = {
+       if (input$y == "") {  
+        geom_bar(position = "fill")
         } else {
-          geom_bar(position =  "fill", stat = "identity")
+        geom_bar(position =  "fill", stat = "identity")
         }
-        },
-      'pointrange' = which_point_range(),
-      'error bar' = which_error(),
-      'area' = list(geom_area(alpha = .1), geom_line(aes_string(color = input$z), size= 1.1, position = "stack"))
+      },
+     "pointrange" = geom_pointrange(
+      aes_string(
+        ymin  = input[[paste0(plot_opts(), "pointrange_lower")]],
+        ymax  = input[[paste0(plot_opts(), "pointrange_upper")]],
+        color = input$z 
+        )
+      ),
+    "error bar" = geom_errorbar(
+      aes_string(
+        ymin  = input[[paste0(plot_opts(), "errorbar_lower")]],
+        ymax  = input[[paste0(plot_opts(), "errorbar_upper")]],
+        color = input$z
+        )
+      ),
+    "area" = list(
+      geom_area(alpha = .1), 
+      geom_line(
+        aes_string(color = input$z), size= 1.1, position = "stack")
+      )
+    )
+  })
+
+  which_geom_w <- reactive({
+    
+    req(graph_data())
+
+    geom_point(
+      aes_string(fill = input$w),
+      shape = 21, 
+      alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]]
       )
   })
 
   which_geom_w_z <- reactive({
-    
-    if (is.null(input$z))
-    {
-      geom_point(size = 21, aes_string(size = input$w, colour = 'white'))
-    }
-    else
-    {
-      geom_point(aes_string(size = input$w, colour = input$z))
-    }
 
+    req(graph_data())
+
+    geom_point(
+      aes_string(
+        size = input$w,
+        colour = input$z
+        ),
+      alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]]
+    )
   })
-    
+
+  # plot builder --------------------------------------------------------------
   graph_it <- eventReactive(input$do_plot, {
     # require chart type, data to be loaded, 
     # and an x variable to be selected before
     # rendering a plot
     req(input$chart_type, graph_data(), input$x)
     
+    # generate base plot:
     p <- ggplot(data = graph_data()) + which_aes() + labs(y = "", title = input$y)
 
-    if (input$z == '')
-    {
-
-      p <- p + which_geom()
+    # add geom function depending on selected variables
+    # only x or x & y
+    if (input$z == "" & input$w == "") {
+      p <- p + which_geom_xy()
+      print ("xy fired")
     }
-    
-    else if (input$w != '')
-    {
 
+    # z and no w
+    else if (input$z != "" & input$w == "") {
+      # count the number of levels of z and, if necessary, apply custom factor
+      # level names
       level_count <- nrow(unique(graph_data()[input$z]))
-      if (input$z_label == '')
-      {
-        p <- p + scale_fill_manual(values = gao_palette[1:level_count])    
-        p <- p + scale_color_manual(values = gao_palette[1:level_count])    
-      }
-      else
-      {
-        plot_labels <- unlist(strsplit(input$z_label, ',', fixed = TRUE))
-        p <- p + scale_fill_manual(values = gao_palette[1:level_count], labels = plot_labels)    
-        p <- p + scale_color_manual(values = gao_palette[1:level_count], labels = plot_labels)    
-      }
-      # TO DO SEPARATE OUT FOR CONTINUOUS AND FACTOR W'S!!!!
-      p <- p + which_geom_w_z()
-      # p <- p + scale_colour_gradient(
-      #     limits = limits, low = gao_palette[1], high = gao_palette[4]
-      #   )
-      print ('made it')
-
-    }
-    
-    # count the number of levels of z and, if necessary, apply custom factor
-    # level names
-    else if (input$z != '')
-    {
-      level_count <- nrow(unique(graph_data()[input$z]))
-      if (input$z_label == '')
-      {
-        p <- p + scale_fill_manual(values = gao_palette[1:level_count])    
-        p <- p + scale_color_manual(values = gao_palette[1:level_count])    
-      }
-      else
-      {
-        plot_labels <- unlist(strsplit(input$z_label, ',', fixed = TRUE))
-        p <- p + scale_fill_manual(values = gao_palette[1:level_count], labels = plot_labels)    
-        p <- p + scale_color_manual(values = gao_palette[1:level_count], labels = plot_labels)    
+      if (input$z_label == "") {
+        p <- p + scale_fill_manual(values = brewer.pal(level_count, input$which_palette))    
+        p <- p + scale_color_manual(values = brewer.pal(level_count, input$which_palette))    
+      } else {
+        plot_labels <- unlist(strsplit(input$z_label, ",", fixed = TRUE))
+        p <- p + scale_fill_manual(values = brewer.pal(level_count, input$which_palette), labels = plot_labels)    
+        p <- p + scale_color_manual(values = brewer.pal(level_count, input$which_palette), labels = plot_labels)    
       }
       p <- p + which_geom_z()
+      print ("z fired")
     }
+    
+    # w and no z
+    else if (input$z == "" & input$w != "") {
+      if (input$w_label == "") {
+        p <- p + scale_color_gradientn(colors = brewer.pal(5, input$which_palette))
+        p <- p + scale_fill_gradientn(colors = brewer.pal(5, input$which_palette))
+      } else {
+        plot_labels <- unlist(strsplit(input$w_label, ",", fixed = TRUE))
+        p <- p + scale_color_gradientn(
+          colors = brewer.pal(5, input$which_palette),
+          breaks = c(
+            min(graph_data()[input$w], na.rm = TRUE), 
+            max(graph_data()[input$w], na.rm = TRUE)
+            ),
+          labels = c(plot_labels[1], plot_labels[2])
+          )
+        p <- p + scale_fill_gradientn(
+          colors = brewer.pal(5, input$which_palette),
+          breaks = c(
+            min(graph_data()[input$w], na.rm = TRUE), 
+            max(graph_data()[input$w], na.rm = TRUE)
+            ),
+          labels = c(plot_labels[1], plot_labels[2])
+          )
+      }
+      p <- p + which_geom_w()
+      print ("w fired")
+    }
+
+    # z and w
+    else if (input$z!= "" & input$w != "") {
+
+      level_count <- nrow(unique(graph_data()[input$z]))
+      if (input$z_label == "") {
+        p <- p + scale_fill_manual(values = brewer.pal(level_count, input$which_palette))    
+        p <- p + scale_color_manual(values = brewer.pal(level_count, input$which_palette))    
+      } else {
+        plot_labels <- unlist(strsplit(input$z_label, ",", fixed = TRUE))
+        p <- p + scale_fill_manual(values = brewer.pal(level_count, input$which_palette), labels = plot_labels)    
+        p <- p + scale_color_manual(values = brewer.pal(level_count, input$which_palette), labels = plot_labels)    
+      }
+      p <- p + which_geom_w_z()
+      print ("w & z fired")
+    }
+
     
     ## additional geom layers -------------------------------------------------
     ## apply smoother to scatter plot
     
-    if (! is.null(input[[paste0(plot_opts(), 'scatter_option_smooth')]]))
-    {
-      if (input[[paste0(plot_opts(), 'scatter_option_smooth')]] == 'linear' | input[[paste0(plot_opts(), 'scatter_option_smooth')]] == 'loess')
-      {
-        switch(input[[paste0(plot_opts(), 'scatter_option_smooth')]],
-               'loess' = p <- p + get_loess(),
-               'linear' = p <- p + get_lm()
-        )
-      }          
+    if (!is.null(input[[paste0(plot_opts(), "scatter_option_smooth")]])) {
+      switch(input[[paste0(plot_opts(), "scatter_option_smooth")]],
+        "loess" = 
+          p <- p + geom_smooth(
+            method = "loess", 
+            span = input[[paste0(plot_opts(), "scatter_option_span")]], 
+            se = input[[paste0(plot_opts(), "scatter_option_se")]]
+            ),
+        "linear" = 
+          p <- p + geom_smooth(method = "lm")
+      )
     }
     ## custom labels ----------------------------------------------------------
-    if (input$x_label != '')
-    {
+    if (input$x_label != "") {
       p <- p + labs(x = input$x_label)
     }
-    if (input$y_label != '')
-    {
+    if (input$y_label != "") {
       p <- p + labs(y = "", title = input$y_label)
     }
-    if (input$source_label != '') 
-    {
+    if (input$source_label != "") {
       p <- p + labs(caption = input$source_label)
     }
     if (input$z_guide != "") {
