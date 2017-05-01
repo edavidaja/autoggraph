@@ -429,7 +429,7 @@ shinyServer(function(input, output, session) {
     else if (input$z!= "" & input$w != "") {
 
       level_count <- nrow(unique(graph_data()[input$z]))
-      if (input$w_label == "") {
+      if (input$z_label == "") {
         p <- p + scale_fill_manual(values = brewer.pal(level_count, input$which_palette))    
         p <- p + scale_color_manual(values = brewer.pal(level_count, input$which_palette))    
       } else {
