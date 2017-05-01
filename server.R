@@ -17,15 +17,14 @@ theme_gao <- list(
     axis.title.x = element_text(hjust = 0, size = 7, face = "bold"),
     axis.text = element_text(size = 7, face = "bold"),
     panel.grid = element_blank()
-    ),
-  guides(
-    color = guide_legend(title.position = "top", ncol = 1),
-    fill = guide_legend(title.position = "top", ncol = 1),
-    size = guide_legend(title.position = "top", ncol = 1)
-    )
+    # ),
   )
-# gao custom palette
-# gao_palette <- c('#99CCFF', '#3F9993', '#044F91', '#330033')
+  # guides(
+  #   color = guide_legend(title.position = "top", ncol = 1),
+  #   fill = guide_legend(title.position = "top", ncol = 1),
+  #   size = guide_legend(title.position = "top", ncol = 1)
+  #   )
+)
 
 # server ----------------------------------------------------------------------
 shinyServer(function(input, output, session) {
@@ -152,7 +151,6 @@ shinyServer(function(input, output, session) {
       # ggsave(vector_out, width = 7.58, height = 6.83)
       ggsave(raster_out, width = 7.58, height = 6.83)
 
-      
       write_rds(graph_it(), plotobj_out, compress = "none")
       # TODO(ajae): write rds checksum into log file if needed
       
@@ -209,22 +207,23 @@ shinyServer(function(input, output, session) {
       )
   })
 
-  # Graphs ----------------------------------------------------------------
+  # aesthetics ----------------------------------------------------------------
 
   which_aes <- reactive({
 
     # return aesthetics based on which combinations of  
     # data input fields are selected
-    if (input$x != "" & input$y == "" & input$z == "") {
+    # x only
+    if (input$x != "" & input$y == "" & input$z == "" & input$w == "") {
       aes_string(x = as.name(input$x))
-    }
-    # x and z
-    else if (input$x != "" & input$y == "" & input$z != "" & input$w == "") {
-      aes_string(x = as.name(input$x), fill = as.name(input$z))
     }
     # x and y
     else if (input$x != "" & input$y != "" & input$z == "" & input$w == "") {
       aes_string(x = as.name(input$x), y = as.name(input$y))
+    }
+    # x and z
+    else if (input$x != "" & input$y == "" & input$z != "" & input$w == "") {
+      aes_string(x = as.name(input$x), fill = as.name(input$z))
     }
     #  x, y and, z
     else if (input$x != "" & input$y != "" & input$z != "" & input$w == "") {
@@ -240,7 +239,9 @@ shinyServer(function(input, output, session) {
     }
   })
 
-  which_geom <- reactive({
+  # geometries ----------------------------------------------------------------
+
+  which_geom_xy <- reactive({
 
     # select geom based on selected chart type for the univariate or
     # two-variable case.    
@@ -275,8 +276,6 @@ shinyServer(function(input, output, session) {
      )
   })
 
-  # added an extra which_geom function for z vars to overrtmp_ide the default color
-  # changed the these function from switch to if to handle some extra logic
   which_geom_z <- reactive({
 
     req(graph_data())
@@ -340,64 +339,51 @@ shinyServer(function(input, output, session) {
     )
   })
 
-  which_geom_w_z <- reactive({
+  which_geom_w <- reactive({
+    
+    req(graph_data())
 
-    if (is.null(input$z)) {
-      geom_point(
-        aes_string(
-          size = input$w
-          ),
-        shape = 21, 
-        colour = "white",
-        alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]]
-        ) 
-    } else {
-      geom_point(
-        aes_string(
-          size = input$w,
-          colour = input$z
-          ),
-        alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]]
+    geom_point(
+      aes_string(fill = input$w),
+      shape = 21, 
+      alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]]
       )
-    }
   })
 
+  which_geom_w_z <- reactive({
+
+    req(graph_data())
+
+    geom_point(
+      aes_string(
+        size = input$w,
+        colour = input$z
+        ),
+      alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]]
+    )
+  })
+
+  # plot builder --------------------------------------------------------------
   graph_it <- eventReactive(input$do_plot, {
     # require chart type, data to be loaded, 
     # and an x variable to be selected before
     # rendering a plot
     req(input$chart_type, graph_data(), input$x)
     
+    # generate base plot:
     p <- ggplot(data = graph_data()) + which_aes() + labs(y = "", title = input$y)
 
-    if (input$z == "") {
-      p <- p + which_geom()
+    # add geom function depending on selected variables
+    # only x or x & y
+    if (input$z == "" & input$w == "") {
+      p <- p + which_geom_xy()
+      print ("xy fired")
     }
-    else if (input$w != "") {
 
-      level_count <- nrow(unique(graph_data()[input$z]))
-      if (input$z_label == "") {
-        p <- p + scale_fill_manual(values = brewer.pal(level_count, input$which_palette))    
-        p <- p + scale_color_manual(values = brewer.pal(level_count, input$which_palette))    
-      } else {
-        plot_labels <- unlist(strsplit(input$z_label, ",", fixed = TRUE))
-        p <- p + scale_fill_manual(values = brewer.pal(level_count, input$which_palette), labels = plot_labels)    
-        p <- p + scale_color_manual(values = brewer.pal(level_count, input$which_palette), labels = plot_labels)    
-      }
-      # TODO(portnows): palette application currently defaults to the discrete variable z; need to provide the
-      # allowing it to apply either.
-      # in the case where only an additional continuous variable is selected,
-      # only sequential and diverging palettes should be available
-      p <- p + which_geom_w_z()
-      # p <- p + scale_colour_gradient(
-      #     limits = limits, low = gao_palette[1], high = gao_palette[4]
-      #   )
-      print ("w fired")
-    }
-    
-    # count the number of levels of z and, if necessary, apply custom factor
-    # level names
-    else if (input$z != "") {
+    # z and no w
+    else if (input$z != "" & input$w == "") {
+      # count the number of levels of z and, if necessary, apply custom factor
+      # level names
       level_count <- nrow(unique(graph_data()[input$z]))
       if (input$z_label == "") {
         p <- p + scale_fill_manual(values = brewer.pal(level_count, input$which_palette))    
@@ -408,7 +394,53 @@ shinyServer(function(input, output, session) {
         p <- p + scale_color_manual(values = brewer.pal(level_count, input$which_palette), labels = plot_labels)    
       }
       p <- p + which_geom_z()
+      print ("z fired")
     }
+    
+    # w and no z
+    else if (input$z == "" & input$w != "") {
+      if (input$w_label == "") {
+        p <- p + scale_color_gradientn(colors = brewer.pal(5, input$which_palette))
+        p <- p + scale_fill_gradientn(colors = brewer.pal(5, input$which_palette))
+      } else {
+        plot_labels <- unlist(strsplit(input$w_label, ",", fixed = TRUE))
+        p <- p + scale_color_gradientn(
+          colors = brewer.pal(5, input$which_palette),
+          breaks = c(
+            min(graph_data()[input$w], na.rm = TRUE), 
+            max(graph_data()[input$w], na.rm = TRUE)
+            ),
+          labels = c(plot_labels[1], plot_labels[2])
+          )
+        p <- p + scale_fill_gradientn(
+          colors = brewer.pal(5, input$which_palette),
+          breaks = c(
+            min(graph_data()[input$w], na.rm = TRUE), 
+            max(graph_data()[input$w], na.rm = TRUE)
+            ),
+          labels = c(plot_labels[1], plot_labels[2])
+          )
+      }
+      p <- p + which_geom_w()
+      print ("w fired")
+    }
+
+    # z and w
+    else if (input$z!= "" & input$w != "") {
+
+      level_count <- nrow(unique(graph_data()[input$z]))
+      if (input$w_label == "") {
+        p <- p + scale_fill_manual(values = brewer.pal(level_count, input$which_palette))    
+        p <- p + scale_color_manual(values = brewer.pal(level_count, input$which_palette))    
+      } else {
+        plot_labels <- unlist(strsplit(input$z_label, ",", fixed = TRUE))
+        p <- p + scale_fill_manual(values = brewer.pal(level_count, input$which_palette), labels = plot_labels)    
+        p <- p + scale_color_manual(values = brewer.pal(level_count, input$which_palette), labels = plot_labels)    
+      }
+      p <- p + which_geom_w_z()
+      print ("w & z fired")
+    }
+
     
     ## additional geom layers -------------------------------------------------
     ## apply smoother to scatter plot

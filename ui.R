@@ -50,7 +50,7 @@ shinyUI(
             placeholder = "one, two, three, ..."),
           textInput("w_guide", "continuous variable name"),
           textInput("w_label", "continuous variable labels, separated by commas",
-            placeholder = "one, two, three, ..."),
+            placeholder = "low, high"),
           textInput("source_label", "source label",
             placeholder = "Source: GAO analysis...")
           ),         
