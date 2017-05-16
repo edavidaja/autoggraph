@@ -41,24 +41,8 @@ shinyUI(
           plotOutput("graph")
           ),
         column(3, 
-         wellPanel(
-          h4("plot labels"),
-          textInput("x_label", "x-axis label"),
-          textInput("y_label", "y-axis label"),
-          textInput("z_guide", "discrete variable name"),
-          textInput("z_label", "discrete variable labels, separated by commas",
-            placeholder = "one, two, three, ..."),
-          textInput("w_guide", "continuous variable name"),
-          textInput("w_label", "continuous variable labels, separated by commas",
-            placeholder = "low, high"),
-          textInput("source_label", "source label",
-            placeholder = "Source: GAO analysis...")
-          ),         
-       ## links to outputs of application -------------------------------------
-         wellPanel(
-          div(style="display:inline-block", h4("export:")),
-          div(style="display:inline-block", downloadButton(outputId = "bundle", label = "results"))
-          ) 
+          uiOutput("plot_labels")         
+       ## links to outputs of application ------------------------------------- 
          )
         )
       )
