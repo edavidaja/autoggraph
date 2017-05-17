@@ -42,7 +42,6 @@ shinyUI(
           ),
         column(3, 
           uiOutput("plot_labels")         
-       ## links to outputs of application ------------------------------------- 
          )
         )
       )
