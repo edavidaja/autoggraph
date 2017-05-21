@@ -284,7 +284,13 @@ shinyServer(function(input, output, session) {
         alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]], 
         color = "#044F91"
         ),
-     "bar" = geom_bar(position = "dodge", stat = "identity", fill = "#044F91"),
+     "bar" = {
+     if (input$y == "") {  
+          geom_bar(position = "stack", color = "#044F91", fill = "#044F91")
+        } else {
+          geom_bar(position =  "stack", stat = "identity", color = "#044F91", fill = "#044F91")
+        } 
+     },
      "boxplot" = geom_boxplot(),
      "pointrange" = geom_pointrange(
         aes_string(
