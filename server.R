@@ -97,8 +97,16 @@ shinyServer(function(input, output, session) {
         p("no. pie charts are the worst."), 
         href = "http://www.businessinsider.com/pie-charts-are-the-worst-2013-6"
         ),
+      "bar" = list(
+        selectInput(
+          inputId = paste0(plot_opts(), "bar_type"),
+          "select a bar type",
+          choices = c(
+            "stacked" = "stack", "clustered" = "dodge", "filled" = "fill"
+            )
+          )
+        ),
       "histogram" = bar_copy,
-      "bar" = bar_copy,
       "stacked bar" = bar_copy,
       "clustered bar" = bar_copy,
       "filled bar" = bar_copy
@@ -326,28 +334,13 @@ shinyServer(function(input, output, session) {
       "boxplot" = geom_boxplot(aes_string(color = input$z)),
       "scatterplot" = geom_point(shape = 21, size = 2, color = "white",
         alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]]),
-      "bar" = geom_bar(position = "dodge", stat = "identity", fill = "#044F91"),
-      "stacked bar" = {
+      "bar" = {
         if (input$y == "") {  
-          geom_bar(position = "stack")
+          geom_bar(position =  input[[paste0(plot_opts(), "bar_type")]])
         } else {
-          geom_bar(position =  "stack", stat = "identity")
+          geom_bar(position =  input[[paste0(plot_opts(), "bar_type")]], stat = "identity")
         }
       },
-      "clustered bar" = {
-        if (input$y == "") {  
-          geom_bar(position = "dodge")
-        } else {
-          geom_bar(position =  "dodge", stat = "identity")
-        }
-      },
-      "filled bar" = {
-       if (input$y == "") {  
-        geom_bar(position = "fill")
-      } else {
-        geom_bar(position =  "fill", stat = "identity")
-      }
-    },
     "pointrange" = geom_pointrange(
       aes_string(
         ymin  = input[[paste0(plot_opts(), "pointrange_lower")]],
