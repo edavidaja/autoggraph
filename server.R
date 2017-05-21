@@ -107,7 +107,7 @@ shinyServer(function(input, output, session) {
 
   output$plot_labels <- renderUI({
 
-    req(graph_data())
+    req(graph_data(), input$do_plot)
     list(
       wellPanel(
       h4("plot labels"),
@@ -280,21 +280,24 @@ shinyServer(function(input, output, session) {
      "density" = geom_density(fill = "#044F91"),
      "line" = geom_line(),
      "step" = geom_step(fill = "#044F91"),
-     "scatterplot" = geom_point(alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]]),
+     "scatterplot" = geom_point(
+        alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]], 
+        color = "#044F91"
+        ),
      "bar" = geom_bar(position = "dodge", stat = "identity", fill = "#044F91"),
      "boxplot" = geom_boxplot(),
      "pointrange" = geom_pointrange(
-      aes_string(
-        ymin = input[[paste0(plot_opts(), "pointrange_lower")]],
-        ymax = input[[paste0(plot_opts(), "pointrange_upper")]] 
-        )
+        aes_string(
+          ymin = input[[paste0(plot_opts(), "pointrange_lower")]],
+          ymax = input[[paste0(plot_opts(), "pointrange_upper")]] 
+          )
       ),
      "error bar" = geom_errorbar(
-      aes_string(
-        ymin = input[[paste0(plot_opts(), "errorbar_lower")]],
-        ymax = input[[paste0(plot_opts(), "errorbar_upper")]]
+        aes_string(
+          ymin = input[[paste0(plot_opts(), "errorbar_lower")]],
+          ymax = input[[paste0(plot_opts(), "errorbar_upper")]]
+          )
         )
-      )
      )
   })
 
@@ -480,23 +483,27 @@ shinyServer(function(input, output, session) {
         )
     }
     ## custom labels ----------------------------------------------------------
-    if (input$x_label != "") {
-      p <- p + labs(x = input$x_label)
-    }
-    if (input$y_label != "") {
-      p <- p + labs(y = "", title = input$y_label)
-    }
-    if (input$source_label != "") {
-      p <- p + labs(caption = input$source_label)
-    }
-    if (input$z_guide != "") {
-      p <- p + labs(color = input$z_guide) 
-      p <- p + labs(fill = input$z_guide)
-    }
-    if (input$w_guide != "") {
-      p <- p + labs(size = input$w_guide) 
-      p <- p + labs(color = input$w_guide) 
-      p <- p + labs(fill = input$w_guide)
+    ## Skip the custom label block until the labels have been rendered 
+    if (input$do_plot > 1) {
+
+      if (input$x_label != "") {
+        p <- p + labs(x = input$x_label)
+      }
+      if (input$y_label != "") {
+        p <- p + labs(y = "", title = input$y_label)
+      }
+      if (input$source_label != "") {
+        p <- p + labs(caption = input$source_label)
+      }
+      if (input$z_guide != "") {
+        p <- p + labs(color = input$z_guide) 
+        p <- p + labs(fill = input$z_guide)
+      }
+      if (input$w_guide != "") {
+        p <- p + labs(size = input$w_guide) 
+        p <- p + labs(color = input$w_guide) 
+        p <- p + labs(fill = input$w_guide)
+      }
     }
     p <- p + theme_gao
     
