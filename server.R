@@ -225,17 +225,23 @@ shinyServer(function(input, output, session) {
        choices =  c("continuous variable" = "", names(graph_data()))
        ),
       conditionalPanel(condition = "input.z != '' | input.w != ''",
-        radioButtons("which_palette", label = "select a color palette", 
-          choices = c(
-            "qualitative" = "Set1",
-            "sequential" = "Blues", 
-            "diverging" = "RdYlBu"
-            ), inline = TRUE
+        selectInput("palette_selector", label = "select a color palette", 
+          choices = c("classic", "qualitative", "sequential", "diverging")
           )
         ),
       actionButton("do_plot", "can i have your autoggraph?", icon = icon("area-chart"))
       )
   })
+
+  which_palette <- reactive({
+    switch(input$palette_selector,
+      "classic" = c("darkblue", "dodgerblue", "slateblue4", "mediumseagreen", "lightgoldenrod"),
+      "qualitative" = c("#66C2A5", "#FC8D62", "#8DA0CB", "#E78AC3", "#A6D854", "#FFD92F", "#E5C494", "#B3B3B3"),
+      "sequential" = c("#EFF3FF", "#BDD7E7", "#6BAED6", "#3182BD", "#08519C"),
+      "diverging" = c("#D7191C", "#FDAE61", "#FFFFBF", "#ABD9E9", "#2C7BB6")
+      )
+  })
+
 
   # aesthetics ----------------------------------------------------------------
 
@@ -410,12 +416,12 @@ shinyServer(function(input, output, session) {
       # level names
       level_count <- nrow(unique(graph_data()[input$z]))
       if (input$z_label == "") {
-        p <- p + scale_fill_manual(values = brewer.pal(level_count, input$which_palette))    
-        p <- p + scale_color_manual(values = brewer.pal(level_count, input$which_palette))    
+        p <- p + scale_fill_manual(values = which_palette()[1:level_count])    
+        p <- p + scale_color_manual(values = which_palette()[1:level_count])    
       } else {
         plot_labels <- unlist(strsplit(input$z_label, ",", fixed = TRUE))
-        p <- p + scale_fill_manual(values = brewer.pal(level_count, input$which_palette), labels = plot_labels)    
-        p <- p + scale_color_manual(values = brewer.pal(level_count, input$which_palette), labels = plot_labels)    
+        p <- p + scale_fill_manual(values = which_palette()[1:level_count], labels = plot_labels)    
+        p <- p + scale_color_manual(values = which_palette()[1:level_count], labels = plot_labels)    
       }
       p <- p + which_geom_z()
       print ("z fired")
@@ -424,12 +430,12 @@ shinyServer(function(input, output, session) {
     # w and no z
     else if (input$z == "" & input$w != "") {
       if (input$w_label == "") {
-        p <- p + scale_color_gradientn(colors = brewer.pal(5, input$which_palette))
-        p <- p + scale_fill_gradientn(colors = brewer.pal(5, input$which_palette))
+        p <- p + scale_color_gradientn(colors = which_palette()[1:level_count])
+        p <- p + scale_fill_gradientn(colors = which_palette()[1:level_count])
       } else {
         plot_labels <- unlist(strsplit(input$w_label, ",", fixed = TRUE))
         p <- p + scale_color_gradientn(
-          colors = brewer.pal(5, input$which_palette),
+          colors = which_palette()[1:level_count],
           breaks = c(
             min(graph_data()[input$w], na.rm = TRUE), 
             max(graph_data()[input$w], na.rm = TRUE)
@@ -437,7 +443,7 @@ shinyServer(function(input, output, session) {
           labels = c(plot_labels[1], plot_labels[2])
           )
         p <- p + scale_fill_gradientn(
-          colors = brewer.pal(5, input$which_palette),
+          colors = which_palette()[1:level_count],
           breaks = c(
             min(graph_data()[input$w], na.rm = TRUE), 
             max(graph_data()[input$w], na.rm = TRUE)
@@ -454,12 +460,12 @@ shinyServer(function(input, output, session) {
 
       level_count <- nrow(unique(graph_data()[input$z]))
       if (input$z_label == "") {
-        p <- p + scale_fill_manual(values = brewer.pal(level_count, input$which_palette))    
-        p <- p + scale_color_manual(values = brewer.pal(level_count, input$which_palette))    
+        p <- p + scale_fill_manual(values = which_palette()[1:level_count])    
+        p <- p + scale_color_manual(values = which_palette()[1:level_count])    
       } else {
         plot_labels <- unlist(strsplit(input$z_label, ",", fixed = TRUE))
-        p <- p + scale_fill_manual(values = brewer.pal(level_count, input$which_palette), labels = plot_labels)    
-        p <- p + scale_color_manual(values = brewer.pal(level_count, input$which_palette), labels = plot_labels)    
+        p <- p + scale_fill_manual(values = which_palette()[1:level_count], labels = plot_labels)    
+        p <- p + scale_color_manual(values = which_palette()[1:level_count], labels = plot_labels)    
       }
       p <- p + which_geom_w_z()
       print ("w & z fired")
