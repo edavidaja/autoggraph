@@ -317,8 +317,7 @@ shinyServer(function(input, output, session) {
           geom_histogram(color = "#044F91", fill = "#044F91")
         }
       },
-      "density" = geom_density(fill = "#044F91"),
-      "column" = geom_col(),
+      "density" = geom_density(aes_string(color = input$z)),
       "line" = geom_line(aes_string(color = input$z)),
       "step" = geom_step(aes_string(color = input$z)),
       "boxplot" = geom_boxplot(aes_string(fill = input$z)),
@@ -402,8 +401,6 @@ shinyServer(function(input, output, session) {
 
     # z and no w
     else if (input$z != "" & input$w == "") {
-      # count the number of levels of z and, if necessary, apply custom factor
-      # level names
       if (input$z_label == "") {
         p <- p + scale_fill_manual(values = which_palette())    
         p <- p + scale_color_manual(values = which_palette())    
