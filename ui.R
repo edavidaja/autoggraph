@@ -23,7 +23,7 @@ shinyUI(
               `select a chart type` = "",
               `univariate` = c("histogram", "density", "pie"),
               `multivariate` = c("bar", "line", "step", "area", "scatterplot", "boxplot", 
-                "bubble chart"),
+                "bubble chart", "heatmap"),
               `statistical` = c("pointrange", "error bar")
               )
             ),

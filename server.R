@@ -361,10 +361,16 @@ shinyServer(function(input, output, session) {
 
     req(graph_data())
 
-    geom_point(
-      aes_string(fill = input$w),
-      shape = 21, 
-      alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]]
+    switch(input$chart_type,
+      "scatterplot" =
+        geom_point(
+          aes_string(fill = input$w),
+          shape = 21, 
+          alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]]
+        ),
+      "heatmap" = geom_tile(
+        aes_string(fill = input$w)
+        )
       )
   })
 
