@@ -105,11 +105,7 @@ shinyServer(function(input, output, session) {
             "stacked" = "stack", "clustered" = "dodge", "filled" = "fill"
             )
           )
-        ),
-      "histogram" = bar_copy,
-      "stacked bar" = bar_copy,
-      "clustered bar" = bar_copy,
-      "filled bar" = bar_copy
+        )
       )
   })
 
