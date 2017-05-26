@@ -293,7 +293,7 @@ shinyServer(function(input, output, session) {
           geom_bar(position =  "stack", stat = "identity", color = "#044F91", fill = "#044F91")
         } 
      },
-     "boxplot" = geom_boxplot(),
+     "boxplot" = geom_boxplot(color = "#044F91"),
      "pointrange" = geom_pointrange(
         aes_string(
           ymin = input[[paste0(plot_opts(), "pointrange_lower")]],
@@ -325,7 +325,7 @@ shinyServer(function(input, output, session) {
       "column" = geom_col(),
       "line" = geom_line(aes_string(color = input$z)),
       "step" = geom_step(aes_string(color = input$z)),
-      "boxplot" = geom_boxplot(aes_string(color = input$z)),
+      "boxplot" = geom_boxplot(aes_string(fill = input$z)),
       "scatterplot" = geom_point(shape = 21, size = 2, color = "white",
         alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]]),
       "bar" = {
