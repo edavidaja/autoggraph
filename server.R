@@ -97,33 +97,19 @@ shinyServer(function(input, output, session) {
         p("no. pie charts are the worst."), 
         href = "http://www.businessinsider.com/pie-charts-are-the-worst-2013-6"
         ),
+      "bar" = list(
+        selectInput(
+          inputId = paste0(plot_opts(), "bar_type"),
+          "select a bar type",
+          choices = c(
+            "stacked" = "stack", "clustered" = "dodge", "filled" = "fill"
+            )
+          )
+        ),
       "histogram" = bar_copy,
-      "bar" = bar_copy,
       "stacked bar" = bar_copy,
       "clustered bar" = bar_copy,
       "filled bar" = bar_copy
-      )
-  })
-
-  output$plot_labels <- renderUI({
-
-    req(graph_data())
-    list(
-      wellPanel(
-      h4("plot labels"),
-        textInput("x_label", "x-axis label"),
-        textInput("y_label", "y-axis label"),
-        textInput("z_guide", "discrete variable name"),
-        textInput("z_label", "discrete variable labels, separated by commas",
-          placeholder = "one, two, three, ..."),
-        textInput("w_guide", "continuous variable name"),
-        textInput("w_label", "continuous variable labels, separated by commas",
-          placeholder = "low, high"),
-        textInput("source_label", "source label",
-          placeholder = "Source: GAO analysis..."),
-        h4("export:"),
-        downloadButton(outputId = "bundle", label = "results")
-        )
       )
   })
 
@@ -217,17 +203,33 @@ shinyServer(function(input, output, session) {
        choices =  c("continuous variable" = "", names(graph_data()))
        ),
       conditionalPanel(condition = "input.z != '' | input.w != ''",
-        radioButtons("which_palette", label = "select a color palette", 
-          choices = c(
-            "qualitative" = "Set1",
-            "sequential" = "Blues", 
-            "diverging" = "RdYlBu"
-            ), inline = TRUE
+        selectInput("palette_selector", label = "select a color palette", 
+          choices = c("classic", "qualitative", "sequential", "diverging")
           )
         ),
       actionButton("do_plot", "can i have your autoggraph?", icon = icon("area-chart"))
       )
   })
+
+  which_palette <- reactive({
+
+    # if a z variable is set, then the level count should be mapped to the 
+    # number of levels of the discrete variable; otherwise, a five class
+    # palette is used
+    if (input$z !=  "") {
+      level_count <- nrow(unique(graph_data()[input$z]))
+    } else {
+      level_count <- 5
+    }
+
+    switch(input$palette_selector,
+      "classic"     = c("#5EB6E4", "#0039A6", "#008B95", "#5E2750", "#BB9115"),
+      "qualitative" = brewer.pal(level_count, "Set2"),
+      "sequential"  = brewer.pal(level_count, "Blues"),
+      "diverging"   = brewer.pal(level_count, "RdYlBu")
+      )
+  })
+
 
   # aesthetics ----------------------------------------------------------------
 
@@ -280,21 +282,30 @@ shinyServer(function(input, output, session) {
      "density" = geom_density(fill = "#044F91"),
      "line" = geom_line(),
      "step" = geom_step(fill = "#044F91"),
-     "scatterplot" = geom_point(alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]]),
-     "bar" = geom_bar(position = "dodge", stat = "identity", fill = "#044F91"),
+     "scatterplot" = geom_point(
+        alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]], 
+        color = "#044F91"
+        ),
+     "bar" = {
+     if (input$y == "") {  
+          geom_bar(position = "stack", color = "#044F91", fill = "#044F91")
+        } else {
+          geom_bar(position =  "stack", stat = "identity", color = "#044F91", fill = "#044F91")
+        } 
+     },
      "boxplot" = geom_boxplot(),
      "pointrange" = geom_pointrange(
-      aes_string(
-        ymin = input[[paste0(plot_opts(), "pointrange_lower")]],
-        ymax = input[[paste0(plot_opts(), "pointrange_upper")]] 
-        )
+        aes_string(
+          ymin = input[[paste0(plot_opts(), "pointrange_lower")]],
+          ymax = input[[paste0(plot_opts(), "pointrange_upper")]] 
+          )
       ),
      "error bar" = geom_errorbar(
-      aes_string(
-        ymin = input[[paste0(plot_opts(), "errorbar_lower")]],
-        ymax = input[[paste0(plot_opts(), "errorbar_upper")]]
+        aes_string(
+          ymin = input[[paste0(plot_opts(), "errorbar_lower")]],
+          ymax = input[[paste0(plot_opts(), "errorbar_upper")]]
+          )
         )
-      )
      )
   })
 
@@ -317,28 +328,13 @@ shinyServer(function(input, output, session) {
       "boxplot" = geom_boxplot(aes_string(color = input$z)),
       "scatterplot" = geom_point(shape = 21, size = 2, color = "white",
         alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]]),
-      "bar" = geom_bar(position = "dodge", stat = "identity", fill = "#044F91"),
-      "stacked bar" = {
+      "bar" = {
         if (input$y == "") {  
-          geom_bar(position = "stack")
+          geom_bar(position =  input[[paste0(plot_opts(), "bar_type")]])
         } else {
-          geom_bar(position =  "stack", stat = "identity")
+          geom_bar(position =  input[[paste0(plot_opts(), "bar_type")]], stat = "identity")
         }
       },
-      "clustered bar" = {
-        if (input$y == "") {  
-          geom_bar(position = "dodge")
-        } else {
-          geom_bar(position =  "dodge", stat = "identity")
-        }
-      },
-      "filled bar" = {
-       if (input$y == "") {  
-        geom_bar(position = "fill")
-      } else {
-        geom_bar(position =  "fill", stat = "identity")
-      }
-    },
     "pointrange" = geom_pointrange(
       aes_string(
         ymin  = input[[paste0(plot_opts(), "pointrange_lower")]],
@@ -406,14 +402,13 @@ shinyServer(function(input, output, session) {
     else if (input$z != "" & input$w == "") {
       # count the number of levels of z and, if necessary, apply custom factor
       # level names
-      level_count <- nrow(unique(graph_data()[input$z]))
       if (input$z_label == "") {
-        p <- p + scale_fill_manual(values = brewer.pal(level_count, input$which_palette))    
-        p <- p + scale_color_manual(values = brewer.pal(level_count, input$which_palette))    
+        p <- p + scale_fill_manual(values = which_palette())    
+        p <- p + scale_color_manual(values = which_palette())    
       } else {
         plot_labels <- unlist(strsplit(input$z_label, ",", fixed = TRUE))
-        p <- p + scale_fill_manual(values = brewer.pal(level_count, input$which_palette), labels = plot_labels)    
-        p <- p + scale_color_manual(values = brewer.pal(level_count, input$which_palette), labels = plot_labels)    
+        p <- p + scale_fill_manual(values = which_palette(), labels = plot_labels)    
+        p <- p + scale_color_manual(values = which_palette(), labels = plot_labels)    
       }
       p <- p + which_geom_z()
       print ("z fired")
@@ -422,12 +417,12 @@ shinyServer(function(input, output, session) {
     # w and no z
     else if (input$z == "" & input$w != "") {
       if (input$w_label == "") {
-        p <- p + scale_color_gradientn(colors = brewer.pal(5, input$which_palette))
-        p <- p + scale_fill_gradientn(colors = brewer.pal(5, input$which_palette))
+        p <- p + scale_color_gradientn(colors = which_palette())
+        p <- p + scale_fill_gradientn(colors = which_palette())
       } else {
         plot_labels <- unlist(strsplit(input$w_label, ",", fixed = TRUE))
         p <- p + scale_color_gradientn(
-          colors = brewer.pal(5, input$which_palette),
+          colors = which_palette(),
           breaks = c(
             min(graph_data()[input$w], na.rm = TRUE), 
             max(graph_data()[input$w], na.rm = TRUE)
@@ -435,7 +430,7 @@ shinyServer(function(input, output, session) {
           labels = c(plot_labels[1], plot_labels[2])
           )
         p <- p + scale_fill_gradientn(
-          colors = brewer.pal(5, input$which_palette),
+          colors = which_palette(),
           breaks = c(
             min(graph_data()[input$w], na.rm = TRUE), 
             max(graph_data()[input$w], na.rm = TRUE)
@@ -452,12 +447,12 @@ shinyServer(function(input, output, session) {
 
       level_count <- nrow(unique(graph_data()[input$z]))
       if (input$z_label == "") {
-        p <- p + scale_fill_manual(values = brewer.pal(level_count, input$which_palette))    
-        p <- p + scale_color_manual(values = brewer.pal(level_count, input$which_palette))    
+        p <- p + scale_fill_manual(values = which_palette())    
+        p <- p + scale_color_manual(values = which_palette())    
       } else {
         plot_labels <- unlist(strsplit(input$z_label, ",", fixed = TRUE))
-        p <- p + scale_fill_manual(values = brewer.pal(level_count, input$which_palette), labels = plot_labels)    
-        p <- p + scale_color_manual(values = brewer.pal(level_count, input$which_palette), labels = plot_labels)    
+        p <- p + scale_fill_manual(values = which_palette(), labels = plot_labels)    
+        p <- p + scale_color_manual(values = which_palette(), labels = plot_labels)    
       }
       p <- p + which_geom_w_z()
       print ("w & z fired")
@@ -480,23 +475,27 @@ shinyServer(function(input, output, session) {
         )
     }
     ## custom labels ----------------------------------------------------------
-    if (input$x_label != "") {
-      p <- p + labs(x = input$x_label)
-    }
-    if (input$y_label != "") {
-      p <- p + labs(y = "", title = input$y_label)
-    }
-    if (input$source_label != "") {
-      p <- p + labs(caption = input$source_label)
-    }
-    if (input$z_guide != "") {
-      p <- p + labs(color = input$z_guide) 
-      p <- p + labs(fill = input$z_guide)
-    }
-    if (input$w_guide != "") {
-      p <- p + labs(size = input$w_guide) 
-      p <- p + labs(color = input$w_guide) 
-      p <- p + labs(fill = input$w_guide)
+    ## Skip the custom label block until the labels have been rendered 
+    if (input$do_plot > 1) {
+
+      if (input$x_label != "") {
+        p <- p + labs(x = input$x_label)
+      }
+      if (input$y_label != "") {
+        p <- p + labs(y = "", title = input$y_label)
+      }
+      if (input$source_label != "") {
+        p <- p + labs(caption = input$source_label)
+      }
+      if (input$z_guide != "") {
+        p <- p + labs(color = input$z_guide) 
+        p <- p + labs(fill = input$z_guide)
+      }
+      if (input$w_guide != "") {
+        p <- p + labs(size = input$w_guide) 
+        p <- p + labs(color = input$w_guide) 
+        p <- p + labs(fill = input$w_guide)
+      }
     }
     p <- p + theme_gao
     
