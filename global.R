@@ -1,5 +1,7 @@
+enableBookmarking(store = "server")
+
 # version number
-version <- numeric_version("0.0.0.9004")
+app_version <- numeric_version("0.0.0.9005")
 
 # lengthy copy objects
 bar_copy <- list(
