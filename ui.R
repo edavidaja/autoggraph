@@ -10,8 +10,8 @@ shinyUI(
      tags$head(
       tags$link(rel = "icon", type = "image/png", href = "favicon.png")
       ),
-      includeMarkdown("www/instructions.Rmd")
-      ),
+     includeMarkdown("www/instructions.Rmd")
+     ),
     # plot UI -----------------------------------------------------------------
     tabPanel("plots",
       includeCSS("www/simplex.css"),
@@ -40,9 +40,25 @@ shinyUI(
         column(6,
           plotOutput("graph")
           ),
-        column(3, 
-          uiOutput("plot_labels")         
-         )
+        column(3,
+          conditionalPanel(condition = "input.do_plot > 0",
+           wellPanel(
+            h4("plot labels"),
+            textInput("x_label", "x-axis label"),
+            textInput("y_label", "y-axis label"),
+            textInput("z_guide", "discrete variable name"),
+            textInput("z_label", "discrete variable labels, separated by commas",
+              placeholder = "one, two, three, ..."),
+            textInput("w_guide", "continuous variable name"),
+            textInput("w_label", "continuous variable labels, separated by commas",
+              placeholder = "low, high"),
+            textInput("source_label", "source label",
+              placeholder = "Source: GAO analysis..."),
+            h4("export:"),
+            downloadButton(outputId = "bundle", label = "results")
+            ) 
+           )        
+          )
         )
       )
     )
