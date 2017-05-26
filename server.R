@@ -43,7 +43,7 @@ shinyServer(function(input, output, session) {
     print(plot_opts())
     switch(input$chart_type,
       "scatterplot" = 
-      list(
+        list(
         sliderInput(
           inputId = paste0(plot_opts(), "scatter_option_alpha"), 
           "point transparency", 
@@ -67,7 +67,7 @@ shinyServer(function(input, output, session) {
           )
         ),
       "pointrange" = 
-      list(
+        list(
         selectInput(
           inputId = paste0(plot_opts(), "pointrange_lower"),
           "lower bound", 
@@ -80,7 +80,7 @@ shinyServer(function(input, output, session) {
           )
         ),
       "error bar" = 
-      list(
+        list(
         selectInput(
           inputId = paste0(plot_opts(), "errorbar_lower"),
           "lower bound", 
@@ -93,19 +93,23 @@ shinyServer(function(input, output, session) {
           )
         ),
       "pie" = 
-      a(
+       a(
         p("no. pie charts are the worst."), 
         href = "http://www.businessinsider.com/pie-charts-are-the-worst-2013-6"
         ),
-      "bar" = list(
+      "bar" =
         selectInput(
           inputId = paste0(plot_opts(), "bar_type"),
           "select a bar type",
           choices = c(
             "stacked" = "stack", "clustered" = "dodge", "filled" = "fill"
             )
-          )
-        )
+        ),
+        "histogram" =
+          numericInput(
+            inputId = paste0(plot_opts(), "hist_bins"),
+            "number of bins", value = 30
+            )
       )
   })
 
@@ -272,7 +276,8 @@ shinyServer(function(input, output, session) {
        if (sapply(graph_data()[,input$x], class) %in% c("character", "factor")) {
          stat_count(color = "#044F91", fill = "#044F91")
        } else { 
-         geom_histogram(color = "#044F91", fill = "#044F91")
+         geom_histogram(color = "#044F91", fill = "#044F91",
+          bins = input[[paste0(plot_opts(), "hist_bins")]])
        }
      },
      "density" = geom_density(fill = "#044F91"),
@@ -314,7 +319,8 @@ shinyServer(function(input, output, session) {
         if (sapply(graph_data()[,input$x], class) %in% c("character", "factor")) {
           stat_count(color = "#044F91", fill = "#044F91")
         } else { 
-          geom_histogram(color = "#044F91", fill = "#044F91")
+          geom_histogram(color = "#044F91", fill = "#044F91",
+            bins = input[[paste0(plot_opts(), "hist_bins")]])
         }
       },
       "density" = geom_density(aes_string(color = input$z)),
