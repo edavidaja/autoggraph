@@ -22,8 +22,8 @@ shinyUI(
             choices = list(
               `select a chart type` = "",
               `univariate` = c("histogram", "density", "pie"),
-              `multivariate` = c("bar", "line", "step", "area", "scatterplot", "boxplot", 
-                "bubble chart", "heatmap"),
+              `multivariate` = c("bar", "line", "step", "area",
+                "scatterplot", "boxplot", "heatmap"),
               `statistical` = c("pointrange", "error bar")
               )
             ),
