@@ -274,14 +274,15 @@ shinyServer(function(input, output, session) {
     switch(input$chart_type,
      "histogram" = {
        if (sapply(graph_data()[,input$x], class) %in% c("character", "factor")) {
-         stat_count(color = "#044F91", fill = "#044F91")
-       } else { 
-         geom_histogram(color = "#044F91", fill = "#044F91",
+         stat_count(fill = "#044F91")
+       } else {
+         geom_histogram(
+          fill = "#044F91",
           bins = input[[paste0(plot_opts(), "hist_bins")]])
        }
      },
      "density" = geom_density(fill = "#044F91"),
-     "line" = geom_line(),
+     "line" = geom_line(color = "#044F91"),
      "step" = geom_step(fill = "#044F91"),
      "scatterplot" = geom_point(
         alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]], 
@@ -317,10 +318,14 @@ shinyServer(function(input, output, session) {
     switch(input$chart_type,
       "histogram" = {
         if (sapply(graph_data()[,input$x], class) %in% c("character", "factor")) {
-          stat_count(color = "#044F91", fill = "#044F91")
+          stat_count(
+            aes_string(fill = as.name(input$z))
+            )
         } else { 
-          geom_histogram(color = "#044F91", fill = "#044F91",
-            bins = input[[paste0(plot_opts(), "hist_bins")]])
+          geom_histogram(
+            aes_string(fill = as.name(input$z)),
+            bins = input[[paste0(plot_opts(), "hist_bins")]]
+            )
         }
       },
       "density" = geom_density(aes_string(color = input$z)),
