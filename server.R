@@ -410,8 +410,7 @@ shinyServer(function(input, output, session) {
     switch(input$chart_type,
       "scatterplot" =
         geom_point(
-          aes_string(fill = input$w),
-          shape = 21, 
+          aes_string(color = input$w),
           alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]]
         ),
       "heatmap" = geom_tile(
@@ -429,7 +428,7 @@ shinyServer(function(input, output, session) {
         size = input$w,
         colour = input$z
         ),
-      alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]]
+      alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]]    
       )
   })
 
@@ -479,27 +478,34 @@ shinyServer(function(input, output, session) {
     
     # w and no z
     else if (input$z == "" & input$w != "") {
+
       if (input$w_label == "") {
-        p <- p + scale_color_gradientn(colors = which_palette())
-        p <- p + scale_fill_gradientn(colors = which_palette())
+        if (input$chart_type == "scatterplot") {  
+          p <- p + scale_color_gradientn(colors = which_palette())
+        } else if (input$chart_type == "heatmap") {
+          p <- p + scale_fill_gradientn(colors = which_palette())
+        }
       } else {
         plot_labels <- unlist(strsplit(input$w_label, ",", fixed = TRUE))
-        p <- p + scale_color_gradientn(
-          colors = which_palette(),
-          breaks = c(
-            min(graph_data()[input$w], na.rm = TRUE), 
-            max(graph_data()[input$w], na.rm = TRUE)
-            ),
-          labels = c(plot_labels[1], plot_labels[2])
-          )
-        p <- p + scale_fill_gradientn(
-          colors = which_palette(),
-          breaks = c(
-            min(graph_data()[input$w], na.rm = TRUE), 
-            max(graph_data()[input$w], na.rm = TRUE)
-            ),
-          labels = c(plot_labels[1], plot_labels[2])
-          )
+        if (input$chart_type == "scatterplot") {  
+          p <- p + scale_color_gradientn(
+            colors = which_palette(),
+            breaks = c(
+              min(graph_data()[input$w], na.rm = TRUE), 
+              max(graph_data()[input$w], na.rm = TRUE)
+              ),
+            labels = c(plot_labels[1], plot_labels[2])
+            )
+        } else if (input$chart_type == "heatmap") {
+          p <- p + scale_fill_gradientn(
+            colors = which_palette(),
+            breaks = c(
+              min(graph_data()[input$w], na.rm = TRUE), 
+              max(graph_data()[input$w], na.rm = TRUE)
+              ),
+            labels = c(plot_labels[1], plot_labels[2])
+            )
+        }
       }
       p <- p + which_geom_w()
       print ("w fired")
@@ -508,13 +514,10 @@ shinyServer(function(input, output, session) {
     # z and w
     else if (input$z!= "" & input$w != "") {
 
-      level_count <- nrow(unique(graph_data()[input$z]))
       if (input$z_label == "") {
-        p <- p + scale_fill_manual(values = which_palette())    
         p <- p + scale_color_manual(values = which_palette())    
       } else {
         plot_labels <- unlist(strsplit(input$z_label, ",", fixed = TRUE))
-        p <- p + scale_fill_manual(values = which_palette(), labels = plot_labels)    
         p <- p + scale_color_manual(values = which_palette(), labels = plot_labels)    
       }
       p <- p + which_geom_w_z()
@@ -561,9 +564,7 @@ shinyServer(function(input, output, session) {
       }
     }
     p <- p + theme_gao
-    
     p
-
   })
 
   output$graph <- renderPlot({
@@ -573,10 +574,11 @@ shinyServer(function(input, output, session) {
   observe({
     req(input$do_plot)
 
-  # Update plot generating label and icon after initial plot is rendered
-  updateActionButton(session, "do_plot",
-    label = "update plot",
-    icon = icon("refresh"))
+    # Update plot generating label and icon after initial plot is rendered
+    updateActionButton(session, "do_plot",
+      label = "update plot",
+      icon = icon("refresh")
+      )
     })
 
 })
