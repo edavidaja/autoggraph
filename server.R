@@ -293,7 +293,7 @@ shinyServer(function(input, output, session) {
      if (input$y == "") {  
           geom_bar(position = "stack", color = "#044F91", fill = "#044F91")
         } else {
-          geom_bar(position =  "stack", stat = "identity", color = "#044F91", fill = "#044F91")
+          geom_bar(position = "stack", stat = "identity", fill = "#044F91")
         } 
      },
      "boxplot" = geom_boxplot(color = "#044F91"),
@@ -521,10 +521,10 @@ shinyServer(function(input, output, session) {
   observe({
     req(input$do_plot)
 
-    # Updates goButton's label and icon
-    updateActionButton(session, "do_plot",
-      label = "update plot",
-      icon = icon("refresh"))
-  })
+  # Update plot generating label and icon after initial plot is rendered
+  updateActionButton(session, "do_plot",
+    label = "update plot",
+    icon = icon("refresh"))
+    })
 
 })
