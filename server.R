@@ -452,13 +452,26 @@ shinyServer(function(input, output, session) {
 
     # z and no w
     else if (input$z != "" & input$w == "") {
+      # apply color or fill if no custom labels are set based on chart type
       if (input$z_label == "") {
+        if (input$chart_type %in% c("histogram", "boxplot", "bar")) {
         p <- p + scale_fill_manual(values = which_palette())    
-        p <- p + scale_color_manual(values = which_palette())    
+        } else if (input$chart_type %in% c("density", "line", "step", "scatterplot", "pointrange", "error bar", "area")) {
+          p <- p + scale_color_manual(values = which_palette())    
+        } 
       } else {
         plot_labels <- unlist(strsplit(input$z_label, ",", fixed = TRUE))
-        p <- p + scale_fill_manual(values = which_palette(), labels = plot_labels)    
-        p <- p + scale_color_manual(values = which_palette(), labels = plot_labels)    
+        if (input$chart_type %in% c("histogram", "boxplot", "bar")) {
+        p <- p + scale_fill_manual(values = which_palette(), labels = plot_labels)
+        } else if (input$chart_type %in% c("pointrange", "error bar")) {
+          p <- p + scale_color_manual(values = which_palette(), labels = plot_labels)
+        } else if (input$chart_type %in% c("density", "line", "step", "area")) {
+          p <- p + scale_color_manual(values = which_palette(), labels = plot_labels)
+          p <- p + scale_linetype_manual(values = c(1, 2, 3, 4, 5, 6), labels = plot_labels)
+        } else if (input$chart_type == "scatterplot") {
+          p <- p + scale_color_manual(values = which_palette(), labels = plot_labels)
+          p <- p + scale_shape_manual(values = c(15, 16, 17, 18, 3, 8, 7), labels = plot_labels)
+        }
       }
       p <- p + which_geom_z()
       print ("z fired")
