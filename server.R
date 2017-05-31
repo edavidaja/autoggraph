@@ -553,14 +553,24 @@ shinyServer(function(input, output, session) {
       if (input$source_label != "") {
         p <- p + labs(caption = input$source_label)
       }
-      if (input$z_guide != "") {
-        p <- p + labs(color = input$z_guide) 
+      if (input$z_guide != "" & input$w_guide == "") {
+        if (input$chart_type %in% c("histogram", "boxplot", "bar")) {
         p <- p + labs(fill = input$z_guide)
-      }
-      if (input$w_guide != "") {
-        p <- p + labs(size = input$w_guide) 
-        p <- p + labs(color = input$w_guide) 
-        p <- p + labs(fill = input$w_guide)
+        } else if (input$chart_type %in% c("pointrange", "error bar")) {
+          p <- p + labs(color = input$z_guide)
+        } else if (input$chart_type %in% c("density", "line", "step", "area")) {
+          p <- p + labs(color = input$z_guide, linetype = input$z_guide)
+        } else if (input$chart_type == "scatterplot") {
+          p <- p + labs(color =  input$z_guide, shape = input$z_guide)
+        }
+      } else if (input$w_guide != "" & input$z_guide == "") {
+        if (input$chart_type == "scatterplot") {
+          p <- p + labs(color = input$w_guide) 
+        } else if (input$chart_type == "heatmap") {
+          p <- p + labs(fill = input$w_guide)
+        }     
+      } else if (input$w_guide != "" & input$z_guide != "") {
+        p <- p + labs(size = input$w_guide, color = input$z_guide)
       }
     }
     p <- p + theme_gao
