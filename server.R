@@ -303,7 +303,7 @@ shinyServer(function(input, output, session) {
        }
      },
      "density" = geom_density(fill = "#044F91"),
-     "line" = geom_line(color = "#044F91"),
+     "line" = geom_line(color = "#044F91", size = 1.1),
      "step" = geom_step(color = "#044F91"),
      "scatterplot" = geom_point(
         alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]], 
@@ -349,16 +349,24 @@ shinyServer(function(input, output, session) {
             )
         }
       },
-      "density" = geom_density(aes_string(color = input$z)),
-      "line" = geom_line(aes_string(color = input$z)),
-      "step" = geom_step(aes_string(color = input$z)),
+      "density" = geom_density(
+        aes_string(color = input$z, linetype = input$z),
+        size = 1.1
+        ),
+      "line" = geom_line(
+        aes_string(color = input$z, linetype = input$z),
+        size = 1.1
+        ),
+      "step" = geom_step(
+        aes_string(color = input$z, linetype = input$z),
+        size = 1.1),
       "boxplot" = geom_boxplot(aes_string(fill = input$z)),
       "scatterplot" = geom_point(
-        aes_string(fill = input$z),
-        shape = 21, size = 2, color = "white",
+        aes_string(color = input$z, shape = input$z),
+        size = 2,
         alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]]
         ),
-      "bar" = {
+      "bar" = { 
         if (input$y == "") {  
           geom_bar(
             aes_string(fill = input$z),
@@ -366,7 +374,9 @@ shinyServer(function(input, output, session) {
         } else {
           geom_bar(
             aes_string(fill = input$z),
-            position =  input[[paste0(plot_opts(), "bar_type")]], stat = "identity")
+            position =  input[[paste0(plot_opts(), "bar_type")]],
+            stat = "identity"
+            )
         }
       },
     "pointrange" = geom_pointrange(
@@ -386,7 +396,9 @@ shinyServer(function(input, output, session) {
     "area" = list(
       geom_area(alpha = .1), 
       geom_line(
-        aes_string(color = input$z), size= 1.1, position = "stack")
+        aes_string(color = input$z, linetype = input$z),
+        size= 1.1, position = "stack"
+        )
       )
     )
   })
@@ -398,8 +410,7 @@ shinyServer(function(input, output, session) {
     switch(input$chart_type,
       "scatterplot" =
         geom_point(
-          aes_string(fill = input$w),
-          shape = 21, 
+          aes_string(color = input$w),
           alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]]
         ),
       "heatmap" = geom_tile(
@@ -417,7 +428,7 @@ shinyServer(function(input, output, session) {
         size = input$w,
         colour = input$z
         ),
-      alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]]
+      alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]]    
       )
   })
 
@@ -440,13 +451,26 @@ shinyServer(function(input, output, session) {
 
     # z and no w
     else if (input$z != "" & input$w == "") {
+      # apply color or fill if no custom labels are set based on chart type
       if (input$z_label == "") {
+        if (input$chart_type %in% c("histogram", "boxplot", "bar")) {
         p <- p + scale_fill_manual(values = which_palette())    
-        p <- p + scale_color_manual(values = which_palette())    
+        } else if (input$chart_type %in% c("density", "line", "step", "scatterplot", "pointrange", "error bar", "area")) {
+          p <- p + scale_color_manual(values = which_palette())    
+        } 
       } else {
         plot_labels <- unlist(strsplit(input$z_label, ",", fixed = TRUE))
-        p <- p + scale_fill_manual(values = which_palette(), labels = plot_labels)    
-        p <- p + scale_color_manual(values = which_palette(), labels = plot_labels)    
+        if (input$chart_type %in% c("histogram", "boxplot", "bar")) {
+        p <- p + scale_fill_manual(values = which_palette(), labels = plot_labels)
+        } else if (input$chart_type %in% c("pointrange", "error bar")) {
+          p <- p + scale_color_manual(values = which_palette(), labels = plot_labels)
+        } else if (input$chart_type %in% c("density", "line", "step", "area")) {
+          p <- p + scale_color_manual(values = which_palette(), labels = plot_labels)
+          p <- p + scale_linetype_manual(values = c(1, 2, 3, 4, 5, 6), labels = plot_labels)
+        } else if (input$chart_type == "scatterplot") {
+          p <- p + scale_color_manual(values = which_palette(), labels = plot_labels)
+          p <- p + scale_shape_manual(values = c(15, 16, 17, 18, 3, 8, 7), labels = plot_labels)
+        }
       }
       p <- p + which_geom_z()
       print ("z fired")
@@ -454,27 +478,34 @@ shinyServer(function(input, output, session) {
     
     # w and no z
     else if (input$z == "" & input$w != "") {
+
       if (input$w_label == "") {
-        p <- p + scale_color_gradientn(colors = which_palette())
-        p <- p + scale_fill_gradientn(colors = which_palette())
+        if (input$chart_type == "scatterplot") {  
+          p <- p + scale_color_gradientn(colors = which_palette())
+        } else if (input$chart_type == "heatmap") {
+          p <- p + scale_fill_gradientn(colors = which_palette())
+        }
       } else {
         plot_labels <- unlist(strsplit(input$w_label, ",", fixed = TRUE))
-        p <- p + scale_color_gradientn(
-          colors = which_palette(),
-          breaks = c(
-            min(graph_data()[input$w], na.rm = TRUE), 
-            max(graph_data()[input$w], na.rm = TRUE)
-            ),
-          labels = c(plot_labels[1], plot_labels[2])
-          )
-        p <- p + scale_fill_gradientn(
-          colors = which_palette(),
-          breaks = c(
-            min(graph_data()[input$w], na.rm = TRUE), 
-            max(graph_data()[input$w], na.rm = TRUE)
-            ),
-          labels = c(plot_labels[1], plot_labels[2])
-          )
+        if (input$chart_type == "scatterplot") {  
+          p <- p + scale_color_gradientn(
+            colors = which_palette(),
+            breaks = c(
+              min(graph_data()[input$w], na.rm = TRUE), 
+              max(graph_data()[input$w], na.rm = TRUE)
+              ),
+            labels = c(plot_labels[1], plot_labels[2])
+            )
+        } else if (input$chart_type == "heatmap") {
+          p <- p + scale_fill_gradientn(
+            colors = which_palette(),
+            breaks = c(
+              min(graph_data()[input$w], na.rm = TRUE), 
+              max(graph_data()[input$w], na.rm = TRUE)
+              ),
+            labels = c(plot_labels[1], plot_labels[2])
+            )
+        }
       }
       p <- p + which_geom_w()
       print ("w fired")
@@ -483,13 +514,10 @@ shinyServer(function(input, output, session) {
     # z and w
     else if (input$z!= "" & input$w != "") {
 
-      level_count <- nrow(unique(graph_data()[input$z]))
       if (input$z_label == "") {
-        p <- p + scale_fill_manual(values = which_palette())    
         p <- p + scale_color_manual(values = which_palette())    
       } else {
         plot_labels <- unlist(strsplit(input$z_label, ",", fixed = TRUE))
-        p <- p + scale_fill_manual(values = which_palette(), labels = plot_labels)    
         p <- p + scale_color_manual(values = which_palette(), labels = plot_labels)    
       }
       p <- p + which_geom_w_z()
@@ -525,20 +553,28 @@ shinyServer(function(input, output, session) {
       if (input$source_label != "") {
         p <- p + labs(caption = input$source_label)
       }
-      if (input$z_guide != "") {
-        p <- p + labs(color = input$z_guide) 
+      if (input$z_guide != "" & input$w_guide == "") {
+        if (input$chart_type %in% c("histogram", "boxplot", "bar")) {
         p <- p + labs(fill = input$z_guide)
-      }
-      if (input$w_guide != "") {
-        p <- p + labs(size = input$w_guide) 
-        p <- p + labs(color = input$w_guide) 
-        p <- p + labs(fill = input$w_guide)
+        } else if (input$chart_type %in% c("pointrange", "error bar")) {
+          p <- p + labs(color = input$z_guide)
+        } else if (input$chart_type %in% c("density", "line", "step", "area")) {
+          p <- p + labs(color = input$z_guide, linetype = input$z_guide)
+        } else if (input$chart_type == "scatterplot") {
+          p <- p + labs(color =  input$z_guide, shape = input$z_guide)
+        }
+      } else if (input$w_guide != "" & input$z_guide == "") {
+        if (input$chart_type == "scatterplot") {
+          p <- p + labs(color = input$w_guide) 
+        } else if (input$chart_type == "heatmap") {
+          p <- p + labs(fill = input$w_guide)
+        }     
+      } else if (input$w_guide != "" & input$z_guide != "") {
+        p <- p + labs(size = input$w_guide, color = input$z_guide)
       }
     }
     p <- p + theme_gao
-    
     p
-
   })
 
   output$graph <- renderPlot({
@@ -548,10 +584,11 @@ shinyServer(function(input, output, session) {
   observe({
     req(input$do_plot)
 
-  # Update plot generating label and icon after initial plot is rendered
-  updateActionButton(session, "do_plot",
-    label = "update plot",
-    icon = icon("refresh"))
+    # Update plot generating label and icon after initial plot is rendered
+    updateActionButton(session, "do_plot",
+      label = "update plot",
+      icon = icon("refresh")
+      )
     })
 
 })
