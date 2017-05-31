@@ -270,7 +270,7 @@ shinyServer(function(input, output, session) {
     # select geom based on selected chart type for the univariate or
     # two-variable case.    
     req(graph_data())
-    
+
     switch(input$chart_type,
      "histogram" = {
        if (sapply(graph_data()[,input$x], class) %in% c("character", "factor")) {
@@ -278,7 +278,8 @@ shinyServer(function(input, output, session) {
        } else {
          geom_histogram(
           fill = "#044F91",
-          bins = input[[paste0(plot_opts(), "hist_bins")]])
+          bins = input[[paste0(plot_opts(), "hist_bins")]]
+          )
        }
      },
      "density" = geom_density(fill = "#044F91"),
@@ -515,6 +516,15 @@ shinyServer(function(input, output, session) {
 
   output$graph <- renderPlot({
     graph_it()
+  })
+
+  observe({
+    req(input$do_plot)
+
+    # Updates goButton's label and icon
+    updateActionButton(session, "do_plot",
+      label = "update plot",
+      icon = icon("refresh"))
   })
 
 })
