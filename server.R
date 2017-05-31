@@ -303,7 +303,7 @@ shinyServer(function(input, output, session) {
        }
      },
      "density" = geom_density(fill = "#044F91"),
-     "line" = geom_line(color = "#044F91"),
+     "line" = geom_line(color = "#044F91", size = 1.1),
      "step" = geom_step(color = "#044F91"),
      "scatterplot" = geom_point(
         alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]], 
@@ -349,16 +349,24 @@ shinyServer(function(input, output, session) {
             )
         }
       },
-      "density" = geom_density(aes_string(color = input$z)),
-      "line" = geom_line(aes_string(color = input$z)),
-      "step" = geom_step(aes_string(color = input$z)),
+      "density" = geom_density(
+        aes_string(color = input$z, linetype = input$z),
+        size = 1.1
+        ),
+      "line" = geom_line(
+        aes_string(color = input$z, linetype = input$z),
+        size = 1.1
+        ),
+      "step" = geom_step(
+        aes_string(color = input$z, linetype = input$z),
+        size = 1.1),
       "boxplot" = geom_boxplot(aes_string(fill = input$z)),
       "scatterplot" = geom_point(
-        aes_string(fill = input$z),
-        shape = 21, size = 2, color = "white",
+        aes_string(color = input$z, shape = input$z),
+        size = 2,
         alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]]
         ),
-      "bar" = {
+      "bar" = { 
         if (input$y == "") {  
           geom_bar(
             aes_string(fill = input$z),
@@ -366,7 +374,9 @@ shinyServer(function(input, output, session) {
         } else {
           geom_bar(
             aes_string(fill = input$z),
-            position =  input[[paste0(plot_opts(), "bar_type")]], stat = "identity")
+            position =  input[[paste0(plot_opts(), "bar_type")]],
+            stat = "identity"
+            )
         }
       },
     "pointrange" = geom_pointrange(
@@ -386,7 +396,9 @@ shinyServer(function(input, output, session) {
     "area" = list(
       geom_area(alpha = .1), 
       geom_line(
-        aes_string(color = input$z), size= 1.1, position = "stack")
+        aes_string(color = input$z, linetype = input$z),
+        size= 1.1, position = "stack"
+        )
       )
     )
   })
