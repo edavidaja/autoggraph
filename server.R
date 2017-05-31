@@ -43,7 +43,7 @@ shinyServer(function(input, output, session) {
     print(plot_opts())
     switch(input$chart_type,
       "scatterplot" = 
-      list(
+        list(
         sliderInput(
           inputId = paste0(plot_opts(), "scatter_option_alpha"), 
           "point transparency", 
@@ -67,7 +67,7 @@ shinyServer(function(input, output, session) {
           )
         ),
       "pointrange" = 
-      list(
+        list(
         selectInput(
           inputId = paste0(plot_opts(), "pointrange_lower"),
           "lower bound", 
@@ -80,7 +80,7 @@ shinyServer(function(input, output, session) {
           )
         ),
       "error bar" = 
-      list(
+        list(
         selectInput(
           inputId = paste0(plot_opts(), "errorbar_lower"),
           "lower bound", 
@@ -93,23 +93,23 @@ shinyServer(function(input, output, session) {
           )
         ),
       "pie" = 
-      a(
+       a(
         p("no. pie charts are the worst."), 
         href = "http://www.businessinsider.com/pie-charts-are-the-worst-2013-6"
         ),
-      "bar" = list(
+      "bar" =
         selectInput(
           inputId = paste0(plot_opts(), "bar_type"),
           "select a bar type",
           choices = c(
             "stacked" = "stack", "clustered" = "dodge", "filled" = "fill"
             )
-          )
         ),
-      "histogram" = bar_copy,
-      "stacked bar" = bar_copy,
-      "clustered bar" = bar_copy,
-      "filled bar" = bar_copy
+        "histogram" =
+          numericInput(
+            inputId = paste0(plot_opts(), "hist_bins"),
+            "number of bins", value = 30
+            )
       )
   })
 
@@ -270,17 +270,20 @@ shinyServer(function(input, output, session) {
     # select geom based on selected chart type for the univariate or
     # two-variable case.    
     req(graph_data())
-    
+
     switch(input$chart_type,
      "histogram" = {
        if (sapply(graph_data()[,input$x], class) %in% c("character", "factor")) {
-         stat_count(color = "#044F91", fill = "#044F91")
-       } else { 
-         geom_histogram(color = "#044F91", fill = "#044F91")
+         stat_count(fill = "#044F91")
+       } else {
+         geom_histogram(
+          fill = "#044F91",
+          bins = input[[paste0(plot_opts(), "hist_bins")]]
+          )
        }
      },
      "density" = geom_density(fill = "#044F91"),
-     "line" = geom_line(),
+     "line" = geom_line(color = "#044F91"),
      "step" = geom_step(fill = "#044F91"),
      "scatterplot" = geom_point(
         alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]], 
@@ -290,10 +293,10 @@ shinyServer(function(input, output, session) {
      if (input$y == "") {  
           geom_bar(position = "stack", color = "#044F91", fill = "#044F91")
         } else {
-          geom_bar(position =  "stack", stat = "identity", color = "#044F91", fill = "#044F91")
+          geom_bar(position = "stack", stat = "identity", fill = "#044F91")
         } 
      },
-     "boxplot" = geom_boxplot(),
+     "boxplot" = geom_boxplot(color = "#044F91"),
      "pointrange" = geom_pointrange(
         aes_string(
           ymin = input[[paste0(plot_opts(), "pointrange_lower")]],
@@ -316,16 +319,20 @@ shinyServer(function(input, output, session) {
     switch(input$chart_type,
       "histogram" = {
         if (sapply(graph_data()[,input$x], class) %in% c("character", "factor")) {
-          stat_count(color = "#044F91", fill = "#044F91")
+          stat_count(
+            aes_string(fill = as.name(input$z))
+            )
         } else { 
-          geom_histogram(color = "#044F91", fill = "#044F91")
+          geom_histogram(
+            aes_string(fill = as.name(input$z)),
+            bins = input[[paste0(plot_opts(), "hist_bins")]]
+            )
         }
       },
-      "density" = geom_density(fill = "#044F91"),
-      "column" = geom_col(),
+      "density" = geom_density(aes_string(color = input$z)),
       "line" = geom_line(aes_string(color = input$z)),
       "step" = geom_step(aes_string(color = input$z)),
-      "boxplot" = geom_boxplot(aes_string(color = input$z)),
+      "boxplot" = geom_boxplot(aes_string(fill = input$z)),
       "scatterplot" = geom_point(shape = 21, size = 2, color = "white",
         alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]]),
       "bar" = {
@@ -361,10 +368,16 @@ shinyServer(function(input, output, session) {
 
     req(graph_data())
 
-    geom_point(
-      aes_string(fill = input$w),
-      shape = 21, 
-      alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]]
+    switch(input$chart_type,
+      "scatterplot" =
+        geom_point(
+          aes_string(fill = input$w),
+          shape = 21, 
+          alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]]
+        ),
+      "heatmap" = geom_tile(
+        aes_string(fill = input$w)
+        )
       )
   })
 
@@ -400,8 +413,6 @@ shinyServer(function(input, output, session) {
 
     # z and no w
     else if (input$z != "" & input$w == "") {
-      # count the number of levels of z and, if necessary, apply custom factor
-      # level names
       if (input$z_label == "") {
         p <- p + scale_fill_manual(values = which_palette())    
         p <- p + scale_color_manual(values = which_palette())    
@@ -506,5 +517,14 @@ shinyServer(function(input, output, session) {
   output$graph <- renderPlot({
     graph_it()
   })
+
+  observe({
+    req(input$do_plot)
+
+  # Update plot generating label and icon after initial plot is rendered
+  updateActionButton(session, "do_plot",
+    label = "update plot",
+    icon = icon("refresh"))
+    })
 
 })
