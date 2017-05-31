@@ -267,19 +267,19 @@ shinyServer(function(input, output, session) {
     }
     # x and z
     else if (input$x != "" & input$y == "" & input$z != "" & input$w == "") {
-      aes_string(x = as.name(input$x), fill = as.name(input$z))
+      aes_string(x = as.name(input$x))
     }
     #  x, y and, z
     else if (input$x != "" & input$y != "" & input$z != "" & input$w == "") {
-      aes_string(x = as.name(input$x), y = as.name(input$y), fill = as.name(input$z))
+      aes_string(x = as.name(input$x), y = as.name(input$y))
     } 
     # x, y, and w
     else if (input$x != "" & input$y != "" & input$z == "" & input$w != "") {
-      aes_string(x = as.name(input$x), y = as.name(input$y), colour = as.name(input$w))
+      aes_string(x = as.name(input$x), y = as.name(input$y))
     }
     # x, y, z, and w
     else if (input$x != "" & input$y != "" & input$z != "" & input$w != "") {
-      aes_string(x = as.name(input$x), y = as.name(input$y), colour = as.name(input$z))
+      aes_string(x = as.name(input$x), y = as.name(input$y))
     }
   })
 
@@ -304,14 +304,14 @@ shinyServer(function(input, output, session) {
      },
      "density" = geom_density(fill = "#044F91"),
      "line" = geom_line(color = "#044F91"),
-     "step" = geom_step(fill = "#044F91"),
+     "step" = geom_step(color = "#044F91"),
      "scatterplot" = geom_point(
         alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]], 
         color = "#044F91"
         ),
      "bar" = {
      if (input$y == "") {  
-          geom_bar(position = "stack", color = "#044F91", fill = "#044F91")
+          geom_bar(position = "stack", fill = "#044F91")
         } else {
           geom_bar(position = "stack", stat = "identity", fill = "#044F91")
         } 
@@ -353,13 +353,20 @@ shinyServer(function(input, output, session) {
       "line" = geom_line(aes_string(color = input$z)),
       "step" = geom_step(aes_string(color = input$z)),
       "boxplot" = geom_boxplot(aes_string(fill = input$z)),
-      "scatterplot" = geom_point(shape = 21, size = 2, color = "white",
-        alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]]),
+      "scatterplot" = geom_point(
+        aes_string(fill = input$z),
+        shape = 21, size = 2, color = "white",
+        alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]]
+        ),
       "bar" = {
         if (input$y == "") {  
-          geom_bar(position =  input[[paste0(plot_opts(), "bar_type")]])
+          geom_bar(
+            aes_string(fill = input$z),
+            position =  input[[paste0(plot_opts(), "bar_type")]])
         } else {
-          geom_bar(position =  input[[paste0(plot_opts(), "bar_type")]], stat = "identity")
+          geom_bar(
+            aes_string(fill = input$z),
+            position =  input[[paste0(plot_opts(), "bar_type")]], stat = "identity")
         }
       },
     "pointrange" = geom_pointrange(
