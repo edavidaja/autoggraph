@@ -253,7 +253,7 @@ shinyServer(function(input, output, session) {
 
   # aesthetics ----------------------------------------------------------------
 
-  which_aes <- reactive({
+  base_aes <- reactive({
 
     # return aesthetics based on which combinations of  
     # data input fields are selected
@@ -429,7 +429,7 @@ shinyServer(function(input, output, session) {
     req(input$chart_type, graph_data(), input$x)
     
     # generate base plot:
-    p <- ggplot(data = graph_data()) + which_aes() + labs(y = "", title = input$y)
+    p <- ggplot(data = graph_data()) + base_aes() + labs(y = "", title = input$y)
 
     # add geom function depending on selected variables
     # only x or x & y
