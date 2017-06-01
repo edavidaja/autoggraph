@@ -171,16 +171,19 @@ shinyServer(function(input, output, session) {
     },
     content = function(file) {
       # TODO(ajae): restore vector output after installing svg lite
-      # vector_out  <- tempfile(fileext = ".svg")
-      raster_out  <- tempfile(fileext = ".png")
-      plotobj_out <- tempfile(fileext = ".rds")
-      log_out     <- tempfile(fileext = ".txt")
+      # vector_out_large <- tempfile(pattern = "vector_large_", fileext = ".svg")
+      # vector_out_small <- tempfile(pattern = "vector_small_", fileext = ".svg")
+      raster_out_large <- tempfile(pattern = "raster_large_", fileext = ".png")
+      raster_out_small <- tempfile(pattern = "raster_small_", fileext = ".png")
+      plotobj_out      <- tempfile(pattern = "plot_object_", fileext = ".rds")
+      log_out          <- tempfile(pattern = "log_", fileext = ".txt")
 
-      # ggsave(vector_out, width = 7.58, height = 6.83)
-      ggsave(raster_out, width = 7.58, height = 6.83)
+      # ggsave(vector_out_large, width = 7.58, height = 6.83)
+      # ggsave(vector_out_small, width = 5, height = 4.51)
+      ggsave(raster_out_large, width = 7.58, height = 6.83, units = "in", dpi = 600)
+      ggsave(raster_out_small, width = 5, height = 4.51, units = "in", dpi = 600)
 
       write_rds(graph_it(), plotobj_out, compress = "none")
-      # TODO(ajae): write rds checksum into log file if needed
       
       write_lines(
         paste(
@@ -192,8 +195,14 @@ shinyServer(function(input, output, session) {
           ),
         log_out
         )
-      # zip(zipfile = file, files = c(vector_out, raster_out, plotobj_out, log_out))
-      zip(zipfile = file, files = c(raster_out, plotobj_out, log_out))
+
+      zip(
+        zipfile = file,
+        files = c(
+          raster_out_large, raster_out_small, plotobj_out, log_out,
+          # vector_out_large, vector_out_small
+          )
+        )
     } 
     )
 
@@ -359,7 +368,8 @@ shinyServer(function(input, output, session) {
         ),
       "step" = geom_step(
         aes_string(color = input$z, linetype = input$z),
-        size = 1.1),
+        size = 1.1
+        ),
       "boxplot" = geom_boxplot(aes_string(fill = input$z)),
       "scatterplot" = geom_point(
         aes_string(color = input$z, shape = input$z),
