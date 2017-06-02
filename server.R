@@ -199,7 +199,7 @@ shinyServer(function(input, output, session) {
       zip(
         zipfile = file,
         files = c(
-          raster_out_large, raster_out_small, plotobj_out, log_out,
+          raster_out_large, raster_out_small, plotobj_out, log_out
           # vector_out_large, vector_out_small
           )
         )
