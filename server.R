@@ -119,7 +119,11 @@ shinyServer(function(input, output, session) {
     wellPanel(
       h4("plot labels"),
       textInput("x_label", "x-axis label"),
+      radioButtons("x_val_format", label = "x value format",
+        choices = c("none" = "", "dollar", "comma", "percent"), inline = TRUE),
       textInput("y_label", "y-axis label"),
+      radioButtons("y_val_format", label = "y value format",
+        choices = c("none" = "", "dollar", "comma", "percent"), inline = TRUE),
       textInput("z_guide", "discrete variable name"),
       textInput("z_label", "discrete variable labels, separated by commas",
         placeholder = "one, two, three, ..."),
@@ -551,8 +555,6 @@ shinyServer(function(input, output, session) {
         )
     }
     ## custom labels ----------------------------------------------------------
-    ## Skip the custom label block until the labels have been rendered 
-    if (input$do_plot > 1) {
 
       if (input$x_label != "") {
         p <- p + labs(x = input$x_label)
@@ -582,7 +584,20 @@ shinyServer(function(input, output, session) {
       } else if (input$w_guide != "" & input$z_guide != "") {
         p <- p + labs(size = input$w_guide, color = input$z_guide)
       }
-    }
+      if (input$x_val_format != "") {
+        switch(input$x_val_format,
+          "dollar"  = p <- p + scale_x_continuous(labels = scales::dollar),
+          "comma"   = p <- p + scale_x_continuous(labels = scales::comma),
+          "percent" = p <- p + scale_x_continuous(labels = scales::percent)
+          )
+      }
+      if (input$y_val_format != "") {
+        switch(input$y_val_format,
+          "dollar"  = p <- p + scale_y_continuous(labels = scales::dollar),
+          "comma"   = p <- p + scale_y_continuous(labels = scales::comma),
+          "percent" = p <- p + scale_y_continuous(labels = scales::percent)
+          )
+      }
     p <- p + theme_gao
     p
   })
