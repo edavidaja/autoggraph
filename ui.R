@@ -18,6 +18,7 @@ shinyUI(
       fluidRow(  
         column(3,
          wellPanel(
+          h4("plot type | data:"),
           selectInput("chart_type", "which chart would you like to use?",
             choices = list(
               `select a chart type` = "",
@@ -32,12 +33,10 @@ shinyUI(
           uiOutput("excel_sheet_selector"),
           uiOutput("variable_selector")
           ),
-         wellPanel(
-          h4("plot specifics"),
           uiOutput("plot_options")
-          )
          ),
         column(6,
+          h4("plot preview:"),
           plotOutput("graph")
           ),
         column(3,
