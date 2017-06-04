@@ -17,25 +17,84 @@ theme_gao <- list(
     axis.title.x = element_text(hjust = 0, size = 7, face = "bold"),
     axis.text = element_text(size = 7, face = "bold"),
     panel.grid = element_blank()
-    # ),
     )
-  # guides(
-  #   color = guide_legend(title.position = "top", ncol = 1),
-  #   fill = guide_legend(title.position = "top", ncol = 1),
-  #   size = guide_legend(title.position = "top", ncol = 1)
-  #   )
   )
 
 # server ----------------------------------------------------------------------
 shinyServer(function(input, output, session) {
+
+  # Ingest file -----------------------------------------------------------------
+  output$excel_sheet_selector <- renderUI({
+
+    req(input$infile)
+
+    ext <- tools::file_ext(input$infile$name)
+    if (ext %in% c("xls", "xlsx")) {
+
+      file.rename(input$infile$datapath, paste(input$infile$datapath, ext, sep="."))
+      selectInput("which_sheet", "select a worksheet:", 
+        choices = excel_sheets(paste(input$infile$datapath, ext, sep="."))
+        )
+    }
+  })
+
+  graph_data <- reactive({
+
+    req(input$infile$name)
+
+    ext <- tools::file_ext(input$infile$name)
+    if (ext %in% c("xls", "xlsx")) {
+      file.rename(input$infile$datapath, paste(input$infile$datapath, ext, sep="."))
+      req(input$which_sheet)
+      read_excel(paste(input$infile$datapath, ext, sep="."), sheet = input$which_sheet)
+    } else if (ext == "csv") {
+      read_csv(input$infile$datapath)
+    }
+
+  })
+
+    # Variable selectors ----------------------------------------------------------
+  output$variable_selector <- renderUI({
+
+    req(graph_data())
+
+    list(
+      selectInput("x",
+       "select your x variable:",
+       choices =  c("x variable" = "", names(graph_data()))
+       ),
+
+      selectInput("y",
+       "select your y variable:",
+       choices =  c("y variable" = "", names(graph_data()))
+       ),
+
+      selectInput("z",
+       "add an additional discrete variable:",
+       choices =  c("discrete variable" = "", names(graph_data()))
+       ),
+
+      selectInput("w",
+       "add an additional continuous variable:",
+       choices =  c("continuous variable" = "", names(graph_data()))
+       ),
+      conditionalPanel(condition = "input.z != '' | input.w != ''",
+        selectInput("palette_selector", label = "select a color palette", 
+          choices = c("classic", "qualitative", "sequential", "diverging")
+          )
+        ),
+      actionButton("do_plot", "can i have your autoggraph?", icon = icon("area-chart"))
+      )
+  })
+
+  # plot specific options block based on dynamic ui example -------------------
+  # http://shiny.rstudio.com/gallery/dynamic-ui.html
 
   plot_opts <- eventReactive(input$chart_type, {
     print ("plot opts fired")
     as.character(paste0(round(runif(1, 1, 100), 0), "_"))
   })
 
-  # plot specific options block based on dynamic ui example -------------------
-  # http://shiny.rstudio.com/gallery/dynamic-ui.html
   output$plot_options <- renderUI({
 
     req(input$chart_type)
@@ -110,137 +169,6 @@ shinyServer(function(input, output, session) {
             inputId = paste0(plot_opts(), "hist_bins"),
             "number of bins", value = 30
             )
-      )
-  })
-
-  output$plot_labels <- renderUI({
-    req(graph_data())
-
-    wellPanel(
-      h4("plot labels"),
-      textInput("x_label", "x-axis label"),
-      radioButtons("x_val_format", label = "x value format",
-        choices = c("none" = "", "dollar", "comma", "percent"), inline = TRUE),
-      textInput("y_label", "y-axis label"),
-      radioButtons("y_val_format", label = "y value format",
-        choices = c("none" = "", "dollar", "comma", "percent"), inline = TRUE),
-      textInput("z_guide", "discrete variable name"),
-      textInput("z_label", "discrete variable labels, separated by commas",
-        placeholder = "one, two, three, ..."),
-      textInput("w_guide", "continuous variable name"),
-      textInput("w_label", "continuous variable labels, separated by commas",
-        placeholder = "low, high"),
-      textInput("source_label", "source label",
-        placeholder = "Source: GAO analysis..."),
-      h4("export:"),
-      downloadButton(outputId = "bundle", label = "results")
-      )
-  })
-
-  # Ingest file -----------------------------------------------------------------
-  output$excel_sheet_selector <- renderUI({
-
-    req(input$infile)
-
-    ext <- tools::file_ext(input$infile$name)
-    if (ext %in% c("xls", "xlsx")) {
-
-      file.rename(input$infile$datapath, paste(input$infile$datapath, ext, sep="."))
-      selectInput("which_sheet", "select a worksheet:", 
-        choices = excel_sheets(paste(input$infile$datapath, ext, sep="."))
-        )
-    }
-  })
-
-  graph_data <- reactive({
-
-    req(input$infile$name)
-
-    ext <- tools::file_ext(input$infile$name)
-    if (ext %in% c("xls", "xlsx")) {
-      file.rename(input$infile$datapath, paste(input$infile$datapath, ext, sep="."))
-      req(input$which_sheet)
-      read_excel(paste(input$infile$datapath, ext, sep="."), sheet = input$which_sheet)
-    } else if (ext == "csv") {
-      read_csv(input$infile$datapath)
-    }
-
-  })
-  
-  # Download file -------------------------------------------------------------
-  output$bundle <- downloadHandler(
-    contentType = "application/zip",
-    filename = function() {
-      paste("autoggraph-", input$chart_type, ".zip", sep = "" ) 
-    },
-    content = function(file) {
-      # TODO(ajae): restore vector output after installing svg lite
-      # vector_out_large <- tempfile(pattern = "vector_large_", fileext = ".svg")
-      # vector_out_small <- tempfile(pattern = "vector_small_", fileext = ".svg")
-      raster_out_large <- tempfile(pattern = "raster_large_", fileext = ".png")
-      raster_out_small <- tempfile(pattern = "raster_small_", fileext = ".png")
-      plotobj_out      <- tempfile(pattern = "plot_object_", fileext = ".rds")
-      log_out          <- tempfile(pattern = "log_", fileext = ".txt")
-
-      # ggsave(vector_out_large, width = 7.58, height = 6.83)
-      # ggsave(vector_out_small, width = 5, height = 4.51)
-      ggsave(raster_out_large, width = 7.58, height = 6.83, units = "in", dpi = 600)
-      ggsave(raster_out_small, width = 5, height = 4.51, units = "in", dpi = 600)
-
-      write_rds(graph_it(), plotobj_out, compress = "none")
-      
-      write_lines(
-        paste(
-          "generated by autoggraph v.", version, "\r\n",
-          "generated on:", Sys.time(), "\r\n",
-          "input file:", input$infile$name, "\r\n",
-          "size:", input$infile$size, "\r\n",
-          sep = " ", collapse = "\r\n" 
-          ),
-        log_out
-        )
-
-      zip(
-        zipfile = file,
-        files = c(
-          raster_out_large, raster_out_small, plotobj_out, log_out
-          # vector_out_large, vector_out_small
-          )
-        )
-    } 
-    )
-
-  # Variable selectors ----------------------------------------------------------
-  output$variable_selector <- renderUI({
-
-    req(graph_data())
-
-    list(
-      selectInput("x",
-       "select your x variable:",
-       choices =  c("x variable" = "", names(graph_data()))
-       ),
-
-      selectInput("y",
-       "select your y variable:",
-       choices =  c("y variable" = "", names(graph_data()))
-       ),
-
-      selectInput("z",
-       "add an additional discrete variable:",
-       choices =  c("discrete variable" = "", names(graph_data()))
-       ),
-
-      selectInput("w",
-       "add an additional continuous variable:",
-       choices =  c("continuous variable" = "", names(graph_data()))
-       ),
-      conditionalPanel(condition = "input.z != '' | input.w != ''",
-        selectInput("palette_selector", label = "select a color palette", 
-          choices = c("classic", "qualitative", "sequential", "diverging")
-          )
-        ),
-      actionButton("do_plot", "can i have your autoggraph?", icon = icon("area-chart"))
       )
   })
 
@@ -446,6 +374,30 @@ shinyServer(function(input, output, session) {
       )
   })
 
+  output$plot_labels <- renderUI({
+    req(graph_data())
+
+    wellPanel(
+      h4("plot labels"),
+      textInput("x_label", "x-axis label"),
+      radioButtons("x_val_format", label = "x value format",
+        choices = c("none" = "", "dollar", "comma", "percent"), inline = TRUE),
+      textInput("y_label", "y-axis label"),
+      radioButtons("y_val_format", label = "y value format",
+        choices = c("none" = "", "dollar", "comma", "percent"), inline = TRUE),
+      textInput("z_guide", "discrete variable name"),
+      textInput("z_label", "discrete variable labels, separated by commas",
+        placeholder = "one, two, three, ..."),
+      textInput("w_guide", "continuous variable name"),
+      textInput("w_label", "continuous variable labels, separated by commas",
+        placeholder = "low, high"),
+      textInput("source_label", "source label",
+        placeholder = "Source: GAO analysis..."),
+      h4("export:"),
+      downloadButton(outputId = "bundle", label = "results")
+      )
+  })
+
   # plot builder --------------------------------------------------------------
   graph_it <- eventReactive(input$do_plot, {
     # require chart type, data to be loaded, 
@@ -605,6 +557,49 @@ shinyServer(function(input, output, session) {
   output$graph <- renderPlot({
     graph_it()
   })
+
+   # Download file -------------------------------------------------------------
+  output$bundle <- downloadHandler(
+    contentType = "application/zip",
+    filename = function() {
+      paste("autoggraph-", input$chart_type, ".zip", sep = "" ) 
+    },
+    content = function(file) {
+      # TODO(ajae): restore vector output after installing svg lite
+      # vector_out_large <- tempfile(pattern = "vector_large_", fileext = ".svg")
+      # vector_out_small <- tempfile(pattern = "vector_small_", fileext = ".svg")
+      raster_out_large <- tempfile(pattern = "raster_large_", fileext = ".png")
+      raster_out_small <- tempfile(pattern = "raster_small_", fileext = ".png")
+      plotobj_out      <- tempfile(pattern = "plot_object_", fileext = ".rds")
+      log_out          <- tempfile(pattern = "log_", fileext = ".txt")
+
+      # ggsave(vector_out_large, width = 7.58, height = 6.83)
+      # ggsave(vector_out_small, width = 5, height = 4.51)
+      ggsave(raster_out_large, width = 7.58, height = 6.83, units = "in", dpi = 600)
+      ggsave(raster_out_small, width = 5, height = 4.51, units = "in", dpi = 600)
+
+      write_rds(graph_it(), plotobj_out, compress = "none")
+      
+      write_lines(
+        paste(
+          "generated by autoggraph v.", version, "\r\n",
+          "generated on:", Sys.time(), "\r\n",
+          "input file:", input$infile$name, "\r\n",
+          "size:", input$infile$size, "\r\n",
+          sep = " ", collapse = "\r\n" 
+          ),
+        log_out
+        )
+
+      zip(
+        zipfile = file,
+        files = c(
+          raster_out_large, raster_out_small, plotobj_out, log_out
+          # vector_out_large, vector_out_small
+          )
+        )
+      } 
+    )
 
   observe({
     req(input$do_plot)
