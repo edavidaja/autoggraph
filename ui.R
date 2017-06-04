@@ -18,7 +18,7 @@ shinyUI(
       fluidRow(  
         column(3,
          wellPanel(
-           selectInput("chart_type", "which chart would you like to use?",
+          selectInput("chart_type", "which chart would you like to use?",
             choices = list(
               `select a chart type` = "",
               `univariate` = c("histogram", "density", "pie"),
@@ -28,10 +28,10 @@ shinyUI(
               )
             ),
 
-           fileInput("infile", label = "upload your data (in excel or csv format)"),
-           uiOutput("excel_sheet_selector"),
-           uiOutput("variable_selector")
-           ),
+          fileInput("infile", label = "upload your data (in excel or csv format)"),
+          uiOutput("excel_sheet_selector"),
+          uiOutput("variable_selector")
+          ),
          wellPanel(
           h4("plot specifics"),
           uiOutput("plot_options")
