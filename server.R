@@ -115,17 +115,9 @@ shinyServer(function(input, output, session) {
             "add a smoother:", 
             choices = c("smoother" = "", "loess", "linear")
             ),
-          sliderInput(
-            inputId = paste0(plot_opts(), "scatter_option_span"),
-            "wiggle", min = 0, max = 1, value = .7, step = .1,
-            ticks = FALSE
-            ),
-          radioButtons(
-            inputId = paste0(plot_opts(), "scatter_option_se"),
-            "confidence interval?",
-            choices = c("yes" = TRUE, "no" = FALSE)
-            )
-          )),
+          uiOutput("loess_options")
+          )
+        ),
       "pointrange" = 
         list(
           wellPanel(
@@ -188,6 +180,26 @@ shinyServer(function(input, output, session) {
           "number of bins", value = 30
           )
         )
+        )
+      )
+})
+
+output$loess_options <- renderUI({
+
+  switch(input[[paste0(plot_opts(), "scatter_option_smooth")]],
+    "loess" =
+      list(
+        sliderInput(
+          inputId = paste0(plot_opts(), "scatter_option_span"),
+          "wiggle", min = 0, max = 1, value = .7, step = .1,
+          ticks = FALSE
+          ),
+        radioButtons(
+          inputId = paste0(plot_opts(), "scatter_option_se"),
+          "confidence interval?",
+          choices = c("yes" = TRUE, "no" = FALSE),
+          inline = TRUE
+          )
         )
       )
 })
@@ -523,7 +535,9 @@ graph_it <- eventReactive(input$do_plot, {
         se = input[[paste0(plot_opts(), "scatter_option_se")]]
         ),
       "linear" = 
-      p <- p + geom_smooth(method = "lm")
+      p <- p + geom_smooth(
+        method = "lm"
+        )
       )
   }
     ## custom labels ----------------------------------------------------------
