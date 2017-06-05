@@ -127,41 +127,45 @@ shinyServer(function(input, output, session) {
             )
           )),
       "pointrange" = 
-      list(    wellPanel(
-        h4("plot specifics"),
-        selectInput(
-          inputId = paste0(plot_opts(), "pointrange_lower"),
-          "lower bound", 
-          choices = c("lower bound" = "", names(graph_data()))
+        list(
+          wellPanel(
+            h4("plot specifics"),
+            selectInput(
+              inputId = paste0(plot_opts(), "pointrange_lower"),
+              "lower bound", 
+              choices = c("lower bound" = "", names(graph_data()))
+              ),
+            selectInput(
+              inputId = paste0(plot_opts(), "pointrange_upper"),
+              "upper bound", 
+              choices = c("upper bound" = "", names(graph_data()))
+              )
+            )
           ),
-        selectInput(
-          inputId = paste0(plot_opts(), "pointrange_upper"),
-          "upper bound", 
-          choices = c("upper bound" = "", names(graph_data()))
-          )
-        )),
       "error bar" = 
-      list(
+        list(
+          wellPanel(
+            h4("plot specifics"),
+            selectInput(
+              inputId = paste0(plot_opts(), "errorbar_lower"),
+              "lower bound", 
+              choices = c("lower bound" = "", names(graph_data()))
+              ),
+            selectInput(
+              inputId = paste0(plot_opts(), "errorbar_upper"),
+              "upper bound", 
+              choices = c("upper bound" = "", names(graph_data()))
+              )
+            )
+          ),
+      "pie" = 
         wellPanel(
           h4("plot specifics"),
-          selectInput(
-            inputId = paste0(plot_opts(), "errorbar_lower"),
-            "lower bound", 
-            choices = c("lower bound" = "", names(graph_data()))
-            ),
-          selectInput(
-            inputId = paste0(plot_opts(), "errorbar_upper"),
-            "upper bound", 
-            choices = c("upper bound" = "", names(graph_data()))
+          a(
+            p("no. pie charts are the worst."), 
+            href = "http://www.businessinsider.com/pie-charts-are-the-worst-2013-6"
             )
-          )),
-      "pie" = 
-      wellPanel(
-        h4("plot specifics"),
-        a(
-          p("no. pie charts are the worst."), 
-          href = "http://www.businessinsider.com/pie-charts-are-the-worst-2013-6"
-          )),
+          ),
       "bar" =
       list(
         wellPanel(
@@ -173,7 +177,8 @@ shinyServer(function(input, output, session) {
               "stacked" = "stack", "clustered" = "dodge", "filled" = "fill"
               )
             )
-          )),
+          )
+        ),
       "histogram" =
       list(
         wellPanel(
@@ -189,9 +194,9 @@ shinyServer(function(input, output, session) {
 
 which_palette <- reactive({
 
-    # if a z variable is set, then the level count should be mapped to the 
-    # number of levels of the discrete variable; otherwise, a five class
-    # palette is used
+  # if a z variable is set, then the level count should be mapped to the 
+  # number of levels of the discrete variable; otherwise, a five class
+  # palette is used
   if (input$z !=  "") {
     level_count <- nrow(unique(graph_data()[input$z]))
   } else {
