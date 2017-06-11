@@ -9,7 +9,7 @@ function(request) {
        tags$head(
         tags$link(rel = "icon", type = "image/png", href = "favicon.png")
         ),
-       includeMarkdown("www/instructions.Rmd")
+       includeHTML("www/instructions.html")
        ),
     # plot UI -----------------------------------------------------------------
       tabPanel("plots",
