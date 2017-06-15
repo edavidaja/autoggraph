@@ -1,16 +1,78 @@
----
-title: "instructions"
-output: html_document
----
-
 # welcome to autoggraph
-brought to you by the grammar of graphics.
+GAO's grammar of graphics
 
-## instructions
+## hit 'plots' above to get started, or read the notes on usage below
 
-- this is not a data manipulation tool  
-- notes about what long data look like  
-- example plots  
-- questions? contact info.
+### data standards
 
-## hit 'plots' above to get started
+- data uploaded to autoggraph should be clean, tidy, and long.
+	- clean data are free of missing and erroneous values
+	- tidy data have a header row, and only contain one variable per observation.
+	- long data something about observations as levels rather than as variables
+
+<div class="row">
+### wide vs. long data
+<div class ="col-md-6">
+
+these data are wide:
+
+|time       |     X|    Y|     Z| 
+|:---------:|:----:|:---:|:----:|
+|2009-01-01 | -0.56| 2.45| -4.27| 
+|2009-01-02 | -0.23| 0.72| -0.87|
+|2009-01-03 |  1.56| 0.80| -4.10|
+
+</div>
+
+<div class="col-md-6">
+
+these are the same data in long form:
+
+|time       |stock | price| 
+|:---------:|:----:|:----:| 
+|2009-01-01 |X     | -0.56| 
+|2009-01-02 |X     | -0.23| 
+|2009-01-03 |X     |  1.56| 
+|2009-01-01 |Y     |  2.45| 
+|2009-01-02 |Y     |  0.72| 
+|2009-01-03 |Y     |  0.80| 
+|2009-01-01 |Z     | -4.27| 
+|2009-01-02 |Z     | -0.87| 
+|2009-01-03 |Z     | -4.10|
+</div>
+</div>
+
+questions about making a wide dataset into a long one? talk to a data analyst or methodologist.
+
+### example plots
+
+<div class="row">
+	<div class="col-md-3">
+		<p>density plot</p>
+		<a href="http://127.0.0.1:7038/?_state_id_=4531778c5d52c85e">	
+			<img src="density.png" class="img-responsive" alt="density">
+		</a>
+	</div>
+	<div class="col-md-3">
+		<p>scatterplot</p>
+		<a href="http://127.0.0.1:7038/?_state_id_=7f045384fc80699f">
+			<img src="scatterplot.png" class="img-responsive" alt="scatterplot">
+		</a>
+	</div>
+	<div class="col-md-3">
+		<p>line graphs</p>
+		<a href="http://127.0.0.1:7038/?_state_id_=d46ee1b511686610">	
+			<img src="line.png" class="img-responsive" alt="line graph">
+		</a>
+	</div>
+	<div class="col-md-3">
+		<p>area charts</p>
+		<a href="http://127.0.0.1:7038/?_state_id_=8d4faec0d8e2ce46">	
+			<img src="area.png" class="img-responsive" alt="area">
+		</a>
+	</div>
+</div>
+
+### questions?
+[send an email](mailto:shiny@gao.gov&subject=autoggraph)
+

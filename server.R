@@ -368,7 +368,10 @@ which_geom_z <- reactive({
         )
       ),
     "area" = list(
-      geom_area(alpha = .1), 
+      geom_area(
+        aes_string(fill = input$z),
+        alpha = .1
+        ), 
       geom_line(
         aes_string(color = input$z, linetype = input$z),
         size= 1.1, position = "stack"
@@ -453,21 +456,29 @@ graph_it <- eventReactive(input$do_plot, {
     if (input$z_label == "") {
       if (input$chart_type %in% c("histogram", "boxplot", "bar")) {
         p <- p + scale_fill_manual(values = which_palette())    
-      } else if (input$chart_type %in% c("density", "line", "step", "scatterplot", "pointrange", "error bar", "area")) {
-        p <- p + scale_color_manual(values = which_palette())    
-      } 
+      } else if (input$chart_type %in% c("density", "line", "step", "scatterplot", "pointrange", "error bar")) {
+        p <- p + scale_color_manual(values = which_palette())
+      } else if (input$chart_type == "area") {
+        p <- p + scale_fill_manual(values = which_palette())    
+        p <- p + scale_linetype_manual(values = c(1, 2, 3, 4, 5, 6))
+        p <- p + scale_color_manual(values = which_palette())
+      }
     } else {
       plot_labels <- unlist(strsplit(input$z_label, ",", fixed = TRUE))
       if (input$chart_type %in% c("histogram", "boxplot", "bar")) {
         p <- p + scale_fill_manual(values = which_palette(), labels = plot_labels)
       } else if (input$chart_type %in% c("pointrange", "error bar")) {
         p <- p + scale_color_manual(values = which_palette(), labels = plot_labels)
-      } else if (input$chart_type %in% c("density", "line", "step", "area")) {
+      } else if (input$chart_type %in% c("density", "line", "step")) {
         p <- p + scale_color_manual(values = which_palette(), labels = plot_labels)
         p <- p + scale_linetype_manual(values = c(1, 2, 3, 4, 5, 6), labels = plot_labels)
       } else if (input$chart_type == "scatterplot") {
         p <- p + scale_color_manual(values = which_palette(), labels = plot_labels)
         p <- p + scale_shape_manual(values = c(15, 16, 17, 18, 3, 8, 7), labels = plot_labels)
+      } else if (input$chart_type == "area") {
+        p <- p + scale_fill_manual(values = which_palette(), labels = plot_labels)
+        p <- p + scale_linetype_manual(values = c(1, 2, 3, 4, 5, 6), labels = plot_labels)
+        p <- p + scale_color_manual(values = which_palette(), labels = plot_labels)
       }
     }
     p <- p + which_geom_z()
