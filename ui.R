@@ -13,7 +13,7 @@ shinyjs.showFileModified = function() {
         }
         input = document.getElementById('infile');
         console.log(input.files[0].lastModifiedDate.toString());
-        Shiny.onInputChange('storage', input.files[0].lastModifiedDate.toString());
+        Shiny.onInputChange('infile_mtime', input.files[0].lastModifiedDate.toString());
     }
 "
 function(request) {
@@ -56,7 +56,7 @@ function(request) {
             uiOutput("plot_labels"),
             useShinyjs(),
             extendShinyjs(text = jsCode),
-            textInput("storage", "storage")
+            textInput("infile_mtime", "infile_mtime")
             )
           )
         )
