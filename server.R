@@ -298,15 +298,17 @@ which_geom_xy <- reactive({
   "boxplot" = geom_boxplot(color = "#044F91"),
   "pointrange" = geom_pointrange(
     aes_string(
-      ymin = input[[paste0(plot_opts(), "pointrange_lower")]],
-      ymax = input[[paste0(plot_opts(), "pointrange_upper")]] 
-      )
+      ymin = as.name(input[[paste0(plot_opts(), "pointrange_lower")]]),
+      ymax = as.name(input[[paste0(plot_opts(), "pointrange_upper")]]) 
+      ),
+    color = "#044F91"
     ),
   "error bar" = geom_errorbar(
     aes_string(
-      ymin = input[[paste0(plot_opts(), "errorbar_lower")]],
-      ymax = input[[paste0(plot_opts(), "errorbar_upper")]]
-      )
+      ymin = as.name(input[[paste0(plot_opts(), "errorbar_lower")]]),
+      ymax = as.name(input[[paste0(plot_opts(), "errorbar_upper")]])
+      ),
+    color = "#044F91"
     )
   )
 })
@@ -361,16 +363,16 @@ which_geom_z <- reactive({
     },
     "pointrange" = geom_pointrange(
       aes_string(
-        ymin  = input[[paste0(plot_opts(), "pointrange_lower")]],
-        ymax  = input[[paste0(plot_opts(), "pointrange_upper")]],
-        color = input$z 
+        ymin  = as.name(input[[paste0(plot_opts(), "pointrange_lower")]]),
+        ymax  = as.name(input[[paste0(plot_opts(), "pointrange_upper")]]),
+        color = as.name(input$z) 
         )
       ),
     "error bar" = geom_errorbar(
       aes_string(
-        ymin  = input[[paste0(plot_opts(), "errorbar_lower")]],
-        ymax  = input[[paste0(plot_opts(), "errorbar_upper")]],
-        color = input$z
+        ymin  = as.name(input[[paste0(plot_opts(), "errorbar_lower")]]),
+        ymax  = as.name(input[[paste0(plot_opts(), "errorbar_upper")]]),
+        color = as.name(input$z)
         )
       ),
     "area" = list(
