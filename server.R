@@ -62,29 +62,36 @@ shinyServer(function(input, output, session) {
     # Variable selectors ----------------------------------------------------------
   output$variable_selector <- renderUI({
 
-    req(graph_data())
+    req(graph_data(), input$chart_type != "pie")
 
     list(
       selectInput("x",
        "select your x variable:",
        choices =  c("x variable" = "", names(graph_data()))
        ),
-
-      selectInput("y",
-       "select your y variable:",
-       choices =  c("y variable" = "", names(graph_data()))
-       ),
-
-      selectInput("z",
-       "add an additional discrete variable:",
-       choices =  c("discrete variable" = "", names(graph_data()))
-       ),
-
-      selectInput("w",
-       "add an additional continuous variable:",
-       choices =  c("continuous variable" = "", names(graph_data()))
-       ),
-      conditionalPanel(condition = "input.z != '' | input.w != ''",
+      conditionalPanel(
+        condition = "input.chart_type != 'density' & input.chart_type != 'histogram'", 
+        selectInput("y",
+          "select your y variable:",
+          choices =  c("y variable" = "", names(graph_data()))
+          )
+        ),
+      conditionalPanel(
+        condition = "input.chart_type != 'heatmap'",
+        selectInput("z",
+          "add an additional discrete variable:",
+          choices =  c("discrete variable" = "", names(graph_data()))
+          )
+        ),
+      conditionalPanel(
+        condition = "input.chart_type == 'heatmap' | input.chart_type == 'scatterplot'",
+        selectInput("w",
+          "add an additional continuous variable:",
+          choices =  c("continuous variable" = "", names(graph_data()))
+          )
+        ),
+      conditionalPanel(
+        condition = "input.z != '' | input.w != ''",
         selectInput("palette_selector", label = "select a color palette", 
           choices = c("classic", "qualitative", "sequential", "diverging")
           )
@@ -441,7 +448,7 @@ which_geom_w_z <- reactive({
 })
 
 output$plot_labels <- renderUI({
-  req(graph_data())
+  req(graph_data(), input$chart_type != "pie")
 
   wellPanel(
     h4("plot labels"),
@@ -451,12 +458,17 @@ output$plot_labels <- renderUI({
     textInput("y_label", "y-axis label"),
     radioButtons("y_val_format", label = "y value format",
       choices = c("none" = "", "dollar", "comma", "percent"), inline = TRUE),
-    textInput("z_guide", "discrete variable name"),
-    textInput("z_label", "discrete variable labels, separated by commas",
-      placeholder = "one, two, three, ..."),
-    textInput("w_guide", "continuous variable name"),
-    textInput("w_label", "continuous variable labels, separated by commas",
-      placeholder = "low, high"),
+    conditionalPanel(condition = "input.z != ''",
+      textInput("z_guide", "discrete variable name"),
+      textInput("z_label", "discrete variable labels, separated by commas",
+        placeholder = "one, two, three, ...")
+      ),
+    conditionalPanel(
+      condition = "input.chart_type == 'heatmap' | input.chart_type == 'scatterplot'",
+      textInput("w_guide", "continuous variable name"),
+      textInput("w_label", "continuous variable labels, separated by commas",
+        placeholder = "low, high")
+      ),
     textInput("source_label", "source label",
       placeholder = "Source: GAO analysis..."),
     h4("export:"),
