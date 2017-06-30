@@ -62,29 +62,36 @@ shinyServer(function(input, output, session) {
     # Variable selectors ----------------------------------------------------------
   output$variable_selector <- renderUI({
 
-    req(graph_data())
+    req(graph_data(), input$chart_type != "pie")
 
     list(
       selectInput("x",
        "select your x variable:",
        choices =  c("x variable" = "", names(graph_data()))
        ),
-
-      selectInput("y",
-       "select your y variable:",
-       choices =  c("y variable" = "", names(graph_data()))
-       ),
-
-      selectInput("z",
-       "add an additional discrete variable:",
-       choices =  c("discrete variable" = "", names(graph_data()))
-       ),
-
-      selectInput("w",
-       "add an additional continuous variable:",
-       choices =  c("continuous variable" = "", names(graph_data()))
-       ),
-      conditionalPanel(condition = "input.z != '' | input.w != ''",
+      conditionalPanel(
+        condition = "input.chart_type != 'density' & input.chart_type != 'histogram'", 
+        selectInput("y",
+          "select your y variable:",
+          choices =  c("y variable" = "", names(graph_data()))
+          )
+        ),
+      conditionalPanel(
+        condition = "input.chart_type != 'heatmap'",
+        selectInput("z",
+          "add an additional discrete variable:",
+          choices =  c("discrete variable" = "", names(graph_data()))
+          )
+        ),
+      conditionalPanel(
+        condition = "input.chart_type == 'heatmap' | input.chart_type == 'scatterplot'",
+        selectInput("w",
+          "add an additional continuous variable:",
+          choices =  c("continuous variable" = "", names(graph_data()))
+          )
+        ),
+      conditionalPanel(
+        condition = "input.z != '' | input.w != ''",
         selectInput("palette_selector", label = "select a color palette", 
           choices = c("classic", "qualitative", "sequential", "diverging")
           )
