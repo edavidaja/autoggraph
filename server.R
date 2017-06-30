@@ -448,7 +448,7 @@ which_geom_w_z <- reactive({
 })
 
 output$plot_labels <- renderUI({
-  req(graph_data())
+  req(graph_data(), input$chart_type != "pie")
 
   wellPanel(
     h4("plot labels"),
@@ -458,12 +458,17 @@ output$plot_labels <- renderUI({
     textInput("y_label", "y-axis label"),
     radioButtons("y_val_format", label = "y value format",
       choices = c("none" = "", "dollar", "comma", "percent"), inline = TRUE),
-    textInput("z_guide", "discrete variable name"),
-    textInput("z_label", "discrete variable labels, separated by commas",
-      placeholder = "one, two, three, ..."),
-    textInput("w_guide", "continuous variable name"),
-    textInput("w_label", "continuous variable labels, separated by commas",
-      placeholder = "low, high"),
+    conditionalPanel(condition = "input.z != ''",
+      textInput("z_guide", "discrete variable name"),
+      textInput("z_label", "discrete variable labels, separated by commas",
+        placeholder = "one, two, three, ...")
+      ),
+    conditionalPanel(
+      condition = "input.chart_type == 'heatmap' | input.chart_type == 'scatterplot'",
+      textInput("w_guide", "continuous variable name"),
+      textInput("w_label", "continuous variable labels, separated by commas",
+        placeholder = "low, high")
+      ),
     textInput("source_label", "source label",
       placeholder = "Source: GAO analysis..."),
     h4("export:"),
