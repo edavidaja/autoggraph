@@ -62,7 +62,7 @@ shinyServer(function(input, output, session) {
     # Variable selectors ----------------------------------------------------------
   output$variable_selector <- renderUI({
 
-    req(graph_data(), input$chart_type != "pie")
+    req(graph_data(), input$chart_type, input$chart_type != "pie")
 
     list(
       selectInput("x",
@@ -448,7 +448,7 @@ which_geom_w_z <- reactive({
 })
 
 output$plot_labels <- renderUI({
-  req(graph_data(), input$chart_type != "pie")
+  req(graph_data(), input$chart_type, input$chart_type != "pie")
 
   wellPanel(
     h4("plot labels"),
