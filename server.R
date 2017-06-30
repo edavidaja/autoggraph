@@ -321,41 +321,58 @@ which_geom_z <- reactive({
     "histogram" = {
       if (sapply(graph_data()[,input$x], class) %in% c("character", "factor")) {
         stat_count(
-          aes_string(fill = as.name(input$z))
+          aes_string(
+            fill = paste("factor(", as.name(input$z), ")")
+            )
           )
       } else { 
         geom_histogram(
-          aes_string(fill = as.name(input$z)),
+          aes_string(
+            fill = paste("factor(", as.name(input$z), ")")
+            ),
           bins = input[[paste0(plot_opts(), "hist_bins")]]
           )
       }
     },
     "density" = geom_density(
-      aes_string(color = input$z, linetype = input$z),
+      aes_string(
+        color    = paste("factor(", as.name(input$z), ")"),
+        linetype = paste("factor(", as.name(input$z), ")")
+        ),
       size = 1.1
       ),
     "line" = geom_line(
-      aes_string(color = input$z, linetype = input$z),
+      aes_string(
+        color = paste("factor(", as.name(input$z), ")"),
+        linetype = paste("factor(", as.name(input$z), ")")
+        ),
       size = 1.1
       ),
     "step" = geom_step(
-      aes_string(color = input$z, linetype = input$z),
+      aes_string(color = paste("factor(", as.name(input$z), ")"), linetype = paste("factor(", as.name(input$z), ")")),
       size = 1.1
       ),
-    "boxplot" = geom_boxplot(aes_string(fill = input$z)),
+    "boxplot" = geom_boxplot(
+      aes_string(
+        fill = paste("factor(", as.name(input$z), ")")
+        )
+      ),
     "scatterplot" = geom_point(
-      aes_string(color = input$z, shape = input$z),
+      aes_string(
+        color = paste("factor(", as.name(input$z), ")"),
+        shape = paste("factor(", as.name(input$z), ")")
+        ),
       size = 2,
       alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]]
       ),
     "bar" = { 
       if (input$y == "") {  
         geom_bar(
-          aes_string(fill = input$z),
+          aes_string(fill = paste("factor(", as.name(input$z), ")")),
           position =  input[[paste0(plot_opts(), "bar_type")]])
       } else {
         geom_bar(
-          aes_string(fill = input$z),
+          aes_string(fill = paste("factor(", as.name(input$z), ")")),
           position =  input[[paste0(plot_opts(), "bar_type")]],
           stat = "identity"
           )
@@ -365,24 +382,30 @@ which_geom_z <- reactive({
       aes_string(
         ymin  = as.name(input[[paste0(plot_opts(), "pointrange_lower")]]),
         ymax  = as.name(input[[paste0(plot_opts(), "pointrange_upper")]]),
-        color = as.name(input$z) 
+        color = paste("factor(", as.name(input$z), ")")
         )
       ),
     "error bar" = geom_errorbar(
       aes_string(
         ymin  = as.name(input[[paste0(plot_opts(), "errorbar_lower")]]),
         ymax  = as.name(input[[paste0(plot_opts(), "errorbar_upper")]]),
-        color = as.name(input$z)
+        color = paste("factor(", as.name(input$z), ")")
         )
       ),
     "area" = list(
       geom_area(
-        aes_string(fill = input$z),
+        aes_string(
+          fill = paste("factor(", as.name(input$z), ")")
+          ),
         alpha = .1
         ), 
       geom_line(
-        aes_string(color = input$z, linetype = input$z),
-        size= 1.1, position = "stack"
+        aes_string(
+          color    = paste("factor(", as.name(input$z), ")"),
+          linetype = paste("factor(", as.name(input$z), ")")
+          ),
+        size = 1.1,
+        position = "stack"
         )
       )
     )
@@ -395,11 +418,11 @@ which_geom_w <- reactive({
   switch(input$chart_type,
     "scatterplot" =
     geom_point(
-      aes_string(color = input$w),
+      aes_string(color = as.name(input$w)),
       alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]]
       ),
     "heatmap" = geom_tile(
-      aes_string(fill = input$w)
+      aes_string(fill = as.name(input$w))
       )
     )
 })
