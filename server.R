@@ -228,12 +228,25 @@ which_palette <- reactive({
     level_count <- 5
   }
 
+  # check whether the number of classes exceeds
+  validate(
+    need(level_count < 10, "you have selected a variable with too many classes"
+      )
+    )
+
   switch(input$palette_selector,
-    "classic"     = c("#5EB6E4", "#0039A6", "#008B95", "#5E2750", "#BB9115"),
+    "classic"     = {
+      if (input$chart_type %in% c("bar", "boxplot")) {
+        c("#FFFFFF", "#5EB6E4", "#0039A6", "#008B95", "#5E2750")
+      } else {
+        c("#5EB6E4", "#0039A6", "#008B95", "#5E2750")
+      }
+    },
     "qualitative" = brewer.pal(level_count, "Set2"),
     "sequential"  = brewer.pal(level_count, "Blues"),
     "diverging"   = brewer.pal(level_count, "RdYlBu")
     )
+
 })
 
 
@@ -350,19 +363,23 @@ which_geom_z <- reactive({
       ),
     "line" = geom_line(
       aes_string(
-        color = paste("factor(", as.name(input$z), ")"),
+        color    = paste("factor(", as.name(input$z), ")"),
         linetype = paste("factor(", as.name(input$z), ")")
         ),
       size = 1.1
       ),
     "step" = geom_step(
-      aes_string(color = paste("factor(", as.name(input$z), ")"), linetype = paste("factor(", as.name(input$z), ")")),
+      aes_string(
+        color    = paste("factor(", as.name(input$z), ")"),
+        linetype = paste("factor(", as.name(input$z), ")")
+        ),
       size = 1.1
       ),
     "boxplot" = geom_boxplot(
       aes_string(
         fill = paste("factor(", as.name(input$z), ")")
-        )
+        ),
+      color = "black"
       ),
     "scatterplot" = geom_point(
       aes_string(
@@ -376,12 +393,15 @@ which_geom_z <- reactive({
       if (input$y == "") {  
         geom_bar(
           aes_string(fill = paste("factor(", as.name(input$z), ")")),
-          position =  input[[paste0(plot_opts(), "bar_type")]])
+          position =  input[[paste0(plot_opts(), "bar_type")]],
+          color = "black"
+          )
       } else {
         geom_bar(
           aes_string(fill = paste("factor(", as.name(input$z), ")")),
           position =  input[[paste0(plot_opts(), "bar_type")]],
-          stat = "identity"
+          stat = "identity",
+          color = "black"
           )
       }
     },
