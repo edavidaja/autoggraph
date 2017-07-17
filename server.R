@@ -1,10 +1,12 @@
-library(shiny)
 library(readr)
 library(readxl)
 library(ggplot2)
 library(stringr)
 library(RColorBrewer)
 library(shinyjs)
+library(grid)
+
+
 
 # gao theme -------------------------------------------------------------------
 theme_gao <- list(
@@ -491,6 +493,12 @@ output$plot_labels <- renderUI({
       ),
     textInput("source_label", "source label",
       placeholder = "Source: GAO analysis..."),
+    textInput("offset_x", "offset x axis",
+              placeholder = "+.01, +.02. +.03 ... -.01, -.02-, -.03,"),   
+    textInput("offset_y", "offset y axis",
+              placeholder = "+.01, +.02. +.03 ... -.01, -.02-, -.03"),    
+    textInput("offset_source", "offset source",
+              placeholder = "+.01, +.02. +.03 ... -.01, -.02-, -.03"),    
     h4("export:"),
     downloadButton(outputId = "bundle", label = "results")
     )
@@ -622,6 +630,7 @@ graph_it <- eventReactive(input$do_plot, {
   if (input$y_label != "") {
     p <- p + labs(y = "", title = input$y_label)
   }
+  
   if (input$source_label != "") {
     p <- p + labs(caption = input$source_label)
   }
@@ -659,7 +668,31 @@ graph_it <- eventReactive(input$do_plot, {
       )
   }
   p <- p + theme_gao
-  p
+  
+  # after you set the theme, look for any offsets
+  if (input$offset_x != '')
+  {
+    print('updating x axis')
+    p <- p + theme(axis.title.x = element_text(hjust = input$offset_x))
+  }
+  
+  if (input$offset_y != '')
+  {
+    p <- p + theme(plot.title = element_text(hjust = input$offset_y))
+  }
+  
+  if (input$offset_source != '')
+  {
+    p <- p + theme(plot.caption = element_text(hjust = input$offset_source))
+    
+  }
+  
+  # to get the titles further to the left, you have to set ggplot2 to not clip
+  gt <- ggplot_gtable(ggplot_build(p))
+  gt$layout$clip[gt$layout$name == "panel"] <- "off"
+  grid.draw(gt)
+  
+  
 })
 
 output$graph <- renderPlot({
