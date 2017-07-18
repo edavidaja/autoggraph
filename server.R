@@ -662,8 +662,10 @@ graph_it <- eventReactive(input$do_plot, {
   p
 })
 
-observeEvent(input$do_plot, {
-  # this does the right thing but it needs to fire before the plot is rendere
+# Using paste() results in "factor()" appearing in the z variable by default
+# this observer sets the value of the z-guide to the name of the variable
+# selected in Z once a variable is selected
+observeEvent(input$z, {
   updateTextInput(session, "z_guide", value = input$z) 
   })
 
