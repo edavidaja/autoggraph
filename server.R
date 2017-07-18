@@ -662,6 +662,11 @@ graph_it <- eventReactive(input$do_plot, {
   p
 })
 
+observeEvent(input$do_plot, {
+  # this does the right thing but it needs to fire before the plot is rendere
+  updateTextInput(session, "z_guide", value = input$z) 
+  })
+
 output$graph <- renderPlot({
   graph_it()
 })
