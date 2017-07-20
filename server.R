@@ -5,8 +5,7 @@ library(stringr)
 library(RColorBrewer)
 library(shinyjs)
 library(grid)
-
-
+library(shinyjs)
 
 # gao theme -------------------------------------------------------------------
 theme_gao <- list(
@@ -500,7 +499,8 @@ output$plot_labels <- renderUI({
     textInput("offset_source", "offset source",
               placeholder = "+.01, +.02. +.03 ... -.01, -.02-, -.03"),    
     h4("export:"),
-    downloadButton(outputId = "bundle", label = "results")
+    downloadButton(outputId = "bundle", label = "results", inline = TRUE),
+    bookmarkButton(inline = TRUE)
     )
 })
 
@@ -687,10 +687,7 @@ graph_it <- eventReactive(input$do_plot, {
     
   }
   
-  # to get the titles further to the left, you have to set ggplot2 to not clip
-  gt <- ggplot_gtable(ggplot_build(p))
-  gt$layout$clip[gt$layout$name == "panel"] <- "off"
-  grid.draw(gt)
+  p
   
   
 })
