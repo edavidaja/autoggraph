@@ -26,10 +26,30 @@ theme_gao <- list(
 shinyServer(function(input, output, session) {
 
   hide('infile_mtime')
+  
   observeEvent(input$infile, {
     js$showFileModified()
     })
+  
+  # bookmarking stuff ----------------------------------------------------------
+  onBookmark(function(state) {
+    plot_id <- plot_opts()
+    state$values$id <- plot_id
+  })
+  
+  original_ops <- reactiveValues(id = NULL, loaded = FALSE)
 
+  
+  onRestore(function(state) {
+    original_ops$id <- state$values$id
+  })
+  
+  
+
+
+  
+  
+  
   # Ingest file -----------------------------------------------------------------
   output$excel_sheet_selector <- renderUI({
 
@@ -48,7 +68,7 @@ shinyServer(function(input, output, session) {
   graph_data <- reactive({
 
     req(input$infile$name)
-
+    
     ext <- tools::file_ext(input$infile$name)
     if (ext %in% c("xls", "xlsx")) {
       file.rename(input$infile$datapath, paste(input$infile$datapath, ext, sep="."))
@@ -64,7 +84,7 @@ shinyServer(function(input, output, session) {
   output$variable_selector <- renderUI({
 
     req(graph_data(), input$chart_type, input$chart_type != "pie")
-
+    
     list(
       selectInput("x",
        "select your x variable:",
@@ -106,12 +126,23 @@ shinyServer(function(input, output, session) {
 
   plot_opts <- eventReactive(input$chart_type, {
     print ("plot opts fired")
-    as.character(paste0(round(runif(1, 1, 100), 0), "_"))
+    if(! is.null(original_ops$id) & original_ops$loaded == FALSE)
+    {
+      original_ops$loaded <- TRUE
+      original_ops$id
+    }
+    else
+    {
+      as.character(paste0(round(runif(1, 1, 100), 0), "_"))
+    }
   })
 
   output$plot_options <- renderUI({
 
     req(input$chart_type)
+    
+    
+    print(plot_opts())
     
     switch(input$chart_type,
       "scatterplot" = 
