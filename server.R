@@ -3,8 +3,7 @@ library(readxl)
 library(ggplot2)
 library(stringr)
 library(RColorBrewer)
-library(shinyjs)
-library(grid)
+library(shiny)
 library(shinyjs)
 
 # gao theme -------------------------------------------------------------------
