@@ -157,6 +157,7 @@ shinyServer(function(input, output, session) {
 
     req(input$chart_type)
     
+    print (input$z)
     switch(input$chart_type,
       "scatterplot" = 
       list(
@@ -172,7 +173,8 @@ shinyServer(function(input, output, session) {
             inputId = paste0(plot_opts(), "scatter_option_smooth"),
             "add a smoother:", 
             choices = c("smoother" = "", "loess", "linear")
-            ),
+          ),
+          uiOutput("smoother_options"),
           uiOutput("loess_options")
           )
         ),
@@ -242,6 +244,19 @@ shinyServer(function(input, output, session) {
       )
 })
 
+output$smoother_options <- renderUI({
+  
+  req(input[[paste0(plot_opts(), "scatter_option_smooth")]], input$z)
+
+  selectInput(
+    inputId = paste0(plot_opts(), "scatter_option_which_smooth"),
+    "smooth over", 
+    selected = "overall",
+    choices = c("smoother" = "", "groups", "overall")
+  )                 
+}  
+)
+  
 output$loess_options <- renderUI({
 
   switch(input[[paste0(plot_opts(), "scatter_option_smooth")]],
@@ -260,6 +275,7 @@ output$loess_options <- renderUI({
           )
         )
       )
+
 })
 
 which_palette <- reactive({
@@ -740,17 +756,59 @@ graph_it <- eventReactive(input$do_plot, {
     ## apply smoother to scatter plot
 
   if (!is.null(input[[paste0(plot_opts(), "scatter_option_smooth")]])) {
+    
     switch(input[[paste0(plot_opts(), "scatter_option_smooth")]],
       "loess" = 
-      p <- p + geom_smooth(
-        method = "loess", 
-        span = input[[paste0(plot_opts(), "scatter_option_span")]], 
-        se = input[[paste0(plot_opts(), "scatter_option_se")]]
-        ),
+        if (! is.null(input[[paste0(plot_opts(), "scatter_option_which_smooth")]]))
+        {
+          if  (input[[paste0(plot_opts(), "scatter_option_which_smooth")]] == 'groups')
+          {
+            p <- p + geom_smooth(
+              method = "loess", 
+              span = input[[paste0(plot_opts(), "scatter_option_span")]], 
+              se = input[[paste0(plot_opts(), "scatter_option_se")]],
+              aes_string(color = paste("factor(", as.name(input$z), ")"))
+            )           
+          }
+          else
+          {
+            p <- p + geom_smooth(
+              method = "loess", 
+              span = input[[paste0(plot_opts(), "scatter_option_span")]], 
+              se = input[[paste0(plot_opts(), "scatter_option_se")]]
+            )            
+          }          
+        }
+      else{
+        p <- p + geom_smooth(
+          method = "loess", 
+          span = input[[paste0(plot_opts(), "scatter_option_span")]], 
+          se = input[[paste0(plot_opts(), "scatter_option_se")]]
+        )  
+      },
       "linear" = 
-      p <- p + geom_smooth(
-        method = "lm"
-        )
+        if (! is.null(input[[paste0(plot_opts(), "scatter_option_which_smooth")]]))
+        {
+          if  (input[[paste0(plot_opts(), "scatter_option_which_smooth")]] == 'groups')
+          {
+            p <- p + geom_smooth(
+              method = "lm", aes_string(color = paste("factor(", as.name(input$z), ")"))
+            )
+          }
+          else
+          {
+            p <- p + geom_smooth(
+              method = "lm"
+            )            
+          }
+        }
+        else 
+        {
+          p <- p + geom_smooth(
+            method = "lm"
+          )          
+        }
+
       )
   }
     ## custom labels ----------------------------------------------------------
