@@ -54,9 +54,8 @@ shinyServer(function(input, output, session) {
       
     if (ext %in% c("xls", "xlsx")) {
       if (! is.null(original_ops$infile)) {
-        print (original_ops$infile)
         selectInput("which_sheet", "select a worksheet:", 
-                    choices = excel_sheets(paste(original_ops$infile$datapath, ext, sep=".")))             
+          choices = excel_sheets(paste(original_ops$infile$datapath, ext, sep=".")))             
       } else {
         file.rename(input$infile$datapath, paste(input$infile$datapath, ext, sep="."))
         fil$infile <- input$infile
@@ -127,6 +126,14 @@ shinyServer(function(input, output, session) {
         condition = "(input.z != '' | input.w != '' | input.y != '') & input.x != ''",
         selectInput("reorder_x", label = "reorder your x axis", 
                     choices = c("order by" = "", names(graph_data()))
+        )
+      ),
+      conditionalPanel(
+        condition = "input.z != ''",
+        selectInput("wrap", label = "group your variables by", 
+                    selected = "colour and shape",
+                    choices = c("grid", "colour and shape"),
+                    multiple = TRUE
         )
       ),
       actionButton("do_plot", "can i have your autoggraph?", icon = icon("area-chart"))
@@ -406,7 +413,7 @@ which_geom_xy <- reactive({
 which_geom_z <- reactive({
 
   req(graph_data())
-
+  
   switch(input$chart_type,
     "histogram" = {
       if (sapply(graph_data()[,input$x], class) %in% c("character", "factor")) {
@@ -527,14 +534,21 @@ which_geom_w <- reactive({
 which_geom_w_z <- reactive({
 
   req(graph_data())
-
-  geom_point(
-    aes_string(
-      size = input$w,
-      colour = input$z
+  
+    geom_point(
+      aes_string(
       ),
-    alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]]    
-    )
+      alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]]    
+    )     
+    geom_point(
+      aes_string(
+        size = input$w,
+        colour = input$z
+      ),
+      alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]]    
+    )    
+  }
+
 })
 
 output$plot_labels <- renderUI({
@@ -612,36 +626,50 @@ graph_it <- eventReactive(input$do_plot, {
 
     # z and no w
   else if (input$z != "" & input$w == "") {
-      # apply color or fill if no custom labels are set based on chart type
-    if (input$z_label == "") {
-      if (input$chart_type %in% c("histogram", "boxplot", "bar")) {
-        p <- p + scale_fill_manual(values = which_palette())    
-      } else if (input$chart_type %in% c("density", "line", "step", "scatterplot", "pointrange", "error bar")) {
-        p <- p + scale_color_manual(values = which_palette())
-      } else if (input$chart_type == "area") {
-        p <- p + scale_fill_manual(values = which_palette())    
-        p <- p + scale_linetype_manual(values = c(1, 2, 3, 4, 5, 6))
-        p <- p + scale_color_manual(values = which_palette())
+    
+      if (input$z_label == "") {
+        p <- p + which_geom_xy() + facet_wrap(as.formula(paste("~", input$z)))
+      } else {
+        plot_labels <- unlist(strsplit(input$z_label, ",", fixed = TRUE))
+        label_wrap <- function(variable, value) {
+          unlist(strsplit(input$z_label, ",", fixed = TRUE))
+        }  
+        p <- p + which_geom_xy() + facet_wrap(as.formula(paste("~", input$z)), labeller = label_wrap)
       }
     } else {
-      plot_labels <- unlist(strsplit(input$z_label, ",", fixed = TRUE))
-      if (input$chart_type %in% c("histogram", "boxplot", "bar")) {
-        p <- p + scale_fill_manual(values = which_palette(), labels = plot_labels)
-      } else if (input$chart_type %in% c("pointrange", "error bar")) {
-        p <- p + scale_color_manual(values = which_palette(), labels = plot_labels)
-      } else if (input$chart_type %in% c("density", "line", "step")) {
-        p <- p + scale_color_manual(values = which_palette(), labels = plot_labels)
-        p <- p + scale_linetype_manual(values = c(1, 2, 3, 4, 5, 6), labels = plot_labels)
-      } else if (input$chart_type == "scatterplot") {
-        p <- p + scale_color_manual(values = which_palette(), labels = plot_labels)
-        p <- p + scale_shape_manual(values = c(15, 16, 17, 18, 3, 8, 7), labels = plot_labels)
-      } else if (input$chart_type == "area") {
-        p <- p + scale_fill_manual(values = which_palette(), labels = plot_labels)
-        p <- p + scale_linetype_manual(values = c(1, 2, 3, 4, 5, 6), labels = plot_labels)
-        p <- p + scale_color_manual(values = which_palette(), labels = plot_labels)
-      }
+      # apply color or fill if no custom labels are set based on chart type
+      if (input$z_label == "") {
+        if (input$chart_type %in% c("histogram", "boxplot", "bar")) {
+          p <- p + scale_fill_manual(values = which_palette())    
+        } else if (input$chart_type %in% c("density", "line", "step", "scatterplot", "pointrange", "error bar")) {
+          p <- p + scale_color_manual(values = which_palette())
+        } else if (input$chart_type == "area") {
+          p <- p + scale_fill_manual(values = which_palette())    
+          p <- p + scale_linetype_manual(values = c(1, 2, 3, 4, 5, 6))
+          p <- p + scale_color_manual(values = which_palette())
+        }
+      } else {
+        plot_labels <- unlist(strsplit(input$z_label, ",", fixed = TRUE))
+        if (input$chart_type %in% c("histogram", "boxplot", "bar")) {
+          p <- p + scale_fill_manual(values = which_palette(), labels = plot_labels)
+        } else if (input$chart_type %in% c("pointrange", "error bar")) {
+          p <- p + scale_color_manual(values = which_palette(), labels = plot_labels)
+        } else if (input$chart_type %in% c("density", "line", "step")) {
+          p <- p + scale_color_manual(values = which_palette(), labels = plot_labels)
+          p <- p + scale_linetype_manual(values = c(1, 2, 3, 4, 5, 6), labels = plot_labels)
+        } else if (input$chart_type == "scatterplot") {
+          p <- p + scale_color_manual(values = which_palette(), labels = plot_labels)
+          p <- p + scale_shape_manual(values = c(15, 16, 17, 18, 3, 8, 7), labels = plot_labels)
+        } else if (input$chart_type == "area") {
+          p <- p + scale_fill_manual(values = which_palette(), labels = plot_labels)
+          p <- p + scale_linetype_manual(values = c(1, 2, 3, 4, 5, 6), labels = plot_labels)
+          p <- p + scale_color_manual(values = which_palette(), labels = plot_labels)
+        }
+      }      
+      p <- p + which_geom_z()
+      
     }
-    p <- p + which_geom_z()
+
     print ("z fired")
   }
 
@@ -682,16 +710,27 @@ graph_it <- eventReactive(input$do_plot, {
 
     # z and w
   else if (input$z!= "" & input$w != "") {
-
-    if (input$z_label == "") {
-      p <- p + scale_color_manual(values = which_palette())    
+      
+      if (input$z_label == "") {
+        p <- p + facet_wrap(as.formula(paste("~", input$z)))
+      } else {
+        plot_labels <- unlist(strsplit(input$z_label, ",", fixed = TRUE))
+        label_wrap <- function(variable, value) {
+          unlist(strsplit(input$z_label, ",", fixed = TRUE))
+        }  
+        p <- p + which_geom_xy() + facet_wrap(as.formula(paste("~", input$z)), labeller = label_wrap)
+      }
     } else {
-      plot_labels <- unlist(strsplit(input$z_label, ",", fixed = TRUE))
-      p <- p + scale_color_manual(values = which_palette(), labels = plot_labels)    
+      if (input$z_label == "") {
+        p <- p + scale_color_manual(values = which_palette())    
+      } else {
+        plot_labels <- unlist(strsplit(input$z_label, ",", fixed = TRUE))
+        p <- p + scale_color_manual(values = which_palette(), labels = plot_labels)    
+      }
     }
     p <- p + which_geom_w_z()
-    print ("w & z fired")
-  }
+    print ("w & z fired")   
+}
 
 
     ## additional geom layers -------------------------------------------------
@@ -769,9 +808,6 @@ graph_it <- eventReactive(input$do_plot, {
   if (input$offset_source != '') {
     p <- p + theme(plot.caption = element_text(hjust = input$offset_source)) 
   }
-
-  p  
-  })
 
 # Using paste() results in "factor()" appearing in the z variable by default
 # this observer sets the value of the z-guide to the name of the variable
