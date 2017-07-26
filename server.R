@@ -1,9 +1,9 @@
-library(shiny)
 library(readr)
 library(readxl)
 library(ggplot2)
 library(stringr)
 library(RColorBrewer)
+library(shiny)
 library(shinyjs)
 
 # gao theme -------------------------------------------------------------------
@@ -25,34 +25,78 @@ theme_gao <- list(
 shinyServer(function(input, output, session) {
 
   hide('infile_mtime')
+  
   observeEvent(input$infile, {
     js$showFileModified()
     })
+  
+  # bookmarking stuff ----------------------------------------------------------
+  onBookmark(function(state) {
+    plot_id <- plot_opts()
+    state$values$id <- plot_id
+    print (fil$infile)
+    state$values$infile <- fil$infile
+  })
+  
+  fil <- reactiveValues(infile = NULL)
+  
+  original_ops <- reactiveValues(id = NULL, loaded = FALSE, infile = NULL)
 
+  
+  onRestore(function(state) {
+    original_ops$id <- state$values$id
+    original_ops$infile <- state$values$infile
+    print (original_ops$infile)
+  })
+  
+  
   # Ingest file -----------------------------------------------------------------
   output$excel_sheet_selector <- renderUI({
 
     req(input$infile)
 
     ext <- tools::file_ext(input$infile$name)
+    
+    print (fil$name)
+    
     if (ext %in% c("xls", "xlsx")) {
+        
+        if (! is.null(original_ops$infile))
+        {
+          print (original_ops$infile)
+          selectInput("which_sheet", "select a worksheet:", 
+                      choices = excel_sheets(paste(original_ops$infile$datapath, ext, sep=".")))             
+        }
+        else{
+          file.rename(input$infile$datapath, paste(input$infile$datapath, ext, sep="."))
+          fil$infile <- input$infile
+          selectInput("which_sheet", "select a worksheet:", 
+                      choices = excel_sheets(paste(input$infile$datapath, ext, sep=".")))          
+        }
 
-      file.rename(input$infile$datapath, paste(input$infile$datapath, ext, sep="."))
-      selectInput("which_sheet", "select a worksheet:", 
-        choices = excel_sheets(paste(input$infile$datapath, ext, sep="."))
-        )
     }
   })
 
   graph_data <- reactive({
 
     req(input$infile$name)
-
+    
     ext <- tools::file_ext(input$infile$name)
     if (ext %in% c("xls", "xlsx")) {
-      file.rename(input$infile$datapath, paste(input$infile$datapath, ext, sep="."))
+      
       req(input$which_sheet)
-      read_excel(paste(input$infile$datapath, ext, sep="."), sheet = input$which_sheet)
+      
+      if (! is.null(original_ops$infile))
+      {
+        read_excel(paste(original_ops$infile$datapath, ext, sep="."), sheet = input$which_sheet)
+      }
+      else
+      {
+        file.rename(input$infile$datapath, paste(input$infile$datapath, ext, sep="."))        
+        read_excel(paste(input$infile$datapath, ext, sep="."), sheet = input$which_sheet)
+      }
+
+
     } else if (ext == "csv") {
       read_csv(input$infile$datapath)
     }
@@ -63,7 +107,7 @@ shinyServer(function(input, output, session) {
   output$variable_selector <- renderUI({
 
     req(graph_data(), input$chart_type, input$chart_type != "pie")
-
+    
     list(
       selectInput("x",
        "select your x variable:",
@@ -105,12 +149,23 @@ shinyServer(function(input, output, session) {
 
   plot_opts <- eventReactive(input$chart_type, {
     print ("plot opts fired")
-    as.character(paste0(round(runif(1, 1, 100), 0), "_"))
+    if(! is.null(original_ops$id) & original_ops$loaded == FALSE)
+    {
+      original_ops$loaded <- TRUE
+      original_ops$id
+    }
+    else
+    {
+      as.character(paste0(round(runif(1, 1, 100), 0), "_"))
+    }
   })
 
   output$plot_options <- renderUI({
 
     req(input$chart_type)
+    
+    
+    print(plot_opts())
     
     switch(input$chart_type,
       "scatterplot" = 
@@ -491,8 +546,15 @@ output$plot_labels <- renderUI({
       ),
     textInput("source_label", "source label",
       placeholder = "Source: GAO analysis..."),
+    textInput("offset_x", "offset x axis",
+              placeholder = "+.01, +.02. +.03 ... -.01, -.02-, -.03,"),   
+    textInput("offset_y", "offset y axis",
+              placeholder = "+.01, +.02. +.03 ... -.01, -.02-, -.03"),    
+    textInput("offset_source", "offset source",
+              placeholder = "+.01, +.02. +.03 ... -.01, -.02-, -.03"),    
     h4("export:"),
-    downloadButton(outputId = "bundle", label = "results")
+    downloadButton(outputId = "bundle", label = "results", inline = TRUE),
+    bookmarkButton(inline = TRUE)
     )
 })
 
@@ -622,6 +684,7 @@ graph_it <- eventReactive(input$do_plot, {
   if (input$y_label != "") {
     p <- p + labs(y = "", title = input$y_label)
   }
+  
   if (input$source_label != "") {
     p <- p + labs(caption = input$source_label)
   }
@@ -659,7 +722,28 @@ graph_it <- eventReactive(input$do_plot, {
       )
   }
   p <- p + theme_gao
+  
+  # after you set the theme, look for any offsets
+  if (input$offset_x != '')
+  {
+    print('updating x axis')
+    p <- p + theme(axis.title.x = element_text(hjust = input$offset_x))
+  }
+  
+  if (input$offset_y != '')
+  {
+    p <- p + theme(plot.title = element_text(hjust = input$offset_y))
+  }
+  
+  if (input$offset_source != '')
+  {
+    p <- p + theme(plot.caption = element_text(hjust = input$offset_source))
+    
+  }
+  
   p
+  
+  
 })
 
 # Using paste() results in "factor()" appearing in the z variable by default
