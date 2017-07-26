@@ -98,6 +98,12 @@ shinyServer(function(input, output, session) {
           choices = c("classic", "qualitative", "sequential", "diverging")
           )
         ),
+      conditionalPanel(
+        condition = "(input.z != '' | input.w != '' | input.y != '') & input.x != ''",
+        selectInput("reorder", label = "reorder your x axis", 
+                    choices = c("order by" = "", names(graph_data()))
+        )
+      ),
       actionButton("do_plot", "can i have your autoggraph?", icon = icon("area-chart"))
       )
   })
@@ -264,23 +270,56 @@ base_aes <- reactive({
   }
     # x and y
   else if (input$x != "" & input$y != "" & input$z == "" & input$w == "") {
-    aes_string(x = as.name(input$x), y = as.name(input$y))
+    
+    if (input$reorder != '')
+    {
+        aes_string(x = paste0("reorder(",  as.name(input$x),", ", input$reorder, ")"), y =  as.name(input$y))
+    }
+    else
+    {
+      aes_string(x = as.name(input$x), y = as.name(input$y))
+    }
   }
     # x and z
   else if (input$x != "" & input$y == "" & input$z != "" & input$w == "") {
     aes_string(x = as.name(input$x))
+    
   }
     #  x, y and, z
   else if (input$x != "" & input$y != "" & input$z != "" & input$w == "") {
-    aes_string(x = as.name(input$x), y = as.name(input$y))
+    
+    if (input$reorder != '')
+    {
+      aes_string(x = paste0("reorder(",  as.name(input$x),", ", input$reorder, ")"), y =  as.name(input$y))
+    }
+    else
+    {
+      aes_string(x = as.name(input$x), y = as.name(input$y))
+    }
   } 
     # x, y, and w
   else if (input$x != "" & input$y != "" & input$z == "" & input$w != "") {
-    aes_string(x = as.name(input$x), y = as.name(input$y))
+    
+    if (input$reorder != '')
+    {
+      aes_string(x = paste0("reorder(",  as.name(input$x),", ", input$reorder, ")"), y =  as.name(input$y))
+    }
+    else
+    {
+      aes_string(x = as.name(input$x), y = as.name(input$y))
+    }
   }
     # x, y, z, and w
   else if (input$x != "" & input$y != "" & input$z != "" & input$w != "") {
-    aes_string(x = as.name(input$x), y = as.name(input$y))
+    
+    if (input$reorder != '')
+    {
+      aes_string(x = paste0("reorder(",  as.name(input$x),", ", input$reorder, ")"), y =  as.name(input$y))
+    }
+    else
+    {
+      aes_string(x = as.name(input$x), y = as.name(input$y))
+    }
   }
 })
 
@@ -517,6 +556,7 @@ graph_it <- eventReactive(input$do_plot, {
     # add geom function depending on selected variables
     # only x or x & y
   if (input$z == "" & input$w == "") {
+    
     p <- p + which_geom_xy()
     print ("xy fired")
   }
@@ -687,10 +727,7 @@ graph_it <- eventReactive(input$do_plot, {
     
   }
   
-  # to get the titles further to the left, you have to set ggplot2 to not clip
-  gt <- ggplot_gtable(ggplot_build(p))
-  gt$layout$clip[gt$layout$name == "panel"] <- "off"
-  grid.draw(gt)
+  p
   
   
 })
