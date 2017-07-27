@@ -100,7 +100,7 @@ shinyServer(function(input, output, session) {
         ),
       conditionalPanel(
         condition = "(input.z != '' | input.w != '' | input.y != '') & input.x != ''",
-        selectInput("reorder", label = "reorder your x axis", 
+        selectInput("reorder_x", label = "reorder your x axis", 
                     choices = c("order by" = "", names(graph_data()))
         )
       ),
