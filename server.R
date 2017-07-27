@@ -271,53 +271,40 @@ base_aes <- reactive({
     # x and y
   else if (input$x != "" & input$y != "" & input$z == "" & input$w == "") {
     
-    if (input$reorder_x != '')
-    {
-        aes_string(x = paste0("reorder(",  as.name(input$x),", ", input$reorder_x, ")"), y =  as.name(input$y))
-    }
-    else
-    {
+    if (input$reorder_x != '') {
+      aes_string(x = paste0("reorder(",  as.name(input$x),", ", input$reorder_x, ")"), y =  as.name(input$y))
+    } else {
       aes_string(x = as.name(input$x), y = as.name(input$y))
     }
   }
     # x and z
   else if (input$x != "" & input$y == "" & input$z != "" & input$w == "") {
     aes_string(x = as.name(input$x))
-    
   }
     #  x, y and, z
   else if (input$x != "" & input$y != "" & input$z != "" & input$w == "") {
     
-    if (input$reorder_x != '')
-    {
+    if (input$reorder_x != '') {
       aes_string(x = paste0("reorder(",  as.name(input$x),", ", input$reorder_x, ")"), y =  as.name(input$y))
-    }
-    else
-    {
+    } else {
       aes_string(x = as.name(input$x), y = as.name(input$y))
     }
   } 
     # x, y, and w
   else if (input$x != "" & input$y != "" & input$z == "" & input$w != "") {
     
-    if (input$reorder_x != '')
-    {
+    if (input$reorder_x != '') {
       aes_string(x = paste0("reorder(",  as.name(input$x),", ", input$reorder_x, ")"), y =  as.name(input$y))
-    }
-    else
-    {
+    } else {
       aes_string(x = as.name(input$x), y = as.name(input$y))
     }
   }
     # x, y, z, and w
   else if (input$x != "" & input$y != "" & input$z != "" & input$w != "") {
     
-    if (input$reorder_x != '')
-    {
+    if (input$reorder_x != '') {
       aes_string(x = paste0("reorder(",  as.name(input$x),", ", input$reorder_x, ")"), y =  as.name(input$y))
-    }
-    else
-    {
+    } else {
       aes_string(x = as.name(input$x), y = as.name(input$y))
     }
   }
