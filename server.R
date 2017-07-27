@@ -271,9 +271,9 @@ base_aes <- reactive({
     # x and y
   else if (input$x != "" & input$y != "" & input$z == "" & input$w == "") {
     
-    if (input$reorder != '')
+    if (input$reorder_x != '')
     {
-        aes_string(x = paste0("reorder(",  as.name(input$x),", ", input$reorder, ")"), y =  as.name(input$y))
+        aes_string(x = paste0("reorder(",  as.name(input$x),", ", input$reorder_x, ")"), y =  as.name(input$y))
     }
     else
     {
@@ -288,9 +288,9 @@ base_aes <- reactive({
     #  x, y and, z
   else if (input$x != "" & input$y != "" & input$z != "" & input$w == "") {
     
-    if (input$reorder != '')
+    if (input$reorder_x != '')
     {
-      aes_string(x = paste0("reorder(",  as.name(input$x),", ", input$reorder, ")"), y =  as.name(input$y))
+      aes_string(x = paste0("reorder(",  as.name(input$x),", ", input$reorder_x, ")"), y =  as.name(input$y))
     }
     else
     {
@@ -300,9 +300,9 @@ base_aes <- reactive({
     # x, y, and w
   else if (input$x != "" & input$y != "" & input$z == "" & input$w != "") {
     
-    if (input$reorder != '')
+    if (input$reorder_x != '')
     {
-      aes_string(x = paste0("reorder(",  as.name(input$x),", ", input$reorder, ")"), y =  as.name(input$y))
+      aes_string(x = paste0("reorder(",  as.name(input$x),", ", input$reorder_x, ")"), y =  as.name(input$y))
     }
     else
     {
@@ -312,9 +312,9 @@ base_aes <- reactive({
     # x, y, z, and w
   else if (input$x != "" & input$y != "" & input$z != "" & input$w != "") {
     
-    if (input$reorder != '')
+    if (input$reorder_x != '')
     {
-      aes_string(x = paste0("reorder(",  as.name(input$x),", ", input$reorder, ")"), y =  as.name(input$y))
+      aes_string(x = paste0("reorder(",  as.name(input$x),", ", input$reorder_x, ")"), y =  as.name(input$y))
     }
     else
     {
@@ -737,6 +737,10 @@ graph_it <- eventReactive(input$do_plot, {
 # selected in Z once a variable is selected
 observeEvent(input$z, {
   updateTextInput(session, "z_guide", value = input$z) 
+  })
+
+observeEvent(input$reorder_x, {
+  updateTextInput(session, "x_label", value = input$x) 
   })
 
 output$graph <- renderPlot({
