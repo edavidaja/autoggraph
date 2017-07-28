@@ -23,8 +23,6 @@ theme_gao <- list(
 
 # server ----------------------------------------------------------------------
 shinyServer(function(input, output, session) {
-
-  hide('infile_mtime')
   
   observeEvent(input$infile, {
     js$showFileModified()
@@ -556,7 +554,7 @@ output$plot_labels <- renderUI({
     downloadButton(outputId = "bundle", label = "results", inline = TRUE),
     bookmarkButton(inline = TRUE)
     )
-})
+  })
 
   # plot builder --------------------------------------------------------------
 graph_it <- eventReactive(input$do_plot, {
