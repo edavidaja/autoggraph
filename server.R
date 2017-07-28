@@ -560,6 +560,21 @@ output$plot_labels <- renderUI({
     )
   })
 
+  # attempting to use the obvious test for numericness does not work here
+  observeEvent(input$x, {
+    toggle("x_val_format",
+      condition = (
+        class(graph_data()[[input$x]])) %in% c("double", "integer", "numeric")
+        )
+  })
+
+  observeEvent(input$y, {
+    toggle("y_val_format",
+      condition = (
+        class(graph_data()[[input$y]])) %in% c("double", "integer", "numeric")
+        )
+  })
+
   # plot builder --------------------------------------------------------------
 graph_it <- eventReactive(input$do_plot, {
     # require chart type, data to be loaded, 
@@ -812,7 +827,5 @@ observe({
     icon = icon("refresh")
     )
 })
-
-runcodeServer()
 
 })
