@@ -23,8 +23,6 @@ theme_gao <- list(
 
 # server ----------------------------------------------------------------------
 shinyServer(function(input, output, session) {
-
-  hide('infile_mtime')
   
   observeEvent(input$infile, {
     js$showFileModified()
@@ -554,11 +552,15 @@ output$plot_labels <- renderUI({
   wellPanel(
     h4("plot labels"),
     textInput("x_label", "x-axis label"),
-    radioButtons("x_val_format", label = "x value format",
-      choices = c("none" = "", "dollar", "comma", "percent"), inline = TRUE),
+    hidden(
+      radioButtons("x_val_format", label = "x value format",
+        choices = c("none" = "", "dollar", "comma", "percent"), inline = TRUE)
+      ),
     textInput("y_label", "y-axis label"),
-    radioButtons("y_val_format", label = "y value format",
-      choices = c("none" = "", "dollar", "comma", "percent"), inline = TRUE),
+    hidden(
+      radioButtons("y_val_format", label = "y value format",
+        choices = c("none" = "", "dollar", "comma", "percent"), inline = TRUE)
+      ),
     conditionalPanel(condition = "input.z != ''",
       textInput("z_guide", "discrete variable name"),
       textInput("z_label", "discrete variable labels, separated by commas",
@@ -582,7 +584,22 @@ output$plot_labels <- renderUI({
     downloadButton(outputId = "bundle", label = "results", inline = TRUE),
     bookmarkButton(inline = TRUE)
     )
-})
+  })
+
+  # attempting to use the obvious test for numericness does not work here
+  observeEvent(input$x, {
+    toggle("x_val_format",
+      condition = (
+        class(graph_data()[[input$x]])) %in% c("double", "integer", "numeric")
+        )
+  })
+
+  observeEvent(input$y, {
+    toggle("y_val_format",
+      condition = (
+        class(graph_data()[[input$y]])) %in% c("double", "integer", "numeric")
+        )
+  })
 
   # plot builder --------------------------------------------------------------
 graph_it <- eventReactive(input$do_plot, {
