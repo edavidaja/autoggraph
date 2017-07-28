@@ -526,11 +526,15 @@ output$plot_labels <- renderUI({
   wellPanel(
     h4("plot labels"),
     textInput("x_label", "x-axis label"),
-    radioButtons("x_val_format", label = "x value format",
-      choices = c("none" = "", "dollar", "comma", "percent"), inline = TRUE),
+    hidden(
+      radioButtons("x_val_format", label = "x value format",
+        choices = c("none" = "", "dollar", "comma", "percent"), inline = TRUE)
+      ),
     textInput("y_label", "y-axis label"),
-    radioButtons("y_val_format", label = "y value format",
-      choices = c("none" = "", "dollar", "comma", "percent"), inline = TRUE),
+    hidden(
+      radioButtons("y_val_format", label = "y value format",
+        choices = c("none" = "", "dollar", "comma", "percent"), inline = TRUE)
+      ),
     conditionalPanel(condition = "input.z != ''",
       textInput("z_guide", "discrete variable name"),
       textInput("z_label", "discrete variable labels, separated by commas",
@@ -808,5 +812,7 @@ observe({
     icon = icon("refresh")
     )
 })
+
+runcodeServer()
 
 })
