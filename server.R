@@ -36,17 +36,14 @@ shinyServer(function(input, output, session) {
     state$values$infile <- fil$infile
   })
   
-  fil <- reactiveValues(infile = NULL)
-  
+  fil <- reactiveValues(infile = NULL)  
   original_ops <- reactiveValues(id = NULL, loaded = FALSE, infile = NULL)
-
-  
+ 
   onRestore(function(state) {
     original_ops$id <- state$values$id
     original_ops$infile <- state$values$infile
     print (original_ops$infile)
   })
-  
   
   # Ingest file -----------------------------------------------------------------
   output$excel_sheet_selector <- renderUI({
@@ -54,24 +51,18 @@ shinyServer(function(input, output, session) {
     req(input$infile)
 
     ext <- tools::file_ext(input$infile$name)
-    
-    print (fil$name)
-    
+      
     if (ext %in% c("xls", "xlsx")) {
-        
-        if (! is.null(original_ops$infile))
-        {
-          print (original_ops$infile)
-          selectInput("which_sheet", "select a worksheet:", 
-                      choices = excel_sheets(paste(original_ops$infile$datapath, ext, sep=".")))             
-        }
-        else{
-          file.rename(input$infile$datapath, paste(input$infile$datapath, ext, sep="."))
-          fil$infile <- input$infile
-          selectInput("which_sheet", "select a worksheet:", 
-                      choices = excel_sheets(paste(input$infile$datapath, ext, sep=".")))          
-        }
-
+      if (! is.null(original_ops$infile)) {
+        print (original_ops$infile)
+        selectInput("which_sheet", "select a worksheet:", 
+                    choices = excel_sheets(paste(original_ops$infile$datapath, ext, sep=".")))             
+      } else {
+        file.rename(input$infile$datapath, paste(input$infile$datapath, ext, sep="."))
+        fil$infile <- input$infile
+        selectInput("which_sheet", "select a worksheet:", 
+          choices = excel_sheets(paste(input$infile$datapath, ext, sep=".")))          
+      }
     }
   })
 
@@ -84,21 +75,15 @@ shinyServer(function(input, output, session) {
       
       req(input$which_sheet)
       
-      if (! is.null(original_ops$infile))
-      {
+      if (! is.null(original_ops$infile)) {
         read_excel(paste(original_ops$infile$datapath, ext, sep="."), sheet = input$which_sheet)
-      }
-      else
-      {
+      } else {
         file.rename(input$infile$datapath, paste(input$infile$datapath, ext, sep="."))        
         read_excel(paste(input$infile$datapath, ext, sep="."), sheet = input$which_sheet)
       }
-
-
     } else if (ext == "csv") {
       read_csv(input$infile$datapath)
     }
-
   })
 
     # Variable selectors ----------------------------------------------------------
@@ -153,13 +138,10 @@ shinyServer(function(input, output, session) {
 
   plot_opts <- eventReactive(input$chart_type, {
     print ("plot opts fired")
-    if(! is.null(original_ops$id) & original_ops$loaded == FALSE)
-    {
+    if(! is.null(original_ops$id) & original_ops$loaded == FALSE) {
       original_ops$loaded <- TRUE
       original_ops$id
-    }
-    else
-    {
+    } else {
       as.character(paste0(round(runif(1, 1, 100), 0), "_"))
     }
   })
@@ -167,10 +149,7 @@ shinyServer(function(input, output, session) {
   output$plot_options <- renderUI({
 
     req(input$chart_type)
-    
-    
-    print(plot_opts())
-    
+
     switch(input$chart_type,
       "scatterplot" = 
       list(
@@ -323,7 +302,10 @@ base_aes <- reactive({
   else if (input$x != "" & input$y != "" & input$z == "" & input$w == "") {
     
     if (input$reorder_x != '') {
-      aes_string(x = paste0("reorder(",  as.name(input$x),", ", input$reorder_x, ")"), y =  as.name(input$y))
+      aes_string(
+        x = paste0("reorder(",  as.name(input$x),", ", input$reorder_x, ")"),
+        y =  as.name(input$y)
+        )
     } else {
       aes_string(x = as.name(input$x), y = as.name(input$y))
     }
@@ -336,7 +318,10 @@ base_aes <- reactive({
   else if (input$x != "" & input$y != "" & input$z != "" & input$w == "") {
     
     if (input$reorder_x != '') {
-      aes_string(x = paste0("reorder(",  as.name(input$x),", ", input$reorder_x, ")"), y =  as.name(input$y))
+      aes_string(
+        x = paste0("reorder(",  as.name(input$x),", ", input$reorder_x, ")"),
+        y =  as.name(input$y)
+        )
     } else {
       aes_string(x = as.name(input$x), y = as.name(input$y))
     }
@@ -345,7 +330,10 @@ base_aes <- reactive({
   else if (input$x != "" & input$y != "" & input$z == "" & input$w != "") {
     
     if (input$reorder_x != '') {
-      aes_string(x = paste0("reorder(",  as.name(input$x),", ", input$reorder_x, ")"), y =  as.name(input$y))
+      aes_string(
+        x = paste0("reorder(",  as.name(input$x),", ", input$reorder_x, ")"),
+        y =  as.name(input$y)
+        )
     } else {
       aes_string(x = as.name(input$x), y = as.name(input$y))
     }
@@ -354,7 +342,10 @@ base_aes <- reactive({
   else if (input$x != "" & input$y != "" & input$z != "" & input$w != "") {
     
     if (input$reorder_x != '') {
-      aes_string(x = paste0("reorder(",  as.name(input$x),", ", input$reorder_x, ")"), y =  as.name(input$y))
+      aes_string(
+        x = paste0("reorder(",  as.name(input$x),", ", input$reorder_x, ")"),
+        y =  as.name(input$y)
+        )
     } else {
       aes_string(x = as.name(input$x), y = as.name(input$y))
     }
@@ -575,11 +566,11 @@ output$plot_labels <- renderUI({
     textInput("source_label", "source label",
       placeholder = "Source: GAO analysis..."),
     textInput("offset_x", "offset x axis",
-              placeholder = "+.01, +.02. +.03 ... -.01, -.02-, -.03,"),   
+      placeholder = "+.01, +.02. +.03 ... -.01, -.02-, -.03,"),   
     textInput("offset_y", "offset y axis",
-              placeholder = "+.01, +.02. +.03 ... -.01, -.02-, -.03"),    
+      placeholder = "+.01, +.02. +.03 ... -.01, -.02-, -.03"),    
     textInput("offset_source", "offset source",
-              placeholder = "+.01, +.02. +.03 ... -.01, -.02-, -.03"),    
+      placeholder = "+.01, +.02. +.03 ... -.01, -.02-, -.03"),    
     h4("export:"),
     downloadButton(outputId = "bundle", label = "results", inline = TRUE),
     bookmarkButton(inline = TRUE)
@@ -768,27 +759,19 @@ graph_it <- eventReactive(input$do_plot, {
   p <- p + theme_gao
   
   # after you set the theme, look for any offsets
-  if (input$offset_x != '')
-  {
+  if (input$offset_x != '') {
     print('updating x axis')
     p <- p + theme(axis.title.x = element_text(hjust = input$offset_x))
   }
-  
-  if (input$offset_y != '')
-  {
+  if (input$offset_y != '') {
     p <- p + theme(plot.title = element_text(hjust = input$offset_y))
   }
-  
-  if (input$offset_source != '')
-  {
-    p <- p + theme(plot.caption = element_text(hjust = input$offset_source))
-    
+  if (input$offset_source != '') {
+    p <- p + theme(plot.caption = element_text(hjust = input$offset_source)) 
   }
-  
-  p
-  
-  
-})
+
+  p  
+  })
 
 # Using paste() results in "factor()" appearing in the z variable by default
 # this observer sets the value of the z-guide to the name of the variable
@@ -803,7 +786,7 @@ observeEvent(input$reorder_x, {
 
 output$graph <- renderPlot({
   graph_it()
-})
+  })
 
    # Download file -------------------------------------------------------------
 output$bundle <- downloadHandler(
@@ -857,6 +840,6 @@ observe({
     label = "update plot",
     icon = icon("refresh")
     )
-})
+  })
 
 })
