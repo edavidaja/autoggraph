@@ -56,9 +56,7 @@ function(request) {
             uiOutput("plot_labels"),
             useShinyjs(),
             extendShinyjs(text = jsCode, functions = c("showFileModified")),
-            hidden(
-              textInput("infile_mtime", "infile_mtime")
-              )
+            textInput("infile_mtime", "infile_mtime")
             )
           )
         )

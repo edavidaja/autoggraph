@@ -3,9 +3,8 @@ library(readxl)
 library(ggplot2)
 library(stringr)
 library(RColorBrewer)
-library(shiny)
 library(shinyjs)
-
+library(grid)
 # gao theme -------------------------------------------------------------------
 theme_gao <- list(
   theme_minimal(),
@@ -23,73 +22,47 @@ theme_gao <- list(
 
 # server ----------------------------------------------------------------------
 shinyServer(function(input, output, session) {
-  
+
+  hide('infile_mtime')
   observeEvent(input$infile, {
     js$showFileModified()
     })
-  
-  # bookmarking stuff ----------------------------------------------------------
-  onBookmark(function(state) {
-    plot_id <- plot_opts()
-    state$values$id <- plot_id
-    print (fil$infile)
-    state$values$infile <- fil$infile
-  })
-  
-  fil <- reactiveValues(infile = NULL)  
-  original_ops <- reactiveValues(id = NULL, loaded = FALSE, infile = NULL)
- 
-  onRestore(function(state) {
-    original_ops$id <- state$values$id
-    original_ops$infile <- state$values$infile
-    print (original_ops$infile)
-  })
-  
+
   # Ingest file -----------------------------------------------------------------
   output$excel_sheet_selector <- renderUI({
 
     req(input$infile)
 
     ext <- tools::file_ext(input$infile$name)
-      
     if (ext %in% c("xls", "xlsx")) {
-      if (! is.null(original_ops$infile)) {
-        selectInput("which_sheet", "select a worksheet:", 
-          choices = excel_sheets(paste(original_ops$infile$datapath, ext, sep=".")))             
-      } else {
-        file.rename(input$infile$datapath, paste(input$infile$datapath, ext, sep="."))
-        fil$infile <- input$infile
-        selectInput("which_sheet", "select a worksheet:", 
-          choices = excel_sheets(paste(input$infile$datapath, ext, sep=".")))          
-      }
+
+      file.rename(input$infile$datapath, paste(input$infile$datapath, ext, sep="."))
+      selectInput("which_sheet", "select a worksheet:", 
+        choices = excel_sheets(paste(input$infile$datapath, ext, sep="."))
+        )
     }
   })
 
   graph_data <- reactive({
 
     req(input$infile$name)
-    
+
     ext <- tools::file_ext(input$infile$name)
     if (ext %in% c("xls", "xlsx")) {
-      
+      file.rename(input$infile$datapath, paste(input$infile$datapath, ext, sep="."))
       req(input$which_sheet)
-      
-      if (! is.null(original_ops$infile)) {
-        read_excel(paste(original_ops$infile$datapath, ext, sep="."), sheet = input$which_sheet)
-      } else {
-        file.rename(input$infile$datapath, paste(input$infile$datapath, ext, sep="."))        
-        read_excel(paste(input$infile$datapath, ext, sep="."), sheet = input$which_sheet)
-      }
+      read_excel(paste(input$infile$datapath, ext, sep="."), sheet = input$which_sheet)
     } else if (ext == "csv") {
       read_csv(input$infile$datapath)
     }
+
   })
 
     # Variable selectors ----------------------------------------------------------
   output$variable_selector <- renderUI({
 
     req(graph_data(), input$chart_type, input$chart_type != "pie")
-    
+
     list(
       selectInput("x",
        "select your x variable:",
@@ -123,12 +96,6 @@ shinyServer(function(input, output, session) {
           )
         ),
       conditionalPanel(
-        condition = "(input.z != '' | input.w != '' | input.y != '') & input.x != ''",
-        selectInput("reorder_x", label = "reorder your x axis", 
-                    choices = c("order by" = "", names(graph_data()))
-        )
-      ),
-      conditionalPanel(
         condition = "input.z != ''",
         selectInput("wrap", label = "group your variables by", 
                     selected = "colour and shape",
@@ -145,18 +112,13 @@ shinyServer(function(input, output, session) {
 
   plot_opts <- eventReactive(input$chart_type, {
     print ("plot opts fired")
-    if(! is.null(original_ops$id) & original_ops$loaded == FALSE) {
-      original_ops$loaded <- TRUE
-      original_ops$id
-    } else {
-      as.character(paste0(round(runif(1, 1, 100), 0), "_"))
-    }
+    as.character(paste0(round(runif(1, 1, 100), 0), "_"))
   })
 
   output$plot_options <- renderUI({
 
     req(input$chart_type)
-
+    
     switch(input$chart_type,
       "scatterplot" = 
       list(
@@ -307,15 +269,7 @@ base_aes <- reactive({
   }
     # x and y
   else if (input$x != "" & input$y != "" & input$z == "" & input$w == "") {
-    
-    if (input$reorder_x != '') {
-      aes_string(
-        x = paste0("reorder(",  as.name(input$x),", ", input$reorder_x, ")"),
-        y =  as.name(input$y)
-        )
-    } else {
-      aes_string(x = as.name(input$x), y = as.name(input$y))
-    }
+    aes_string(x = as.name(input$x), y = as.name(input$y))
   }
     # x and z
   else if (input$x != "" & input$y == "" & input$z != "" & input$w == "") {
@@ -323,39 +277,15 @@ base_aes <- reactive({
   }
     #  x, y and, z
   else if (input$x != "" & input$y != "" & input$z != "" & input$w == "") {
-    
-    if (input$reorder_x != '') {
-      aes_string(
-        x = paste0("reorder(",  as.name(input$x),", ", input$reorder_x, ")"),
-        y =  as.name(input$y)
-        )
-    } else {
-      aes_string(x = as.name(input$x), y = as.name(input$y))
-    }
+    aes_string(x = as.name(input$x), y = as.name(input$y))
   } 
     # x, y, and w
   else if (input$x != "" & input$y != "" & input$z == "" & input$w != "") {
-    
-    if (input$reorder_x != '') {
-      aes_string(
-        x = paste0("reorder(",  as.name(input$x),", ", input$reorder_x, ")"),
-        y =  as.name(input$y)
-        )
-    } else {
-      aes_string(x = as.name(input$x), y = as.name(input$y))
-    }
+    aes_string(x = as.name(input$x), y = as.name(input$y))
   }
     # x, y, z, and w
   else if (input$x != "" & input$y != "" & input$z != "" & input$w != "") {
-    
-    if (input$reorder_x != '') {
-      aes_string(
-        x = paste0("reorder(",  as.name(input$x),", ", input$reorder_x, ")"),
-        y =  as.name(input$y)
-        )
-    } else {
-      aes_string(x = as.name(input$x), y = as.name(input$y))
-    }
+    aes_string(x = as.name(input$x), y = as.name(input$y))
   }
 })
 
@@ -535,11 +465,14 @@ which_geom_w_z <- reactive({
 
   req(graph_data())
   
+  if (input$wrap == 'grid') {
     geom_point(
       aes_string(
+        color = input$w
       ),
       alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]]    
     )     
+  } else {
     geom_point(
       aes_string(
         size = input$w,
@@ -557,15 +490,11 @@ output$plot_labels <- renderUI({
   wellPanel(
     h4("plot labels"),
     textInput("x_label", "x-axis label"),
-    hidden(
-      radioButtons("x_val_format", label = "x value format",
-        choices = c("none" = "", "dollar", "comma", "percent"), inline = TRUE)
-      ),
+    radioButtons("x_val_format", label = "x value format",
+      choices = c("none" = "", "dollar", "comma", "percent"), inline = TRUE),
     textInput("y_label", "y-axis label"),
-    hidden(
-      radioButtons("y_val_format", label = "y value format",
-        choices = c("none" = "", "dollar", "comma", "percent"), inline = TRUE)
-      ),
+    radioButtons("y_val_format", label = "y value format",
+      choices = c("none" = "", "dollar", "comma", "percent"), inline = TRUE),
     conditionalPanel(condition = "input.z != ''",
       textInput("z_guide", "discrete variable name"),
       textInput("z_label", "discrete variable labels, separated by commas",
@@ -580,31 +509,15 @@ output$plot_labels <- renderUI({
     textInput("source_label", "source label",
       placeholder = "Source: GAO analysis..."),
     textInput("offset_x", "offset x axis",
-      placeholder = "+.01, +.02. +.03 ... -.01, -.02-, -.03,"),   
+              placeholder = "+.01, +.02. +.03 ... -.01, -.02-, -.03,"),   
     textInput("offset_y", "offset y axis",
-      placeholder = "+.01, +.02. +.03 ... -.01, -.02-, -.03"),    
+              placeholder = "+.01, +.02. +.03 ... -.01, -.02-, -.03"),    
     textInput("offset_source", "offset source",
-      placeholder = "+.01, +.02. +.03 ... -.01, -.02-, -.03"),    
+              placeholder = "+.01, +.02. +.03 ... -.01, -.02-, -.03"),    
     h4("export:"),
-    downloadButton(outputId = "bundle", label = "results", inline = TRUE),
-    bookmarkButton(inline = TRUE)
+    downloadButton(outputId = "bundle", label = "results")
     )
-  })
-
-  # attempting to use the obvious test for numericness does not work here
-  observeEvent(input$x, {
-    toggle("x_val_format",
-      condition = (
-        class(graph_data()[[input$x]])) %in% c("double", "integer", "numeric")
-        )
-  })
-
-  observeEvent(input$y, {
-    toggle("y_val_format",
-      condition = (
-        class(graph_data()[[input$y]])) %in% c("double", "integer", "numeric")
-        )
-  })
+})
 
   # plot builder --------------------------------------------------------------
 graph_it <- eventReactive(input$do_plot, {
@@ -619,7 +532,6 @@ graph_it <- eventReactive(input$do_plot, {
     # add geom function depending on selected variables
     # only x or x & y
   if (input$z == "" & input$w == "") {
-    
     p <- p + which_geom_xy()
     print ("xy fired")
   }
@@ -627,6 +539,7 @@ graph_it <- eventReactive(input$do_plot, {
     # z and no w
   else if (input$z != "" & input$w == "") {
     
+    if (input$wrap == "grid") {
       if (input$z_label == "") {
         p <- p + which_geom_xy() + facet_wrap(as.formula(paste("~", input$z)))
       } else {
@@ -710,6 +623,7 @@ graph_it <- eventReactive(input$do_plot, {
 
     # z and w
   else if (input$z!= "" & input$w != "") {
+    if (input$wrap == "grid") {
       
       if (input$z_label == "") {
         p <- p + facet_wrap(as.formula(paste("~", input$z)))
@@ -798,16 +712,26 @@ graph_it <- eventReactive(input$do_plot, {
   p <- p + theme_gao
   
   # after you set the theme, look for any offsets
-  if (input$offset_x != '') {
+  if (input$offset_x != '')
+  {
     print('updating x axis')
     p <- p + theme(axis.title.x = element_text(hjust = input$offset_x))
   }
-  if (input$offset_y != '') {
+  
+  if (input$offset_y != '')
+  {
     p <- p + theme(plot.title = element_text(hjust = input$offset_y))
   }
-  if (input$offset_source != '') {
-    p <- p + theme(plot.caption = element_text(hjust = input$offset_source)) 
+  
+  if (input$offset_source != '')
+  {
+    p <- p + theme(plot.caption = element_text(hjust = input$offset_source))
+    
   }
+  
+  p
+  
+})
 
 # Using paste() results in "factor()" appearing in the z variable by default
 # this observer sets the value of the z-guide to the name of the variable
@@ -816,13 +740,9 @@ observeEvent(input$z, {
   updateTextInput(session, "z_guide", value = input$z) 
   })
 
-observeEvent(input$reorder_x, {
-  updateTextInput(session, "x_label", value = input$x) 
-  })
-
 output$graph <- renderPlot({
   graph_it()
-  })
+})
 
    # Download file -------------------------------------------------------------
 output$bundle <- downloadHandler(
@@ -876,6 +796,6 @@ observe({
     label = "update plot",
     icon = icon("refresh")
     )
-  })
+})
 
 })
