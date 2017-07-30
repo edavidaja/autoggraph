@@ -23,7 +23,6 @@ theme_gao <- list(
 # server ----------------------------------------------------------------------
 shinyServer(function(input, output, session) {
 
-  hide('infile_mtime')
   observeEvent(input$infile, {
     js$showFileModified()
     })
