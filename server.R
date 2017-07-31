@@ -23,11 +23,11 @@ theme_gao <- list(
 
 # server ----------------------------------------------------------------------
 shinyServer(function(input, output, session) {
-  
+
   observeEvent(input$infile, {
     js$showFileModified()
     })
-  
+
   # bookmarking stuff ----------------------------------------------------------
   onBookmark(function(state) {
     plot_id <- plot_opts()
@@ -51,7 +51,6 @@ shinyServer(function(input, output, session) {
     req(input$infile)
 
     ext <- tools::file_ext(input$infile$name)
-      
     if (ext %in% c("xls", "xlsx")) {
       if (! is.null(original_ops$infile)) {
         print (original_ops$infile)
@@ -69,12 +68,11 @@ shinyServer(function(input, output, session) {
   graph_data <- reactive({
 
     req(input$infile$name)
-    
+
     ext <- tools::file_ext(input$infile$name)
     if (ext %in% c("xls", "xlsx")) {
       
       req(input$which_sheet)
-      
       if (! is.null(original_ops$infile)) {
         read_excel(paste(original_ops$infile$datapath, ext, sep="."), sheet = input$which_sheet)
       } else {
@@ -84,13 +82,14 @@ shinyServer(function(input, output, session) {
     } else if (ext == "csv") {
       read_csv(input$infile$datapath)
     }
+
   })
 
     # Variable selectors ----------------------------------------------------------
   output$variable_selector <- renderUI({
 
     req(graph_data(), input$chart_type, input$chart_type != "pie")
-    
+
     list(
       selectInput("x",
        "select your x variable:",
@@ -103,6 +102,12 @@ shinyServer(function(input, output, session) {
           choices =  c("y variable" = "", names(graph_data()))
           )
         ),
+     conditionalPanel(
+        condition = "(input.z != '' | input.w != '' | input.y != '') & input.x != ''",
+        selectInput("reorder_x", label = "reorder your x axis", 
+                    choices = c("order by" = "", names(graph_data()))
+        )
+      ),
       conditionalPanel(
         condition = "input.chart_type != 'heatmap'",
         selectInput("z",
@@ -110,6 +115,14 @@ shinyServer(function(input, output, session) {
           choices =  c("discrete variable" = "", names(graph_data()))
           )
         ),
+      conditionalPanel(
+        condition = "input.z != ''",
+        radioButtons("wrap", label = "group your variables by", 
+          choices = c("color", "grid"),
+          selected = "color",
+          inline = TRUE
+        )
+      ),
       conditionalPanel(
         condition = "input.chart_type == 'heatmap' | input.chart_type == 'scatterplot'",
         selectInput("w",
@@ -123,12 +136,6 @@ shinyServer(function(input, output, session) {
           choices = c("classic", "qualitative", "sequential", "diverging")
           )
         ),
-      conditionalPanel(
-        condition = "(input.z != '' | input.w != '' | input.y != '') & input.x != ''",
-        selectInput("reorder_x", label = "reorder your x axis", 
-                    choices = c("order by" = "", names(graph_data()))
-        )
-      ),
       actionButton("do_plot", "can i have your autoggraph?", icon = icon("area-chart"))
       )
   })
@@ -149,7 +156,7 @@ shinyServer(function(input, output, session) {
   output$plot_options <- renderUI({
 
     req(input$chart_type)
-
+    
     switch(input$chart_type,
       "scatterplot" = 
       list(
@@ -273,7 +280,7 @@ which_palette <- reactive({
     )
 
   switch(input$palette_selector,
-    "classic"     = {
+    "classic" = {
       if (input$chart_type %in% c("bar", "boxplot")) {
         c("#FFFFFF", "#5EB6E4", "#0039A6", "#008B95", "#5E2750")
       } else {
@@ -300,7 +307,7 @@ base_aes <- reactive({
   }
     # x and y
   else if (input$x != "" & input$y != "" & input$z == "" & input$w == "") {
-    
+    aes_string(x = as.name(input$x), y = as.name(input$y))
     if (input$reorder_x != '') {
       aes_string(
         x = paste0("reorder(",  as.name(input$x),", ", input$reorder_x, ")"),
@@ -316,7 +323,7 @@ base_aes <- reactive({
   }
     #  x, y and, z
   else if (input$x != "" & input$y != "" & input$z != "" & input$w == "") {
-    
+    aes_string(x = as.name(input$x), y = as.name(input$y))
     if (input$reorder_x != '') {
       aes_string(
         x = paste0("reorder(",  as.name(input$x),", ", input$reorder_x, ")"),
@@ -328,7 +335,7 @@ base_aes <- reactive({
   } 
     # x, y, and w
   else if (input$x != "" & input$y != "" & input$z == "" & input$w != "") {
-    
+    aes_string(x = as.name(input$x), y = as.name(input$y))
     if (input$reorder_x != '') {
       aes_string(
         x = paste0("reorder(",  as.name(input$x),", ", input$reorder_x, ")"),
@@ -340,7 +347,7 @@ base_aes <- reactive({
   }
     # x, y, z, and w
   else if (input$x != "" & input$y != "" & input$z != "" & input$w != "") {
-    
+    aes_string(x = as.name(input$x), y = as.name(input$y))
     if (input$reorder_x != '') {
       aes_string(
         x = paste0("reorder(",  as.name(input$x),", ", input$reorder_x, ")"),
@@ -406,7 +413,7 @@ which_geom_xy <- reactive({
 which_geom_z <- reactive({
 
   req(graph_data())
-
+  
   switch(input$chart_type,
     "histogram" = {
       if (sapply(graph_data()[,input$x], class) %in% c("character", "factor")) {
@@ -527,14 +534,24 @@ which_geom_w <- reactive({
 which_geom_w_z <- reactive({
 
   req(graph_data())
-
-  geom_point(
-    aes_string(
-      size = input$w,
-      colour = input$z
+  
+  if (input$wrap == "grid") {
+    geom_point(
+      aes_string(
+        color = input$w
       ),
-    alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]]    
-    )
+      alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]]    
+    )     
+  } else {
+    geom_point(
+      aes_string(
+        size = input$w,
+        colour = input$z
+      ),
+      alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]]    
+    )    
+  }
+
 })
 
 output$plot_labels <- renderUI({
@@ -575,8 +592,7 @@ output$plot_labels <- renderUI({
     downloadButton(outputId = "bundle", label = "results", inline = TRUE),
     bookmarkButton(inline = TRUE)
     )
-  })
-
+})
   # attempting to use the obvious test for numericness does not work here
   observeEvent(input$x, {
     toggle("x_val_format",
@@ -605,43 +621,57 @@ graph_it <- eventReactive(input$do_plot, {
     # add geom function depending on selected variables
     # only x or x & y
   if (input$z == "" & input$w == "") {
-    
     p <- p + which_geom_xy()
     print ("xy fired")
   }
 
     # z and no w
   else if (input$z != "" & input$w == "") {
-      # apply color or fill if no custom labels are set based on chart type
-    if (input$z_label == "") {
-      if (input$chart_type %in% c("histogram", "boxplot", "bar")) {
-        p <- p + scale_fill_manual(values = which_palette())    
-      } else if (input$chart_type %in% c("density", "line", "step", "scatterplot", "pointrange", "error bar")) {
-        p <- p + scale_color_manual(values = which_palette())
-      } else if (input$chart_type == "area") {
-        p <- p + scale_fill_manual(values = which_palette())    
-        p <- p + scale_linetype_manual(values = c(1, 2, 3, 4, 5, 6))
-        p <- p + scale_color_manual(values = which_palette())
+    
+    if (input$wrap == "grid") {
+      if (input$z_label == "") {
+        p <- p + which_geom_xy() + facet_wrap(as.formula(paste("~", input$z)))
+      } else {
+        plot_labels <- unlist(strsplit(input$z_label, ",", fixed = TRUE))
+        label_wrap <- function(variable, value) {
+          unlist(strsplit(input$z_label, ",", fixed = TRUE))
+        }  
+        p <- p + which_geom_xy() + facet_wrap(as.formula(paste("~", input$z)), labeller = label_wrap)
       }
     } else {
-      plot_labels <- unlist(strsplit(input$z_label, ",", fixed = TRUE))
-      if (input$chart_type %in% c("histogram", "boxplot", "bar")) {
-        p <- p + scale_fill_manual(values = which_palette(), labels = plot_labels)
-      } else if (input$chart_type %in% c("pointrange", "error bar")) {
-        p <- p + scale_color_manual(values = which_palette(), labels = plot_labels)
-      } else if (input$chart_type %in% c("density", "line", "step")) {
-        p <- p + scale_color_manual(values = which_palette(), labels = plot_labels)
-        p <- p + scale_linetype_manual(values = c(1, 2, 3, 4, 5, 6), labels = plot_labels)
-      } else if (input$chart_type == "scatterplot") {
-        p <- p + scale_color_manual(values = which_palette(), labels = plot_labels)
-        p <- p + scale_shape_manual(values = c(15, 16, 17, 18, 3, 8, 7), labels = plot_labels)
-      } else if (input$chart_type == "area") {
-        p <- p + scale_fill_manual(values = which_palette(), labels = plot_labels)
-        p <- p + scale_linetype_manual(values = c(1, 2, 3, 4, 5, 6), labels = plot_labels)
-        p <- p + scale_color_manual(values = which_palette(), labels = plot_labels)
-      }
+      # apply color or fill if no custom labels are set based on chart type
+      if (input$z_label == "") {
+        if (input$chart_type %in% c("histogram", "boxplot", "bar")) {
+          p <- p + scale_fill_manual(values = which_palette())    
+        } else if (input$chart_type %in% c("density", "line", "step", "scatterplot", "pointrange", "error bar")) {
+          p <- p + scale_color_manual(values = which_palette())
+        } else if (input$chart_type == "area") {
+          p <- p + scale_fill_manual(values = which_palette())    
+          p <- p + scale_linetype_manual(values = c(1, 2, 3, 4, 5, 6))
+          p <- p + scale_color_manual(values = which_palette())
+        }
+      } else {
+        plot_labels <- unlist(strsplit(input$z_label, ",", fixed = TRUE))
+        if (input$chart_type %in% c("histogram", "boxplot", "bar")) {
+          p <- p + scale_fill_manual(values = which_palette(), labels = plot_labels)
+        } else if (input$chart_type %in% c("pointrange", "error bar")) {
+          p <- p + scale_color_manual(values = which_palette(), labels = plot_labels)
+        } else if (input$chart_type %in% c("density", "line", "step")) {
+          p <- p + scale_color_manual(values = which_palette(), labels = plot_labels)
+          p <- p + scale_linetype_manual(values = c(1, 2, 3, 4, 5, 6), labels = plot_labels)
+        } else if (input$chart_type == "scatterplot") {
+          p <- p + scale_color_manual(values = which_palette(), labels = plot_labels)
+          p <- p + scale_shape_manual(values = c(15, 16, 17, 18, 3, 8, 7), labels = plot_labels)
+        } else if (input$chart_type == "area") {
+          p <- p + scale_fill_manual(values = which_palette(), labels = plot_labels)
+          p <- p + scale_linetype_manual(values = c(1, 2, 3, 4, 5, 6), labels = plot_labels)
+          p <- p + scale_color_manual(values = which_palette(), labels = plot_labels)
+        }
+      }      
+      p <- p + which_geom_z()
+      
     }
-    p <- p + which_geom_z()
+
     print ("z fired")
   }
 
@@ -682,16 +712,28 @@ graph_it <- eventReactive(input$do_plot, {
 
     # z and w
   else if (input$z!= "" & input$w != "") {
-
-    if (input$z_label == "") {
-      p <- p + scale_color_manual(values = which_palette())    
+    if (input$wrap == "grid") {
+      
+      if (input$z_label == "") {
+        p <- p + facet_wrap(as.formula(paste("~", input$z)))
+      } else {
+        plot_labels <- unlist(strsplit(input$z_label, ",", fixed = TRUE))
+        label_wrap <- function(variable, value) {
+          unlist(strsplit(input$z_label, ",", fixed = TRUE))
+        }  
+        p <- p + which_geom_xy() + facet_wrap(as.formula(paste("~", input$z)), labeller = label_wrap)
+      }
     } else {
-      plot_labels <- unlist(strsplit(input$z_label, ",", fixed = TRUE))
-      p <- p + scale_color_manual(values = which_palette(), labels = plot_labels)    
+      if (input$z_label == "") {
+        p <- p + scale_color_manual(values = which_palette())    
+      } else {
+        plot_labels <- unlist(strsplit(input$z_label, ",", fixed = TRUE))
+        p <- p + scale_color_manual(values = which_palette(), labels = plot_labels)    
+      }
     }
     p <- p + which_geom_w_z()
-    print ("w & z fired")
-  }
+    print ("w & z fired")   
+}
 
 
     ## additional geom layers -------------------------------------------------
@@ -770,7 +812,7 @@ graph_it <- eventReactive(input$do_plot, {
     p <- p + theme(plot.caption = element_text(hjust = input$offset_source)) 
   }
 
-  p  
+  p
   })
 
 # Using paste() results in "factor()" appearing in the z variable by default
@@ -783,7 +825,6 @@ observeEvent(input$z, {
 observeEvent(input$reorder_x, {
   updateTextInput(session, "x_label", value = input$x) 
   })
-
 output$graph <- renderPlot({
   graph_it()
   })
