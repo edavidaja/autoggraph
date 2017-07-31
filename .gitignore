@@ -1,4 +1,4 @@
-tablol.sublime-project
-tablol.sublime-workspace
+*.sublime-project
+*.sublime-workspace
 .Rhistory
 Thumbs.db
