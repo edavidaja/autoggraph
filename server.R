@@ -102,6 +102,12 @@ shinyServer(function(input, output, session) {
           choices =  c("y variable" = "", names(graph_data()))
           )
         ),
+     conditionalPanel(
+        condition = "(input.z != '' | input.w != '' | input.y != '') & input.x != ''",
+        selectInput("reorder_x", label = "reorder your x axis", 
+                    choices = c("order by" = "", names(graph_data()))
+        )
+      ),
       conditionalPanel(
         condition = "input.chart_type != 'heatmap'",
         selectInput("z",
@@ -109,6 +115,14 @@ shinyServer(function(input, output, session) {
           choices =  c("discrete variable" = "", names(graph_data()))
           )
         ),
+      conditionalPanel(
+        condition = "input.z != ''",
+        radioButtons("wrap", label = "group your variables by", 
+          choices = c("color", "grid"),
+          selected = "color",
+          inline = TRUE
+        )
+      ),
       conditionalPanel(
         condition = "input.chart_type == 'heatmap' | input.chart_type == 'scatterplot'",
         selectInput("w",
@@ -122,20 +136,6 @@ shinyServer(function(input, output, session) {
           choices = c("classic", "qualitative", "sequential", "diverging")
           )
         ),
-	conditionalPanel(
-        condition = "(input.z != '' | input.w != '' | input.y != '') & input.x != ''",
-        selectInput("reorder_x", label = "reorder your x axis", 
-                    choices = c("order by" = "", names(graph_data()))
-        )
-      ),
-      conditionalPanel(
-        condition = "input.z != ''",
-        selectInput("wrap", label = "group your variables by", 
-                    selected = "colour and shape",
-                    choices = c("grid", "colour and shape"),
-                    multiple = TRUE
-        )
-      ),
       actionButton("do_plot", "can i have your autoggraph?", icon = icon("area-chart"))
       )
   })
@@ -280,7 +280,7 @@ which_palette <- reactive({
     )
 
   switch(input$palette_selector,
-    "classic"     = {
+    "classic" = {
       if (input$chart_type %in% c("bar", "boxplot")) {
         c("#FFFFFF", "#5EB6E4", "#0039A6", "#008B95", "#5E2750")
       } else {
@@ -535,7 +535,7 @@ which_geom_w_z <- reactive({
 
   req(graph_data())
   
-  if (input$wrap == 'grid') {
+  if (input$wrap == "grid") {
     geom_point(
       aes_string(
         color = input$w
@@ -589,7 +589,8 @@ output$plot_labels <- renderUI({
     textInput("offset_source", "offset source",
       placeholder = "+.01, +.02. +.03 ... -.01, -.02-, -.03"),    
     h4("export:"),
-    downloadButton(outputId = "bundle", label = "results")
+    downloadButton(outputId = "bundle", label = "results", inline = TRUE),
+    bookmarkButton(inline = TRUE)
     )
 })
   # attempting to use the obvious test for numericness does not work here
