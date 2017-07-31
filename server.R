@@ -249,13 +249,12 @@ output$smoother_options <- renderUI({
   req(input[[paste0(plot_opts(), "scatter_option_smooth")]], input$z)
 
   selectInput(
-    inputId = paste0(plot_opts(), "scatter_option_which_smooth"),
+    inputId = paste0(plot_opts(), "scatter_option_smooth_group"),
     "smooth over", 
     selected = "overall",
     choices = c("smoother" = "", "groups", "overall")
   )                 
-}  
-)
+})
   
 output$loess_options <- renderUI({
 
@@ -275,8 +274,7 @@ output$loess_options <- renderUI({
           )
         )
       )
-
-})
+  })
 
 which_palette <- reactive({
 
@@ -759,9 +757,9 @@ graph_it <- eventReactive(input$do_plot, {
     
     switch(input[[paste0(plot_opts(), "scatter_option_smooth")]],
       "loess" = 
-        if (! is.null(input[[paste0(plot_opts(), "scatter_option_which_smooth")]]))
+        if (! is.null(input[[paste0(plot_opts(), "scatter_option_smooth_group")]]))
         {
-          if  (input[[paste0(plot_opts(), "scatter_option_which_smooth")]] == 'groups')
+          if  (input[[paste0(plot_opts(), "scatter_option_smooth_group")]] == 'groups')
           {
             p <- p + geom_smooth(
               method = "loess", 
@@ -787,9 +785,9 @@ graph_it <- eventReactive(input$do_plot, {
         )  
       },
       "linear" = 
-        if (! is.null(input[[paste0(plot_opts(), "scatter_option_which_smooth")]]))
+        if (! is.null(input[[paste0(plot_opts(), "scatter_option_smooth_group")]]))
         {
-          if  (input[[paste0(plot_opts(), "scatter_option_which_smooth")]] == 'groups')
+          if  (input[[paste0(plot_opts(), "scatter_option_smooth_group")]] == 'groups')
           {
             p <- p + geom_smooth(
               method = "lm", aes_string(color = paste("factor(", as.name(input$z), ")"))
