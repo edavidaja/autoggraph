@@ -28,8 +28,8 @@ finally, submit a merge request when your feature is ready.
 
 ### other contributions
 
-* use the issues tracker to let us know about problems you had with the application, or features you think would be helpful
-* edit the wiki 
+* use the [issues tracker](https://gitlab.com/usgao/cea/autoggraph/issues) to let us know about problems you had with the application, or features you think would be helpful
+* [edit the wiki](http://wiki.gao.gov/wiki/index.php/Autoggraph) 
 
 ## contribution guidelines
 
