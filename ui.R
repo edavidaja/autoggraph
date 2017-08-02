@@ -62,7 +62,8 @@ function(request) {
                   numericInput("offset_y", "offset y axis", value = 0, min = -.1, max = 1),
                   numericInput("export_height", "export height", value = 6.83, min = 4),
                   numericInput("export_width", "export width", value = 7, min = 5),
-                  numericInput("offset_source", "offset source", value = 0)
+                  numericInput("offset_source", "offset source", value = 0),
+                  downloadButton("preview", "preview image")
                   )
                 )
               ),

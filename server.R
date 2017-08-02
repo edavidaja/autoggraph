@@ -620,6 +620,15 @@ output$plot_labels <- renderUI({
 
   observeEvent(input$fine_tuning, toggle("fine_tuning_well"))
 
+  output$preview <- downloadHandler(
+  filename = function() {
+    paste("preview.png") 
+  },
+  content = function(file) {
+    ggsave(file, plot = graph_it(), device = "png",
+      width = input$export_width, height = input$export_height)
+  })
+
   # plot builder --------------------------------------------------------------
 graph_it <- eventReactive(input$do_plot, {
     # require chart type, data to be loaded, 
