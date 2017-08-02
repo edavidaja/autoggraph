@@ -879,17 +879,15 @@ output$bundle <- downloadHandler(
     paste("autoggraph-", input$chart_type, ".zip", sep = "" ) 
   },
   content = function(file) {
-    vector_out_large <- tempfile(pattern = "vector_large_", fileext = ".svg")
-    vector_out_small <- tempfile(pattern = "vector_small_", fileext = ".svg")
-    raster_out_large <- tempfile(pattern = "raster_large_", fileext = ".png")
-    raster_out_small <- tempfile(pattern = "raster_small_", fileext = ".png")
+    vector_out       <- tempfile(pattern = "vector_", fileext = ".svg")
+    raster_out       <- tempfile(pattern = "raster_", fileext = ".png")
     plotobj_out      <- tempfile(pattern = "plot_object_", fileext = ".rds")
     log_out          <- tempfile(pattern = "log_", fileext = ".txt")
 
-    ggsave(vector_out_large, width = 7.58, height = 6.83)
-    ggsave(vector_out_small, width = 5, height = 4.51)
-    ggsave(raster_out_large, width = 7.58, height = 6.83, units = "in", dpi = 600)
-    ggsave(raster_out_small, width = 5, height = 4.51, units = "in", dpi = 600)
+    ggsave(vector_out, width = input$export_width, height = input$export_height)
+    ggsave(raster_out, width = input$export_width, height = input$export_height,
+      units = "in", dpi = 600
+      )
 
     write_rds(graph_it(), plotobj_out, compress = "none")
 
@@ -907,14 +905,9 @@ output$bundle <- downloadHandler(
 
     zip(
       zipfile = file,
-      files = c(
-        plotobj_out, log_out, 
-        raster_out_large, raster_out_small,
-        vector_out_large, vector_out_small
-        )
-      )
-  } 
-  )
+      files = c(plotobj_out, log_out, raster_out, vector_out)
+      ) 
+  })
 
 observe({
   req(input$do_plot)
