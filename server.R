@@ -597,15 +597,10 @@ output$plot_labels <- renderUI({
       ),
     textInput("source_label", "source label",
       placeholder = "Source: GAO analysis..."),
-    textInput("offset_x", "offset x axis",
-      placeholder = "+.01, +.02. +.03 ... -.01, -.02-, -.03,"),   
-    textInput("offset_y", "offset y axis",
-      placeholder = "+.01, +.02. +.03 ... -.01, -.02-, -.03"),    
-    textInput("offset_source", "offset source",
-      placeholder = "+.01, +.02. +.03 ... -.01, -.02-, -.03"),    
     h4("export:"),
     downloadButton(outputId = "bundle", label = "results", inline = TRUE),
-    bookmarkButton(inline = TRUE)
+    bookmarkButton(inline = TRUE),
+    actionButton("fine_tuning", label = "fine tuning", icon = icon("sliders"), inline = TRUE)
     )
 })
   # attempting to use the obvious test for numericness does not work here
@@ -622,6 +617,8 @@ output$plot_labels <- renderUI({
         class(graph_data()[[input$y]])) %in% c("double", "integer", "numeric")
         )
   })
+
+  observeEvent(input$fine_tuning, toggle("fine_tuning_well"))
 
   # plot builder --------------------------------------------------------------
 graph_it <- eventReactive(input$do_plot, {
@@ -839,14 +836,13 @@ graph_it <- eventReactive(input$do_plot, {
   p <- p + theme_gao
   
   # after you set the theme, look for any offsets
-  if (input$offset_x != '') {
-    print('updating x axis')
+  if (input$offset_x != "") {
     p <- p + theme(axis.title.x = element_text(hjust = input$offset_x))
   }
-  if (input$offset_y != '') {
+  if (input$offset_y != "") {
     p <- p + theme(plot.title = element_text(hjust = input$offset_y))
   }
-  if (input$offset_source != '') {
+  if (input$offset_source != "") {
     p <- p + theme(plot.caption = element_text(hjust = input$offset_source)) 
   }
 

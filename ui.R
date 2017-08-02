@@ -54,6 +54,18 @@ function(request) {
             ),
           column(3,
             uiOutput("plot_labels"),
+            hidden(
+              div(id = "fine_tuning_well",
+                wellPanel(
+                  h4("fine tuning"),
+                  numericInput("offset_x", "offset x axis", value = 0, min = -.1, max = 1),
+                  numericInput("offset_y", "offset y axis", value = 0, min = -.1, max = 1),
+                  numericInput("export_height", "export height", value = 6.83, min = 4),
+                  numericInput("export_width", "export width", value = 7, min = 5),
+                  numericInput("offset_source", "offset source", value = 0)
+                  )
+                )
+              ),
             useShinyjs(),
             extendShinyjs(text = jsCode, functions = c("showFileModified")),
             hidden(
