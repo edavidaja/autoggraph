@@ -114,9 +114,14 @@ shinyServer(function(input, output, session) {
           )
         ),
      conditionalPanel(
-        condition = "(input.z != '' | input.w != '' | input.y != '') & input.x != ''",
+        condition = 
+          "(input.z != '' | input.w != '' | input.y != '') &
+          !(input.chart_type == 'line' | input.chart_type == 'density' |
+          input.chart_type == 'histogram' | input.chart_type == 'step' |
+          input.chart_type == 'area') &
+          input.x != ''",
         selectInput("reorder_x", label = "reorder your x axis", 
-                    choices = c("order by" = "", names(graph_data()))
+          choices = c("order by" = "", names(graph_data()))
         )
       ),
       conditionalPanel(
