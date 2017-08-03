@@ -1,0 +1,16 @@
+---
+title: "Proof"
+output: html_document
+params:
+  data: NA
+  plot: NA
+---
+
+```{r, echo = FALSE}
+library(ggplot2)
+params$plot
+```
+
+```{r, echo = FALSE, results = "asis"}
+knitr::kable(params$data)
+```

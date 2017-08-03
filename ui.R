@@ -65,7 +65,8 @@ function(request) {
                   numericInput("export_height", "export height", value = 6.83, min = 4),
                   numericInput("export_width", "export width", value = 7, min = 5),
                   numericInput("offset_source", "adjust source line position", value = 0),
-                  downloadButton("preview", "preview image")
+                  downloadButton("preview", "preview image", inline = TRUE),
+                  downloadButton("proof", "download proof", inline = TRUE)
                   )
                 )
               ),

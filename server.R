@@ -941,10 +941,34 @@ output$bundle <- downloadHandler(
       ) 
   })
 
-observe({
-  req(input$do_plot)
+  # proof -----------------------------------------------------------------------
+  output$proof <- downloadHandler(
+    filename = "proof.html",
+    content = function(file) {
+      # Copy the proof file to a temporary directory before processing it, in
+      # case we don't have write permissions to the current working dir (which
+      # can happen when deployed).
+      tempproof <- file.path(tempdir(), "proof.Rmd")
+      file.copy("proof.Rmd", tempproof, overwrite = TRUE)
 
-    # Update plot generating label and icon after initial plot is rendered
+      # Set up parameters to pass to Rmd document
+      params <- list(data = graph_data(), plot = graph_it())
+
+      # Knit the document, passing in the `params` list, and eval it in a
+      # child of the global environment (this isolates the code in the document
+      # from the code in this app).
+      rmarkdown::render(tempproof, output_file = file,
+        params = params,
+        envir = new.env(parent = globalenv())
+      )
+    }
+  )
+
+observeEvent(input$do_plot, {
+  
+  req(input$do_plot)
+  
+  # Update plot generating label and icon after initial plot is rendered
   updateActionButton(session, "do_plot",
     label = "update plot",
     icon = icon("refresh")
