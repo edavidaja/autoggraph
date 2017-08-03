@@ -144,7 +144,8 @@ shinyServer(function(input, output, session) {
       conditionalPanel(
         condition = "input.z != '' | input.w != ''",
         selectInput("palette_selector", label = "select a color palette", 
-          choices = c("classic", "qualitative", "sequential", "diverging")
+          choices = c("classic", "qualitative", "sequential", "diverging"),
+          selected = "classic"
           )
         ),
       actionButton("do_plot", "can i have your autoggraph?", icon = icon("area-chart"))
@@ -318,6 +319,26 @@ which_palette <- reactive({
     "diverging"   = brewer.pal(level_count, "RdYlBu")
     )
 
+})
+
+# based on the selected chart type and variables selected within that chart type,
+# this observer sets the color palette to the option most likely to be
+# appropriate
+observeEvent({c(input$w, input$z)}, {
+  req(input$chart_type, input$x)
+
+  switch(input$chart_type,
+    "scatterplot" = {
+      if (input$w != "" & input$z != "") {
+        updateSelectInput(session, "palette_selector", selected = "classic")
+      } else if (input$w != "" & input$z == "") {
+        updateSelectInput(session, "palette_selector", selected = "sequential")
+      } else {
+        updateSelectInput(session, "palette_selector", selected = "classic")
+      }
+    },
+    "heatmap" = updateSelectInput(session, "palette_selector", selected = "diverging")
+    )
 })
 
 
