@@ -5,6 +5,7 @@ library(stringr)
 library(RColorBrewer)
 library(shiny)
 library(shinyjs)
+library(magrittr)
 
 # gao theme -------------------------------------------------------------------
 theme_gao <- list(
@@ -73,14 +74,24 @@ shinyServer(function(input, output, session) {
     if (ext %in% c("xls", "xlsx")) {
       
       req(input$which_sheet)
-      if (! is.null(original_ops$infile)) {
-        read_excel(paste(original_ops$infile$datapath, ext, sep="."), sheet = input$which_sheet)
+      if (!is.null(original_ops$infile)) {
+        temp <- read_excel(
+          paste(original_ops$infile$datapath, ext, sep="."),
+          sheet = input$which_sheet)
+        names(temp) %<>% make.names(., unique = TRUE)
+        temp
       } else {
         file.rename(input$infile$datapath, paste(input$infile$datapath, ext, sep="."))        
-        read_excel(paste(input$infile$datapath, ext, sep="."), sheet = input$which_sheet)
+        temp <- read_excel(
+          paste(input$infile$datapath, ext, sep="."),
+          sheet = input$which_sheet)
+        names(temp) %<>% make.names(., unique = TRUE)
+        temp
       }
     } else if (ext == "csv") {
-      read_csv(input$infile$datapath)
+      temp <- read_csv(input$infile$datapath)
+      names(temp) %<>% make.names(., unique = TRUE)
+      temp
     }
 
   })
@@ -318,58 +329,58 @@ base_aes <- reactive({
     # data input fields are selected
     # x only
   if (input$x != "" & input$y == "" & input$z == "" & input$w == "") {
-    aes_string(x = as.name(input$x))
+    aes_string(x = input$x)
   }
     # x and y
   else if (input$x != "" & input$y != "" & input$z == "" & input$w == "") {
-    aes_string(x = as.name(input$x), y = as.name(input$y))
+    aes_string(x = input$x, y = input$y)
     if (input$reorder_x != '') {
       aes_string(
-        x = paste0("reorder(",  as.name(input$x),", ", input$reorder_x, ")"),
-        y =  as.name(input$y)
+        x = paste0("reorder(",  input$x,", ", input$reorder_x, ")"),
+        y =  input$y
         )
     } else {
-      aes_string(x = as.name(input$x), y = as.name(input$y))
+      aes_string(x = input$x, y = input$y)
     }
   }
     # x and z
   else if (input$x != "" & input$y == "" & input$z != "" & input$w == "") {
-    aes_string(x = as.name(input$x))
+    aes_string(x = input$x)
   }
     #  x, y and, z
   else if (input$x != "" & input$y != "" & input$z != "" & input$w == "") {
-    aes_string(x = as.name(input$x), y = as.name(input$y))
+    aes_string(x = input$x, y = input$y)
     if (input$reorder_x != '') {
       aes_string(
-        x = paste0("reorder(",  as.name(input$x),", ", input$reorder_x, ")"),
-        y =  as.name(input$y)
+        x = paste0("reorder(",  input$x,", ", input$reorder_x, ")"),
+        y =  input$y
         )
     } else {
-      aes_string(x = as.name(input$x), y = as.name(input$y))
+      aes_string(x = input$x, y = input$y)
     }
   } 
     # x, y, and w
   else if (input$x != "" & input$y != "" & input$z == "" & input$w != "") {
-    aes_string(x = as.name(input$x), y = as.name(input$y))
+    aes_string(x = input$x, y = input$y)
     if (input$reorder_x != '') {
       aes_string(
-        x = paste0("reorder(",  as.name(input$x),", ", input$reorder_x, ")"),
-        y =  as.name(input$y)
+        x = paste0("reorder(",  input$x,", ", input$reorder_x, ")"),
+        y =  input$y
         )
     } else {
-      aes_string(x = as.name(input$x), y = as.name(input$y))
+      aes_string(x = input$x, y = input$y)
     }
   }
     # x, y, z, and w
   else if (input$x != "" & input$y != "" & input$z != "" & input$w != "") {
-    aes_string(x = as.name(input$x), y = as.name(input$y))
+    aes_string(x = input$x, y = input$y)
     if (input$reorder_x != '') {
       aes_string(
-        x = paste0("reorder(",  as.name(input$x),", ", input$reorder_x, ")"),
-        y =  as.name(input$y)
+        x = paste0("reorder(",  input$x,", ", input$reorder_x, ")"),
+        y =  input$y
         )
     } else {
-      aes_string(x = as.name(input$x), y = as.name(input$y))
+      aes_string(x = input$x, y = input$y)
     }
   }
 })
@@ -410,15 +421,15 @@ which_geom_xy <- reactive({
   "boxplot" = geom_boxplot(color = "#044F91"),
   "pointrange" = geom_pointrange(
     aes_string(
-      ymin = as.name(input[[paste0(plot_opts(), "pointrange_lower")]]),
-      ymax = as.name(input[[paste0(plot_opts(), "pointrange_upper")]]) 
+      ymin = input[[paste0(plot_opts(), "pointrange_lower")]],
+      ymax = input[[paste0(plot_opts(), "pointrange_upper")]] 
       ),
     color = "#044F91"
     ),
   "error bar" = geom_errorbar(
     aes_string(
-      ymin = as.name(input[[paste0(plot_opts(), "errorbar_lower")]]),
-      ymax = as.name(input[[paste0(plot_opts(), "errorbar_upper")]])
+      ymin = input[[paste0(plot_opts(), "errorbar_lower")]],
+      ymax = input[[paste0(plot_opts(), "errorbar_upper")]]
       ),
     color = "#044F91"
     )
@@ -434,13 +445,13 @@ which_geom_z <- reactive({
       if (sapply(graph_data()[,input$x], class) %in% c("character", "factor")) {
         stat_count(
           aes_string(
-            fill = paste("factor(", as.name(input$z), ")")
+            fill = paste("factor(", input$z, ")")
             )
           )
       } else { 
         geom_histogram(
           aes_string(
-            fill = paste("factor(", as.name(input$z), ")")
+            fill = paste("factor(", input$z, ")")
             ),
           bins = input[[paste0(plot_opts(), "hist_bins")]]
           )
@@ -448,35 +459,35 @@ which_geom_z <- reactive({
     },
     "density" = geom_density(
       aes_string(
-        color    = paste("factor(", as.name(input$z), ")"),
-        linetype = paste("factor(", as.name(input$z), ")")
+        color    = paste("factor(", input$z, ")"),
+        linetype = paste("factor(", input$z, ")")
         ),
       size = 1.1
       ),
     "line" = geom_line(
       aes_string(
-        color    = paste("factor(", as.name(input$z), ")"),
-        linetype = paste("factor(", as.name(input$z), ")")
+        color    = paste("factor(", input$z, ")"),
+        linetype = paste("factor(", input$z, ")")
         ),
       size = 1.1
       ),
     "step" = geom_step(
       aes_string(
-        color    = paste("factor(", as.name(input$z), ")"),
-        linetype = paste("factor(", as.name(input$z), ")")
+        color    = paste("factor(", input$z, ")"),
+        linetype = paste("factor(", input$z, ")")
         ),
       size = 1.1
       ),
     "boxplot" = geom_boxplot(
       aes_string(
-        fill = paste("factor(", as.name(input$z), ")")
+        fill = paste("factor(", input$z, ")")
         ),
       color = "black"
       ),
     "scatterplot" = geom_point(
       aes_string(
-        color = paste("factor(", as.name(input$z), ")"),
-        shape = paste("factor(", as.name(input$z), ")")
+        color = paste("factor(", input$z, ")"),
+        shape = paste("factor(", input$z, ")")
         ),
       size = 2,
       alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]]
@@ -484,13 +495,13 @@ which_geom_z <- reactive({
     "bar" = { 
       if (input$y == "") {  
         geom_bar(
-          aes_string(fill = paste("factor(", as.name(input$z), ")")),
+          aes_string(fill = paste("factor(", input$z, ")")),
           position =  input[[paste0(plot_opts(), "bar_type")]],
           color = "black"
           )
       } else {
         geom_bar(
-          aes_string(fill = paste("factor(", as.name(input$z), ")")),
+          aes_string(fill = paste("factor(", input$z, ")")),
           position =  input[[paste0(plot_opts(), "bar_type")]],
           stat = "identity",
           color = "black"
@@ -499,29 +510,29 @@ which_geom_z <- reactive({
     },
     "pointrange" = geom_pointrange(
       aes_string(
-        ymin  = as.name(input[[paste0(plot_opts(), "pointrange_lower")]]),
-        ymax  = as.name(input[[paste0(plot_opts(), "pointrange_upper")]]),
-        color = paste("factor(", as.name(input$z), ")")
+        ymin  = input[[paste0(plot_opts(), "pointrange_lower")]],
+        ymax  = input[[paste0(plot_opts(), "pointrange_upper")]],
+        color = paste("factor(", input$z, ")")
         )
       ),
     "error bar" = geom_errorbar(
       aes_string(
-        ymin  = as.name(input[[paste0(plot_opts(), "errorbar_lower")]]),
-        ymax  = as.name(input[[paste0(plot_opts(), "errorbar_upper")]]),
-        color = paste("factor(", as.name(input$z), ")")
+        ymin  = input[[paste0(plot_opts(), "errorbar_lower")]],
+        ymax  = input[[paste0(plot_opts(), "errorbar_upper")]],
+        color = paste("factor(", input$z, ")")
         )
       ),
     "area" = list(
       geom_area(
         aes_string(
-          fill = paste("factor(", as.name(input$z), ")")
+          fill = paste("factor(", input$z, ")")
           ),
         alpha = .1
         ), 
       geom_line(
         aes_string(
-          color    = paste("factor(", as.name(input$z), ")"),
-          linetype = paste("factor(", as.name(input$z), ")")
+          color    = paste("factor(", input$z, ")"),
+          linetype = paste("factor(", input$z, ")")
           ),
         size = 1.1,
         position = "stack"
@@ -537,11 +548,11 @@ which_geom_w <- reactive({
   switch(input$chart_type,
     "scatterplot" =
     geom_point(
-      aes_string(color = as.name(input$w)),
+      aes_string(color = input$w),
       alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]]
       ),
     "heatmap" = geom_tile(
-      aes_string(fill = as.name(input$w))
+      aes_string(fill = input$w)
       )
     )
 })
@@ -767,7 +778,7 @@ graph_it <- eventReactive(input$do_plot, {
               method = "loess", 
               span = input[[paste0(plot_opts(), "scatter_option_span")]], 
               se = input[[paste0(plot_opts(), "scatter_option_se")]],
-              aes_string(color = paste("factor(", as.name(input$z), ")"))
+              aes_string(color = paste("factor(", input$z, ")"))
             )           
           } else {
             p <- p + geom_smooth(
@@ -787,7 +798,7 @@ graph_it <- eventReactive(input$do_plot, {
         if (! is.null(input[[paste0(plot_opts(), "scatter_option_smooth_group")]])) {
           if  (input[[paste0(plot_opts(), "scatter_option_smooth_group")]] == 'groups') {
             p <- p + geom_smooth(
-              method = "lm", aes_string(color = paste("factor(", as.name(input$z), ")"))
+              method = "lm", aes_string(color = paste("factor(", input$z, ")"))
             )
           } else {
             p <- p + geom_smooth(method = "lm")
