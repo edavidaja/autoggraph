@@ -24,7 +24,7 @@ function(request) {
        tags$head(
         tags$link(rel = "icon", type = "image/png", href = "favicon.png")
         ),
-       includeHTML("www/ins.html")
+       uiOutput("landing_page")
        ),
     # plot UI -----------------------------------------------------------------
       tabPanel("plots",
@@ -66,7 +66,9 @@ function(request) {
                   numericInput("export_width", "export width", value = 7, min = 5),
                   numericInput("offset_source", "adjust source line position", value = 0),
                   downloadButton("preview", "preview image", inline = TRUE),
-                  downloadButton("proof", "download proof", inline = TRUE)
+                  disabled(
+                    downloadButton("proof", "download proof", inline = TRUE)
+                    )
                   )
                 )
               ),

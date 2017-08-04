@@ -24,6 +24,17 @@ theme_gao <- list(
 
 # server ----------------------------------------------------------------------
 shinyServer(function(input, output, session) {
+  output$landing_page <- renderUI({
+    if(session$clientData$url_hostname == "shiny.eseclab.gov") {
+      # set location of zip for export
+      # option is set here rather than in global because the sessions variable
+      # is only available within the scope of the server function
+      Sys.setenv(R_ZIPCMD="/usr/bin/zip")
+      includeHTML("www/ins-deploy.html")
+    } else {
+      includeHTML("www/ins.html")
+    }
+  })
 
   observeEvent(input$infile, {
     js$showFileModified()

@@ -1,0 +1,172 @@
+<div class="container">
+	
+	<div id="welcome-to-autoggraph" class="section level1">
+		<h1>welcome to autoggraph</h1>
+		<p>GAO’s grammar of graphics</p>
+		<div id="hit-plots-above-to-get-started" class="section level2">
+			<h2>hit 'plots' above to get started, or read the notes on usage below</h2>
+		</div>
+				<div id="example-plots" class="section level2">
+			<h2>example plots:</h2>
+			<div class="row">
+				<div class="col-md-3">
+					<p>bar chart</p>
+					<a href="https://shiny.eseclab.gov/openapps/autoggraph/?_state_id_=dd01510fe888bef8">	
+						<img src="bar.png" class="img-responsive" alt="bar">
+					</a>
+				</div>
+				<div class="col-md-3">
+					<p>scatterplot</p>
+					<a href="https://shiny.eseclab.gov/openapps/autoggraph/?_state_id_=56d39480c8484b14">
+						<img src="scatterplot.png" class="img-responsive" alt="scatterplot">
+					</a>
+				</div>
+				<div class="col-md-3">
+					<p>line graph</p>
+					<a href="https://shiny.eseclab.gov/openapps/autoggraph/?_state_id_=184a41363a889999">	
+						<img src="line.png" class="img-responsive" alt="line graph">
+					</a>
+				</div>
+				<div class="col-md-3">
+					<p>area chart</p>
+					<a href="https://shiny.eseclab.gov/openapps/autoggraph/?_state_id_=a30716a357e60ee7">	
+						<img src="area.png" class="img-responsive" alt="area">
+					</a>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-md-4">
+					<p>density plot</p>
+					<a href="https://shiny.eseclab.gov/openapps/autoggraph/?_state_id_=4d1450fd7d55b026">	
+						<img src="density.png" class="img-responsive" alt="density">
+					</a>
+				</div>
+				<div class="col-md-4">
+					<p>heat map</p>
+					<a href="https://shiny.eseclab.gov/openapps/autoggraph/?_state_id_=a264609300862a6a">	
+						<img src="heatmap.png" class="img-responsive" alt="heatmap">
+					</a>
+				</div>
+				<div class="col-md-4">
+					<p>boxplot</p>
+					<a href="https://shiny.eseclab.gov/openapps/autoggraph/?_state_id_=df04fef089717992">
+						<img src="boxplot.png" class="img-responsive" alt="boxplot">
+					</a>
+				</div>
+			</div>
+		</div>
+		<div id="data-standards" class="section level3">
+			<h3>data standards</h3>
+			<p>data uploaded to autoggraph should have:</p>
+			<ul>
+				<li>a header row,</li>
+				<ul>
+					<li>Excel users: put your graph data in a dedicated worksheet where the header row starts on cell A1.</li>
+					<li>avoid using special characters (e.g. !$*) in the column or worksheet names.</li>
+				</ul>
+				<li>minimal missing data, and</li>
+				<li>one row for each unit of analysis (i.e. they should be long, rather than wide, as in the example below).</li>
+			</ul>
+			<div class="row">
+				<h3 id="wide-vs.long-data">wide vs. long data</h3>
+				<div class="col-md-6">
+					<p>these data are wide:</p>
+					<table class="table table-condensed table-hover">
+						<thead>
+							<tr class="header">
+								<th align="center">time</th>
+								<th align="center">X</th>
+								<th align="center">Y</th>
+								<th align="center">Z</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr class="odd">
+								<td align="center">2009-01-01</td>
+								<td align="center">-0.56</td>
+								<td align="center">2.45</td>
+								<td align="center">-4.27</td>
+							</tr>
+							<tr class="even">
+								<td align="center">2009-01-02</td>
+								<td align="center">-0.23</td>
+								<td align="center">0.72</td>
+								<td align="center">-0.87</td>
+							</tr>
+							<tr class="odd">
+								<td align="center">2009-01-03</td>
+								<td align="center">1.56</td>
+								<td align="center">0.80</td>
+								<td align="center">-4.10</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<div class="col-md-6">
+					<p>these are the same data in long form:</p>
+					<table class="table table-condensed table-hover">
+						<thead>
+							<tr class="header">
+								<th align="center">time</th>
+								<th align="center">stock</th>
+								<th align="center">price</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr class="odd">
+								<td align="center">2009-01-01</td>
+								<td align="center">X</td>
+								<td align="center">-0.56</td>
+							</tr>
+							<tr class="even">
+								<td align="center">2009-01-02</td>
+								<td align="center">X</td>
+								<td align="center">-0.23</td>
+							</tr>
+							<tr class="odd">
+								<td align="center">2009-01-03</td>
+								<td align="center">X</td>
+								<td align="center">1.56</td>
+							</tr>
+							<tr class="even">
+								<td align="center">2009-01-01</td>
+								<td align="center">Y</td>
+								<td align="center">2.45</td>
+							</tr>
+							<tr class="odd">
+								<td align="center">2009-01-02</td>
+								<td align="center">Y</td>
+								<td align="center">0.72</td>
+							</tr>
+							<tr class="even">
+								<td align="center">2009-01-03</td>
+								<td align="center">Y</td>
+								<td align="center">0.80</td>
+							</tr>
+							<tr class="odd">
+								<td align="center">2009-01-01</td>
+								<td align="center">Z</td>
+								<td align="center">-4.27</td>
+							</tr>
+							<tr class="even">
+								<td align="center">2009-01-02</td>
+								<td align="center">Z</td>
+								<td align="center">-0.87</td>
+							</tr>
+							<tr class="odd">
+								<td align="center">2009-01-03</td>
+								<td align="center">Z</td>
+								<td align="center">-4.10</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+		<div id="questions" class="section level2">
+			<h2>questions? feedback?</h2>
+			<p><a href="mailto:shiny@gao.gov&amp;subject=autoggraph">send an email</a></p>
+
+		</div>
+	</div>
+</div>
