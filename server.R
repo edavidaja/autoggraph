@@ -14,7 +14,7 @@ theme_gao <- list(
     plot.caption = element_text(hjust = 0, size = 6),
     legend.position = "bottom",
     legend.justification = "left",
-    legend.title = element_text(size = 7),
+    legend.title = element_text(size = 7, face = "bold"),
     plot.title = element_text(size = 7, face = "bold"),
     axis.title.x = element_text(hjust = 0, size = 7, face = "bold"),
     axis.text = element_text(size = 7, face = "bold"),
@@ -711,30 +711,57 @@ graph_it <- eventReactive(input$do_plot, {
       # apply color or fill if no custom labels are set based on chart type
       if (input$z_label == "") {
         if (input$chart_type %in% c("histogram", "boxplot", "bar")) {
-          p <- p + scale_fill_manual(values = which_palette())    
-        } else if (input$chart_type %in% c("density", "line", "step", "scatterplot", "pointrange", "error bar")) {
+          p <- p + scale_fill_manual(values = which_palette())
+          p <- p + guides(fill = guide_legend(title.position = "top", ncol = 1))
+        } else if (input$chart_type %in% c("density", "line", "step", "pointrange", "error bar")) {
           p <- p + scale_color_manual(values = which_palette())
+          p <- p + guides(color = guide_legend(title.position = "top", ncol = 1 ))
+        } else if (input$chart_type == "scatterplot") {
+          p <- p + scale_color_manual(values = which_palette())
+          p <- p + guides(
+            color = guide_legend(
+              title.position = "top",
+              ncol = 1, 
+              override.aes = list(alpha = 1, size = 3)
+              )
+            )
         } else if (input$chart_type == "area") {
           p <- p + scale_fill_manual(values = which_palette())    
           p <- p + scale_linetype_manual(values = c(1, 2, 3, 4, 5, 6))
           p <- p + scale_color_manual(values = which_palette())
+          p <- p + guides(fill = guide_legend(title.position = "top", ncol = 1))
         }
       } else {
         plot_labels <- unlist(strsplit(input$z_label, ",", fixed = TRUE))
         if (input$chart_type %in% c("histogram", "boxplot", "bar")) {
           p <- p + scale_fill_manual(values = which_palette(), labels = plot_labels)
+          p <- p + guides(fill = guide_legend(title.position = "top", ncol = 1))
         } else if (input$chart_type %in% c("pointrange", "error bar")) {
           p <- p + scale_color_manual(values = which_palette(), labels = plot_labels)
+          p <- p + guides(color = guide_legend(title.position = "top", ncol = 1))
         } else if (input$chart_type %in% c("density", "line", "step")) {
           p <- p + scale_color_manual(values = which_palette(), labels = plot_labels)
           p <- p + scale_linetype_manual(values = c(1, 2, 3, 4, 5, 6), labels = plot_labels)
+          p <- p + guides(color = guide_legend(title.position = "top", ncol = 1))
         } else if (input$chart_type == "scatterplot") {
           p <- p + scale_color_manual(values = which_palette(), labels = plot_labels)
           p <- p + scale_shape_manual(values = c(15, 16, 17, 18, 3, 8, 7), labels = plot_labels)
+          p <- p + guides(
+            color = guide_legend(
+              title.position = "top",
+              ncol = 1,
+              override.aes = list(alpha = 1, size = 3)
+              )
+            )
         } else if (input$chart_type == "area") {
           p <- p + scale_fill_manual(values = which_palette(), labels = plot_labels)
           p <- p + scale_linetype_manual(values = c(1, 2, 3, 4, 5, 6), labels = plot_labels)
           p <- p + scale_color_manual(values = which_palette(), labels = plot_labels)
+          p <- p + guides(
+            fill     = guide_legend(input$z, title.position = "top", ncol = 1),
+            color    = guide_legend(input$z, title.position = "top", ncol = 1),
+            linetype = guide_legend(input$z, title.position = "top", ncol = 1)
+            )
         }
       }
       p <- p + which_geom_z()
