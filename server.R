@@ -635,6 +635,11 @@ output$plot_labels <- renderUI({
         placeholder = "one, two, three, ...")
       ),
     conditionalPanel(
+      condition = "input.chart_type == 'scatterplot'",
+      textInput("smoother_label", "overall smoother label",
+        placeholder = "smoothed y on x")
+      ),
+    conditionalPanel(
       condition = "(input.chart_type == 'heatmap' | input.chart_type == 'scatterplot') &
       input.w != ''",
       textInput("w_guide", "continuous variable name"),
@@ -717,12 +722,21 @@ graph_it <- eventReactive(input$do_plot, {
         } else if (input$chart_type == "scatterplot") {
           p <- p + scale_color_manual(values = which_palette())
           p <- p + guides(
-            color = guide_legend(
-              title.position = "top",
-              ncol = 1, 
-              override.aes = list(alpha = 1, size = 3)
-              )
-            )
+          color = guide_legend(
+            input$z,
+            order = 1,
+            title.position = "top",
+            ncol = 1,
+            override.aes = list(alpha = 1, size = 3)
+            ),
+          shape = guide_legend(
+            input$z,
+            order = 1,
+            title.position = "top",
+            ncol = 1
+            ),
+          linetype = guide_legend(order = 2)
+          )
         } else if (input$chart_type == "area") {
           p <- p + scale_fill_manual(values = which_palette())    
           p <- p + scale_linetype_manual(values = c(1, 2, 3, 4, 5, 6))
@@ -745,11 +759,18 @@ graph_it <- eventReactive(input$do_plot, {
           p <- p + scale_color_manual(values = which_palette(), labels = plot_labels)
           p <- p + scale_shape_manual(values = c(15, 16, 17, 18, 3, 8, 7), labels = plot_labels)
           p <- p + guides(
-            color = guide_legend(
+            color = guide_legend(input$z,
+              order = 1,
               title.position = "top",
               ncol = 1,
               override.aes = list(alpha = 1, size = 3)
-              )
+              ),
+            shape = guide_legend(input$z,
+              order = 1,
+              title.position = "top",
+              ncol = 1
+              ),
+            linetype = guide_legend(order = 2)
             )
         } else if (input$chart_type == "area") {
           p <- p + scale_fill_manual(values = which_palette(), labels = plot_labels)
@@ -845,7 +866,8 @@ graph_it <- eventReactive(input$do_plot, {
           p <- p + geom_smooth(
             method = "loess", 
             span = input[[paste0(plot_opts(), "scatter_option_loess_span")]], 
-            se = input[[paste0(plot_opts(), "scatter_option_smooth_se")]]
+            se = input[[paste0(plot_opts(), "scatter_option_smooth_se")]],
+            aes_string(linetype = quote(input$smoother_label))
           )            
         }
         },
@@ -857,7 +879,8 @@ graph_it <- eventReactive(input$do_plot, {
             )
         } else {
           p <- p + geom_smooth(
-            method = "lm"
+            method = "lm",
+            aes_string(linetype = quote(input$smoother_label))
             )
         }
       }
@@ -883,11 +906,11 @@ graph_it <- eventReactive(input$do_plot, {
     } else if (input$chart_type %in% c("density", "line", "step", "area")) {
       p <- p + labs(color = input$z_guide, linetype = input$z_guide)
     } else if (input$chart_type == "scatterplot") {
-      p <- p + labs(color =  input$z_guide, shape = input$z_guide)
+      p <- p + labs(color =  input$z_guide, shape = input$z_guide, linetype = "")
     }
   } else if (input$w_guide != "" & input$z_guide == "") {
     if (input$chart_type == "scatterplot") {
-      p <- p + labs(color = input$w_guide) 
+      p <- p + labs(color = input$w_guide, linetype = "") 
     } else if (input$chart_type == "heatmap") {
       p <- p + labs(fill = input$w_guide)
     }     
