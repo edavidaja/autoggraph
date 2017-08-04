@@ -638,7 +638,8 @@ output$plot_labels <- renderUI({
         placeholder = "one, two, three, ...")
       ),
     conditionalPanel(
-      condition = "input.chart_type == 'heatmap' | input.chart_type == 'scatterplot'",
+      condition = "(input.chart_type == 'heatmap' | input.chart_type == 'scatterplot') &
+      input.w != ''",
       textInput("w_guide", "continuous variable name"),
       textInput("w_label", "continuous variable labels, separated by commas",
         placeholder = "low, high")
