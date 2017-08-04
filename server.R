@@ -185,7 +185,6 @@ shinyServer(function(input, output, session) {
 
     req(input$chart_type)
     
-    print (input$z)
     switch(input$chart_type,
       "scatterplot" = 
       list(
@@ -291,7 +290,7 @@ output$smoother_options <- renderUI({
       )
     )
 })
-  
+
 output$loess_options <- renderUI({
 
   req(input[[paste0(plot_opts(), "scatter_option_smooth")]] == "loess")
@@ -852,13 +851,11 @@ graph_it <- eventReactive(input$do_plot, {
         },
       "linear" = {
         if (input[[paste0(plot_opts(), "scatter_option_smooth_group")]] == 'groups') {
-          print("linear with z")
           p <- p + geom_smooth(
             method = "lm",
             aes_string(color = paste("factor(", input$z, ")"))
-          )
+            )
         } else {
-          print ("interior linear")
           p <- p + geom_smooth(
             method = "lm"
             )
