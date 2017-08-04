@@ -735,7 +735,7 @@ graph_it <- eventReactive(input$do_plot, {
             title.position = "top",
             ncol = 1
             ),
-          linetype = guide_legend(order = 2)
+          fill = guide_legend(order = 2)
           )
         } else if (input$chart_type == "area") {
           p <- p + scale_fill_manual(values = which_palette())    
@@ -770,7 +770,7 @@ graph_it <- eventReactive(input$do_plot, {
               title.position = "top",
               ncol = 1
               ),
-            linetype = guide_legend(order = 2)
+            fill = guide_legend(order = 2)
             )
         } else if (input$chart_type == "area") {
           p <- p + scale_fill_manual(values = which_palette(), labels = plot_labels)
@@ -858,30 +858,37 @@ graph_it <- eventReactive(input$do_plot, {
         if (input[[paste0(plot_opts(), "scatter_option_smooth_group")]] == 'groups') {
           p <- p + geom_smooth(
             method = "loess",
+            aes_string(color = paste("factor(", input$z, ")")),
             span = input[[paste0(plot_opts(), "scatter_option_loess_span")]],
             se = input[[paste0(plot_opts(), "scatter_option_smooth_se")]],
-            aes_string(color = paste("factor(", input$z, ")"))
+            linetype = "dashed"
           )
         } else {
           p <- p + geom_smooth(
             method = "loess", 
+            aes_string(fill = quote(input$smoother_label)),
             span = input[[paste0(plot_opts(), "scatter_option_loess_span")]], 
             se = input[[paste0(plot_opts(), "scatter_option_smooth_se")]],
-            aes_string(linetype = quote(input$smoother_label))
-          )            
+            color = "black",
+            linetype = "dashed"
+          ) + 
+          scale_fill_manual(values = "grey50")
         }
         },
       "linear" = {
         if (input[[paste0(plot_opts(), "scatter_option_smooth_group")]] == 'groups') {
           p <- p + geom_smooth(
             method = "lm",
-            aes_string(color = paste("factor(", input$z, ")"))
+            aes_string(color = paste("factor(", input$z, ")")),
+            linetype = "dashed"
             )
         } else {
           p <- p + geom_smooth(
             method = "lm",
-            aes_string(linetype = quote(input$smoother_label))
-            )
+            aes_string(fill = quote(input$smoother_label)),
+            color = "black",
+            linetype = "dashed"
+            ) + scale_fill_manual(values = "grey50")
         }
       }
     )
@@ -906,11 +913,11 @@ graph_it <- eventReactive(input$do_plot, {
     } else if (input$chart_type %in% c("density", "line", "step", "area")) {
       p <- p + labs(color = input$z_guide, linetype = input$z_guide)
     } else if (input$chart_type == "scatterplot") {
-      p <- p + labs(color =  input$z_guide, shape = input$z_guide, linetype = "")
+      p <- p + labs(color =  input$z_guide, shape = input$z_guide, fill = "")
     }
   } else if (input$w_guide != "" & input$z_guide == "") {
     if (input$chart_type == "scatterplot") {
-      p <- p + labs(color = input$w_guide, linetype = "") 
+      p <- p + labs(color = input$w_guide, fill = "") 
     } else if (input$chart_type == "heatmap") {
       p <- p + labs(fill = input$w_guide)
     }     
