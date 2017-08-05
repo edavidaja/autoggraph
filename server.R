@@ -722,21 +722,10 @@ graph_it <- eventReactive(input$do_plot, {
         } else if (input$chart_type == "scatterplot") {
           p <- p + scale_color_manual(values = which_palette())
           p <- p + guides(
-          color = guide_legend(
-            input$z,
-            order = 1,
-            title.position = "top",
-            ncol = 1,
-            override.aes = list(alpha = 1, size = 3)
-            ),
-          shape = guide_legend(
-            input$z,
-            order = 1,
-            title.position = "top",
-            ncol = 1
-            ),
-          fill = guide_legend(order = 2)
-          )
+            color = guide_legend(input$z, order = 1, title.position = "top", ncol = 1, override.aes = list(alpha = 1, size = 3) ),
+            shape = guide_legend(input$z, order = 1, title.position = "top", ncol = 1 ),
+            fill  = guide_legend(order = 2)
+            )
         } else if (input$chart_type == "area") {
           p <- p + scale_fill_manual(values = which_palette())    
           p <- p + scale_linetype_manual(values = c(1, 2, 3, 4, 5, 6))
@@ -759,20 +748,10 @@ graph_it <- eventReactive(input$do_plot, {
           p <- p + scale_color_manual(values = which_palette(), labels = plot_labels)
           p <- p + scale_shape_manual(values = c(15, 16, 17, 18, 3, 8, 7), labels = plot_labels)
           p <- p + guides(
-            color = guide_legend(
-              input$z,
-              order = 1,
-              title.position = "top",
-              ncol = 1,
-              override.aes = list(alpha = 1, size = 3)
-              ),
-            shape = guide_legend(
-              input$z,
-              order = 1,
-              title.position = "top",
-              ncol = 1
-              ),
-            fill = guide_legend(order = 2)
+            color = guide_legend(input$z, order = 1, title.position = "top", ncol = 1,
+              override.aes = list(alpha = 1, size = 3)),
+            shape = guide_legend(input$z, order = 1, title.position = "top", ncol = 1 ),
+            fill  = guide_legend(order = 2)
             )
         } else if (input$chart_type == "area") {
           p <- p + scale_fill_manual(values = which_palette(), labels = plot_labels)
@@ -841,27 +820,46 @@ graph_it <- eventReactive(input$do_plot, {
     # z and w
   else if (input$z!= "" & input$w != "") {
     if (input$wrap == "grid") {
-      
       if (input$z_label == "") {
+        p <- p + scale_color_gradientn(colors = which_palette())
         p <- p + facet_wrap(as.formula(paste("~", input$z)))
+        p <- p + guides(
+          color = guide_colorbar(order = 1, title.position = "top"),
+          fill  = guide_legend(order = 2)
+          )
       } else {
         plot_labels <- unlist(strsplit(input$z_label, ",", fixed = TRUE))
         label_wrap <- function(variable, value) {
           unlist(strsplit(input$z_label, ",", fixed = TRUE))
-        }  
+          }
         p <- p + which_geom_xy() + facet_wrap(as.formula(paste("~", input$z)), labeller = label_wrap)
+        p <- p + scale_color_gradientn(colors = which_palette())
+        p <- p + guides(
+          color = guide_colorbar(order = 1, title.position = "top"),
+          fill  = guide_legend(order = 2)
+          )
       }
     } else {
       if (input$z_label == "") {
-        p <- p + scale_color_manual(values = which_palette())    
+        p <- p + scale_color_manual(values = which_palette())
+        p <- p + guides(
+          color = guide_legend(order = 1, title.position = "top"),
+          size  = guide_legend(order = 2, title.position = "top"),
+          fill  = guide_legend(order = 3)
+          )
       } else {
         plot_labels <- unlist(strsplit(input$z_label, ",", fixed = TRUE))
-        p <- p + scale_color_manual(values = which_palette(), labels = plot_labels)    
+        p <- p + scale_color_manual(values = which_palette(), labels = plot_labels)
+        p <- p + guides(
+          color = guide_legend(order = 1, title.position = "top"),
+          size  = guide_legend(order = 2, title.position = "top"),
+          fill  = guide_legend(order = 3)
+          )
       }
     }
     p <- p + which_geom_w_z()
-    print ("w & z fired")   
-}
+    print ("w & z fired")
+    }
 
     ## additional geom layers -------------------------------------------------
     ## apply smoother to scatter plot
@@ -886,8 +884,8 @@ graph_it <- eventReactive(input$do_plot, {
             se = input[[paste0(plot_opts(), "scatter_option_smooth_se")]],
             color = "black",
             linetype = "dashed"
-          ) + 
-          scale_fill_manual(values = "grey50")
+            ) + 
+            scale_fill_manual(values = "grey50")
         }
         },
       "linear" = {
@@ -903,7 +901,8 @@ graph_it <- eventReactive(input$do_plot, {
             aes_string(fill = quote(input$smoother_label)),
             color = "black",
             linetype = "dashed"
-            ) + scale_fill_manual(values = "grey50")
+            ) + 
+            scale_fill_manual(values = "grey50")
         }
       }
     )
