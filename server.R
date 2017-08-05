@@ -14,7 +14,7 @@ theme_gao <- list(
     plot.caption = element_text(hjust = 0, size = 6),
     legend.position = "bottom",
     legend.justification = "left",
-    legend.title = element_text(size = 7),
+    legend.title = element_text(size = 7, face = "bold"),
     plot.title = element_text(size = 7, face = "bold"),
     axis.title.x = element_text(hjust = 0, size = 7, face = "bold"),
     axis.text = element_text(size = 7, face = "bold"),
@@ -185,7 +185,6 @@ shinyServer(function(input, output, session) {
 
     req(input$chart_type)
     
-    print (input$z)
     switch(input$chart_type,
       "scatterplot" = 
       list(
@@ -274,35 +273,33 @@ shinyServer(function(input, output, session) {
 
 output$smoother_options <- renderUI({
   
-  req(input[[paste0(plot_opts(), "scatter_option_smooth")]], input$z)
-
-  radioButtons(
-    inputId = paste0(plot_opts(), "scatter_option_smooth_group"),
-    "smooth over:", 
-    selected = "overall",
-    choices = c("groups", "overall"),
-    inline = TRUE
-  )                 
+  req(input[[paste0(plot_opts(), "scatter_option_smooth")]])
+  list(
+    radioButtons(
+      inputId = paste0(plot_opts(), "scatter_option_smooth_group"),
+      "smooth over:",
+      selected = "overall",
+      choices = c("overall", "groups"),
+      inline = TRUE
+    ),
+    radioButtons(
+      inputId  = paste0(plot_opts(), "scatter_option_smooth_se"),
+      "confidence interval?",
+      choices = c("yes" = TRUE, "no" = FALSE),
+      inline = TRUE
+      )
+    )
 })
-  
+
 output$loess_options <- renderUI({
 
-  switch(input[[paste0(plot_opts(), "scatter_option_smooth")]],
-    "loess" =
-      list(
-        sliderInput(
-          inputId = paste0(plot_opts(), "scatter_option_span"),
-          "wiggle", min = 0, max = 1, value = .7, step = .1,
-          ticks = FALSE
-          ),
-        radioButtons(
-          inputId = paste0(plot_opts(), "scatter_option_se"),
-          "confidence interval?",
-          choices = c("yes" = TRUE, "no" = FALSE),
-          inline = TRUE
-          )
-        )
-      )
+  req(input[[paste0(plot_opts(), "scatter_option_smooth")]] == "loess")
+
+  sliderInput(
+    inputId = paste0(plot_opts(), "scatter_option_loess_span"),
+    "wiggle", min = 0, max = 1, value = .7, step = .1,
+    ticks = FALSE
+    )
   })
 
 which_palette <- reactive({
@@ -638,7 +635,13 @@ output$plot_labels <- renderUI({
         placeholder = "one, two, three, ...")
       ),
     conditionalPanel(
-      condition = "input.chart_type == 'heatmap' | input.chart_type == 'scatterplot'",
+      condition = "input.chart_type == 'scatterplot'",
+      textInput("smoother_label", "overall smoother label",
+        placeholder = "smoothed y on x")
+      ),
+    conditionalPanel(
+      condition = "(input.chart_type == 'heatmap' | input.chart_type == 'scatterplot') &
+      input.w != ''",
       textInput("w_guide", "continuous variable name"),
       textInput("w_label", "continuous variable labels, separated by commas",
         placeholder = "low, high")
@@ -711,30 +714,54 @@ graph_it <- eventReactive(input$do_plot, {
       # apply color or fill if no custom labels are set based on chart type
       if (input$z_label == "") {
         if (input$chart_type %in% c("histogram", "boxplot", "bar")) {
-          p <- p + scale_fill_manual(values = which_palette())    
-        } else if (input$chart_type %in% c("density", "line", "step", "scatterplot", "pointrange", "error bar")) {
+          p <- p + scale_fill_manual(values = which_palette())
+          p <- p + guides(fill = guide_legend(title.position = "top", ncol = 1))
+        } else if (input$chart_type %in% c("density", "line", "step", "pointrange", "error bar")) {
           p <- p + scale_color_manual(values = which_palette())
+          p <- p + guides(color = guide_legend(title.position = "top", ncol = 1 ))
+        } else if (input$chart_type == "scatterplot") {
+          p <- p + scale_color_manual(values = which_palette())
+          p <- p + guides(
+            color = guide_legend(input$z, order = 1, title.position = "top", ncol = 1, override.aes = list(alpha = 1, size = 3) ),
+            shape = guide_legend(input$z, order = 1, title.position = "top", ncol = 1 ),
+            fill  = guide_legend(order = 2)
+            )
         } else if (input$chart_type == "area") {
           p <- p + scale_fill_manual(values = which_palette())    
           p <- p + scale_linetype_manual(values = c(1, 2, 3, 4, 5, 6))
           p <- p + scale_color_manual(values = which_palette())
+          p <- p + guides(fill = guide_legend(title.position = "top", ncol = 1))
         }
       } else {
         plot_labels <- unlist(strsplit(input$z_label, ",", fixed = TRUE))
         if (input$chart_type %in% c("histogram", "boxplot", "bar")) {
           p <- p + scale_fill_manual(values = which_palette(), labels = plot_labels)
+          p <- p + guides(fill = guide_legend(title.position = "top", ncol = 1))
         } else if (input$chart_type %in% c("pointrange", "error bar")) {
           p <- p + scale_color_manual(values = which_palette(), labels = plot_labels)
+          p <- p + guides(color = guide_legend(title.position = "top", ncol = 1))
         } else if (input$chart_type %in% c("density", "line", "step")) {
           p <- p + scale_color_manual(values = which_palette(), labels = plot_labels)
           p <- p + scale_linetype_manual(values = c(1, 2, 3, 4, 5, 6), labels = plot_labels)
+          p <- p + guides(color = guide_legend(title.position = "top", ncol = 1))
         } else if (input$chart_type == "scatterplot") {
           p <- p + scale_color_manual(values = which_palette(), labels = plot_labels)
           p <- p + scale_shape_manual(values = c(15, 16, 17, 18, 3, 8, 7), labels = plot_labels)
+          p <- p + guides(
+            color = guide_legend(input$z, order = 1, title.position = "top", ncol = 1,
+              override.aes = list(alpha = 1, size = 3)),
+            shape = guide_legend(input$z, order = 1, title.position = "top", ncol = 1 ),
+            fill  = guide_legend(order = 2)
+            )
         } else if (input$chart_type == "area") {
           p <- p + scale_fill_manual(values = which_palette(), labels = plot_labels)
           p <- p + scale_linetype_manual(values = c(1, 2, 3, 4, 5, 6), labels = plot_labels)
           p <- p + scale_color_manual(values = which_palette(), labels = plot_labels)
+          p <- p + guides(
+            fill     = guide_legend(input$z, title.position = "top", ncol = 1),
+            color    = guide_legend(input$z, title.position = "top", ncol = 1),
+            linetype = guide_legend(input$z, title.position = "top", ncol = 1)
+            )
         }
       }
       p <- p + which_geom_z()
@@ -748,6 +775,13 @@ graph_it <- eventReactive(input$do_plot, {
     if (input$w_label == "") {
       if (input$chart_type == "scatterplot") {  
         p <- p + scale_color_gradientn(colors = which_palette())
+        p <- p + guides(
+          color = guide_colorbar(
+            order = 1,
+            title.position = "top"
+            ),
+          fill = guide_legend(order = 2)
+        )
       } else if (input$chart_type == "heatmap") {
         p <- p + scale_fill_gradientn(colors = which_palette())
       }
@@ -762,6 +796,13 @@ graph_it <- eventReactive(input$do_plot, {
             ),
           labels = c(plot_labels[1], plot_labels[2])
           )
+        p <- p + guides(
+          color = guide_colorbar(
+            order = 1,
+            title.position = "top"
+            ),
+          fill = guide_legend(order = 2)
+        )
       } else if (input$chart_type == "heatmap") {
         p <- p + scale_fill_gradientn(
           colors = which_palette(),
@@ -779,28 +820,46 @@ graph_it <- eventReactive(input$do_plot, {
     # z and w
   else if (input$z!= "" & input$w != "") {
     if (input$wrap == "grid") {
-      
       if (input$z_label == "") {
+        p <- p + scale_color_gradientn(colors = which_palette())
         p <- p + facet_wrap(as.formula(paste("~", input$z)))
+        p <- p + guides(
+          color = guide_colorbar(order = 1, title.position = "top"),
+          fill  = guide_legend(order = 2)
+          )
       } else {
         plot_labels <- unlist(strsplit(input$z_label, ",", fixed = TRUE))
         label_wrap <- function(variable, value) {
           unlist(strsplit(input$z_label, ",", fixed = TRUE))
-        }  
+          }
         p <- p + which_geom_xy() + facet_wrap(as.formula(paste("~", input$z)), labeller = label_wrap)
+        p <- p + scale_color_gradientn(colors = which_palette())
+        p <- p + guides(
+          color = guide_colorbar(order = 1, title.position = "top"),
+          fill  = guide_legend(order = 2)
+          )
       }
     } else {
       if (input$z_label == "") {
-        p <- p + scale_color_manual(values = which_palette())    
+        p <- p + scale_color_manual(values = which_palette())
+        p <- p + guides(
+          color = guide_legend(order = 1, title.position = "top"),
+          size  = guide_legend(order = 2, title.position = "top"),
+          fill  = guide_legend(order = 3)
+          )
       } else {
         plot_labels <- unlist(strsplit(input$z_label, ",", fixed = TRUE))
-        p <- p + scale_color_manual(values = which_palette(), labels = plot_labels)    
+        p <- p + scale_color_manual(values = which_palette(), labels = plot_labels)
+        p <- p + guides(
+          color = guide_legend(order = 1, title.position = "top"),
+          size  = guide_legend(order = 2, title.position = "top"),
+          fill  = guide_legend(order = 3)
+          )
       }
     }
     p <- p + which_geom_w_z()
-    print ("w & z fired")   
-}
-
+    print ("w & z fired")
+    }
 
     ## additional geom layers -------------------------------------------------
     ## apply smoother to scatter plot
@@ -808,42 +867,45 @@ graph_it <- eventReactive(input$do_plot, {
   if (!is.null(input[[paste0(plot_opts(), "scatter_option_smooth")]])) {
     
     switch(input[[paste0(plot_opts(), "scatter_option_smooth")]],
-      "loess" = 
-        if (!is.null(input[[paste0(plot_opts(), "scatter_option_smooth_group")]])) {
-          if  (input[[paste0(plot_opts(), "scatter_option_smooth_group")]] == 'groups') {
-            p <- p + geom_smooth(
-              method = "loess", 
-              span = input[[paste0(plot_opts(), "scatter_option_span")]], 
-              se = input[[paste0(plot_opts(), "scatter_option_se")]],
-              aes_string(color = paste("factor(", input$z, ")"))
-            )           
-          } else {
-            p <- p + geom_smooth(
-              method = "loess", 
-              span = input[[paste0(plot_opts(), "scatter_option_span")]], 
-              se = input[[paste0(plot_opts(), "scatter_option_se")]]
-            )            
-          }          
+      "loess" = {
+        if (input[[paste0(plot_opts(), "scatter_option_smooth_group")]] == 'groups') {
+          p <- p + geom_smooth(
+            method = "loess",
+            aes_string(color = paste("factor(", input$z, ")")),
+            span = input[[paste0(plot_opts(), "scatter_option_loess_span")]],
+            se = input[[paste0(plot_opts(), "scatter_option_smooth_se")]],
+            linetype = "dashed"
+          )
         } else {
-        p <- p + geom_smooth(
-          method = "loess", 
-          span = input[[paste0(plot_opts(), "scatter_option_span")]],
-          se = input[[paste0(plot_opts(), "scatter_option_se")]]
-        )  
-      },
-      "linear" = 
-        if (! is.null(input[[paste0(plot_opts(), "scatter_option_smooth_group")]])) {
-          if  (input[[paste0(plot_opts(), "scatter_option_smooth_group")]] == 'groups') {
-            p <- p + geom_smooth(
-              method = "lm", aes_string(color = paste("factor(", input$z, ")"))
-            )
-          } else {
-            p <- p + geom_smooth(method = "lm")
-          }
-        } else {
-          p <- p + geom_smooth(method = "lm")
+          p <- p + geom_smooth(
+            method = "loess", 
+            aes_string(fill = quote(input$smoother_label)),
+            span = input[[paste0(plot_opts(), "scatter_option_loess_span")]], 
+            se = input[[paste0(plot_opts(), "scatter_option_smooth_se")]],
+            color = "black",
+            linetype = "dashed"
+            ) + 
+            scale_fill_manual(values = "grey50")
         }
-      )
+        },
+      "linear" = {
+        if (input[[paste0(plot_opts(), "scatter_option_smooth_group")]] == 'groups') {
+          p <- p + geom_smooth(
+            method = "lm",
+            aes_string(color = paste("factor(", input$z, ")")),
+            linetype = "dashed"
+            )
+        } else {
+          p <- p + geom_smooth(
+            method = "lm",
+            aes_string(fill = quote(input$smoother_label)),
+            color = "black",
+            linetype = "dashed"
+            ) + 
+            scale_fill_manual(values = "grey50")
+        }
+      }
+    )
   }
     ## custom labels ----------------------------------------------------------
 
@@ -865,16 +927,16 @@ graph_it <- eventReactive(input$do_plot, {
     } else if (input$chart_type %in% c("density", "line", "step", "area")) {
       p <- p + labs(color = input$z_guide, linetype = input$z_guide)
     } else if (input$chart_type == "scatterplot") {
-      p <- p + labs(color =  input$z_guide, shape = input$z_guide)
+      p <- p + labs(color =  input$z_guide, shape = input$z_guide, fill = "")
     }
   } else if (input$w_guide != "" & input$z_guide == "") {
     if (input$chart_type == "scatterplot") {
-      p <- p + labs(color = input$w_guide) 
+      p <- p + labs(color = input$w_guide, fill = "")
     } else if (input$chart_type == "heatmap") {
       p <- p + labs(fill = input$w_guide)
     }     
   } else if (input$w_guide != "" & input$z_guide != "") {
-    p <- p + labs(size = input$w_guide, color = input$z_guide)
+    p <- p + labs(size = input$w_guide, color = input$z_guide, fill = "")
   }
   if (input$x_val_format != "") {
     switch(input$x_val_format,
@@ -913,9 +975,14 @@ observeEvent(input$z, {
   updateTextInput(session, "z_guide", value = input$z) 
   })
 
+observeEvent(input$w, {
+  updateTextInput(session, "w_guide", value = input$w) 
+  })
+
 observeEvent(input$reorder_x, {
   updateTextInput(session, "x_label", value = input$x) 
   })
+
 output$graph <- renderPlot({
   graph_it()
   })
