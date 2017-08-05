@@ -759,13 +759,15 @@ graph_it <- eventReactive(input$do_plot, {
           p <- p + scale_color_manual(values = which_palette(), labels = plot_labels)
           p <- p + scale_shape_manual(values = c(15, 16, 17, 18, 3, 8, 7), labels = plot_labels)
           p <- p + guides(
-            color = guide_legend(input$z,
+            color = guide_legend(
+              input$z,
               order = 1,
               title.position = "top",
               ncol = 1,
               override.aes = list(alpha = 1, size = 3)
               ),
-            shape = guide_legend(input$z,
+            shape = guide_legend(
+              input$z,
               order = 1,
               title.position = "top",
               ncol = 1
@@ -794,6 +796,13 @@ graph_it <- eventReactive(input$do_plot, {
     if (input$w_label == "") {
       if (input$chart_type == "scatterplot") {  
         p <- p + scale_color_gradientn(colors = which_palette())
+        p <- p + guides(
+          color = guide_colorbar(
+            order = 1,
+            title.position = "top"
+            ),
+          fill = guide_legend(order = 2)
+        )
       } else if (input$chart_type == "heatmap") {
         p <- p + scale_fill_gradientn(colors = which_palette())
       }
@@ -808,6 +817,13 @@ graph_it <- eventReactive(input$do_plot, {
             ),
           labels = c(plot_labels[1], plot_labels[2])
           )
+        p <- p + guides(
+          color = guide_colorbar(
+            order = 1,
+            title.position = "top"
+            ),
+          fill = guide_legend(order = 2)
+        )
       } else if (input$chart_type == "heatmap") {
         p <- p + scale_fill_gradientn(
           colors = which_palette(),
@@ -846,7 +862,6 @@ graph_it <- eventReactive(input$do_plot, {
     p <- p + which_geom_w_z()
     print ("w & z fired")   
 }
-
 
     ## additional geom layers -------------------------------------------------
     ## apply smoother to scatter plot
@@ -917,12 +932,12 @@ graph_it <- eventReactive(input$do_plot, {
     }
   } else if (input$w_guide != "" & input$z_guide == "") {
     if (input$chart_type == "scatterplot") {
-      p <- p + labs(color = input$w_guide, fill = "") 
+      p <- p + labs(color = input$w_guide, fill = "")
     } else if (input$chart_type == "heatmap") {
       p <- p + labs(fill = input$w_guide)
     }     
   } else if (input$w_guide != "" & input$z_guide != "") {
-    p <- p + labs(size = input$w_guide, color = input$z_guide)
+    p <- p + labs(size = input$w_guide, color = input$z_guide, fill = "")
   }
   if (input$x_val_format != "") {
     switch(input$x_val_format,
@@ -961,9 +976,14 @@ observeEvent(input$z, {
   updateTextInput(session, "z_guide", value = input$z) 
   })
 
+observeEvent(input$w, {
+  updateTextInput(session, "w_guide", value = input$w) 
+  })
+
 observeEvent(input$reorder_x, {
   updateTextInput(session, "x_label", value = input$x) 
   })
+
 output$graph <- renderPlot({
   graph_it()
   })
