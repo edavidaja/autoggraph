@@ -656,6 +656,9 @@ output$plot_labels <- renderUI({
         radioButtons("y_val_format", label = "y value format",
           choices = c("none" = "", "dollar", "comma", "percent"), inline = TRUE)
         ),
+      # TODO(ajae): consider whether it is worth restricting the conditions under
+      # which the option to flip axes appears
+      checkboxInput("flip_axes", "reverse x and y axes"),
       conditionalPanel(condition = "input.z != ''",
         textInput("z_guide", "discrete variable name"),
         textInput("z_label", "discrete variable labels, separated by commas",
@@ -938,11 +941,24 @@ graph_it <- eventReactive(input$do_plot, {
   }
 
   ## custom axis and series labels --------------------------------------------
-  if (input$x_label != "") {
-    p <- p + labs(x = input$x_label)
-  }
-  if (input$y_label != "") {
-    p <- p + labs(y = "", title = input$y_label)
+  if (input$flip_axes == FALSE) {
+    if (input$x_label != "") {
+      p <- p + labs(x = input$x_label) + coord_cartesian()
+    }
+    if (input$y_label != "") {
+      p <- p + labs(y = "", title = input$y_label) + coord_cartesian()
+    }
+  } else { # flip x and y axes
+    if (input$x_label != "") {
+      p <- p + labs(y = input$x_label) + coord_flip()
+    } else {
+      p <- p + labs(y = input$y) + coord_flip() 
+    }
+    if (input$y_label != "") {
+      p <- p + labs(x = "", title = input$y_label) + coord_flip()
+    } else {
+      p <- p + labs(x = "", title = input$x) + coord_flip()
+    }
   }
   
   if (input$source_label != "") {
