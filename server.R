@@ -24,6 +24,7 @@ theme_gao <- list(
 
 # server ----------------------------------------------------------------------
 shinyServer(function(input, output, session) {
+
   output$landing_page <- renderUI({
     if(session$clientData$url_hostname == "shiny.eseclab.gov") {
       # set location of zip for export
@@ -36,38 +37,43 @@ shinyServer(function(input, output, session) {
     }
   })
 
+  # the custom javascript function for recovering the modification time of the
+  # uploaded file is executed whenever a file is uploaded
   observeEvent(input$infile, {
     js$showFileModified()
     })
 
-  # bookmarking stuff ----------------------------------------------------------
+  # bookmarking state ----------------------------------------------------------
+  # since the plot_opts id is randomly generated, onBookmark must be used in
+  # order to save its state 
   onBookmark(function(state) {
     plot_id <- plot_opts()
     state$values$id <- plot_id
-    print (fil$infile)
     state$values$infile <- fil$infile
   })
   
-  fil <- reactiveValues(infile = NULL)  
+  fil <- reactiveValues(infile = NULL)
   original_ops <- reactiveValues(id = NULL, loaded = FALSE, infile = NULL)
  
   onRestore(function(state) {
     original_ops$id <- state$values$id
     original_ops$infile <- state$values$infile
-    print (original_ops$infile)
   })
   
   # Ingest file -----------------------------------------------------------------
+  # a bug in readxl makes it unable to read files directly from the fileInput()
+  # so all calls to readxl functions require the use of paste() to append
+  # the proper extension to them
   output$excel_sheet_selector <- renderUI({
 
     req(input$infile)
 
     ext <- tools::file_ext(input$infile$name)
     if (ext %in% c("xls", "xlsx")) {
-      if (! is.null(original_ops$infile)) {
-        print (original_ops$infile)
+
+      if (!is.null(original_ops$infile)) {
         selectInput("which_sheet", "select a worksheet:", 
-                    choices = excel_sheets(paste(original_ops$infile$datapath, ext, sep=".")))             
+          choices = excel_sheets(paste(original_ops$infile$datapath, ext, sep=".")))             
       } else {
         file.rename(input$infile$datapath, paste(input$infile$datapath, ext, sep="."))
         fil$infile <- input$infile
@@ -77,6 +83,8 @@ shinyServer(function(input, output, session) {
     }
   })
 
+  # make.names() is used to coerce all column names to valid R names after using
+  # read_csv() or read_excel()
   graph_data <- reactive({
 
     req(input$infile$name)
@@ -107,73 +115,82 @@ shinyServer(function(input, output, session) {
 
   })
 
-    # Variable selectors ----------------------------------------------------------
+  # Variable selectors ----------------------------------------------------------
+  # variable selectors are rendered once graph data is uploaded
+  # conditional panels are used to display only the relevant input variables
+  # for the selected plot type
   output$variable_selector <- renderUI({
 
-    req(graph_data(), input$chart_type, input$chart_type != "pie")
+    req(graph_data())
 
     list(
-      selectInput("x",
-       "select your x variable:",
-       choices =  c("x variable" = "", names(graph_data()))
-       ),
       conditionalPanel(
-        condition = "input.chart_type != 'density' & input.chart_type != 'histogram'", 
-        selectInput("y",
-          "select your y variable:",
-          choices =  c("y variable" = "", names(graph_data()))
+        condition = "input.chart_type != '' & input.chart_type != 'pie'",
+        selectInput("x",
+         "select your x variable:",
+         choices =  c("x variable" = "", names(graph_data()))
+         ),
+        conditionalPanel(
+          condition = "input.chart_type != 'density' & input.chart_type != 'histogram'", 
+          selectInput("y",
+            "select your y variable:",
+            choices =  c("y variable" = "", names(graph_data()))
+            )
+          ),
+       conditionalPanel(
+          condition = 
+            "(input.z != '' | input.w != '' | input.y != '') &
+            !(input.chart_type == 'line' | input.chart_type == 'density' |
+            input.chart_type == 'histogram' | input.chart_type == 'step' |
+            input.chart_type == 'area') &
+            input.x != ''",
+          selectInput("reorder_x", label = "reorder your x axis", 
+            choices = c("order by" = "", names(graph_data()))
           )
         ),
-     conditionalPanel(
-        condition = 
-          "(input.z != '' | input.w != '' | input.y != '') &
-          !(input.chart_type == 'line' | input.chart_type == 'density' |
-          input.chart_type == 'histogram' | input.chart_type == 'step' |
-          input.chart_type == 'area') &
-          input.x != ''",
-        selectInput("reorder_x", label = "reorder your x axis", 
-          choices = c("order by" = "", names(graph_data()))
+        conditionalPanel(
+          condition = "input.chart_type != 'heatmap'",
+          selectInput("z",
+            "add an additional discrete variable:",
+            choices =  c("discrete variable" = "", names(graph_data()))
+            )
+          ),
+        conditionalPanel(
+          condition = "input.z != ''",
+          radioButtons("wrap", label = "group your variables by", 
+            choices = c("color", "grid"),
+            selected = "color",
+            inline = TRUE
+          )
+        ),
+        conditionalPanel(
+          condition = "input.chart_type == 'heatmap' | input.chart_type == 'scatterplot'",
+          selectInput("w",
+            "add an additional continuous variable:",
+            choices =  c("continuous variable" = "", names(graph_data()))
+            )
+          ),
+        conditionalPanel(
+          condition = "input.z != '' | input.w != ''",
+          selectInput("palette_selector", label = "select a color palette", 
+            choices = c("classic", "qualitative", "sequential", "diverging"),
+            selected = "classic"
+            )
+          ),
+        actionButton("do_plot", "can i have your autoggraph?", icon = icon("area-chart"))
         )
-      ),
-      conditionalPanel(
-        condition = "input.chart_type != 'heatmap'",
-        selectInput("z",
-          "add an additional discrete variable:",
-          choices =  c("discrete variable" = "", names(graph_data()))
-          )
-        ),
-      conditionalPanel(
-        condition = "input.z != ''",
-        radioButtons("wrap", label = "group your variables by", 
-          choices = c("color", "grid"),
-          selected = "color",
-          inline = TRUE
-        )
-      ),
-      conditionalPanel(
-        condition = "input.chart_type == 'heatmap' | input.chart_type == 'scatterplot'",
-        selectInput("w",
-          "add an additional continuous variable:",
-          choices =  c("continuous variable" = "", names(graph_data()))
-          )
-        ),
-      conditionalPanel(
-        condition = "input.z != '' | input.w != ''",
-        selectInput("palette_selector", label = "select a color palette", 
-          choices = c("classic", "qualitative", "sequential", "diverging"),
-          selected = "classic"
-          )
-        ),
-      actionButton("do_plot", "can i have your autoggraph?", icon = icon("area-chart"))
       )
   })
 
-  # plot specific options block based on dynamic ui example -------------------
-  # http://shiny.rstudio.com/gallery/dynamic-ui.html
+  # plot specific options -----------------------------------------------------
+  # plot specific options are assinged an id combining a random number with
+  # the name of the option. This randomly generated number changes whenever
+  # the selected plot type is changes, and ensures that options specific
+  # to one plot do not persist across plot types (smoothers in particular)
 
   plot_opts <- eventReactive(input$chart_type, {
     print ("plot opts fired")
-    if(! is.null(original_ops$id) & original_ops$loaded == FALSE) {
+    if(!is.null(original_ops$id) & original_ops$loaded == FALSE) {
       original_ops$loaded <- TRUE
       original_ops$id
     } else {
@@ -271,6 +288,9 @@ shinyServer(function(input, output, session) {
       )
 })
 
+# options that should be available if any smoother is added to a scatterplot
+# TODO(ajae): passing the option to remove the confidence interval to
+# method "lm" causes the smoother not to render at all
 output$smoother_options <- renderUI({
   
   req(input[[paste0(plot_opts(), "scatter_option_smooth")]])
@@ -290,6 +310,10 @@ output$smoother_options <- renderUI({
       )
     )
 })
+
+# ideally this span parameter would be a conditional panel hidden in overall
+# smoother options, but mapping conditions to dynamically determined id
+# names is difficult
 
 output$loess_options <- renderUI({
 
@@ -614,60 +638,66 @@ which_geom_w_z <- reactive({
 
 })
 
+# plot labels ----------------------------------------------------------------- 
 output$plot_labels <- renderUI({
-  req(graph_data(), input$chart_type, input$chart_type != "pie")
+  req(graph_data())
 
-  wellPanel(
-    h4("plot labels"),
-    textInput("x_label", "x-axis label"),
-    hidden(
-      radioButtons("x_val_format", label = "x value format",
-        choices = c("none" = "", "dollar", "comma", "percent"), inline = TRUE)
-      ),
-    textInput("y_label", "y-axis label"),
-    hidden(
-      radioButtons("y_val_format", label = "y value format",
-        choices = c("none" = "", "dollar", "comma", "percent"), inline = TRUE)
-      ),
-    conditionalPanel(condition = "input.z != ''",
-      textInput("z_guide", "discrete variable name"),
-      textInput("z_label", "discrete variable labels, separated by commas",
-        placeholder = "one, two, three, ...")
-      ),
-    conditionalPanel(
-      condition = "input.chart_type == 'scatterplot'",
-      textInput("smoother_label", "overall smoother label",
-        placeholder = "smoothed y on x")
-      ),
-    conditionalPanel(
-      condition = "(input.chart_type == 'heatmap' | input.chart_type == 'scatterplot') &
-      input.w != ''",
-      textInput("w_guide", "continuous variable name"),
-      textInput("w_label", "continuous variable labels, separated by commas",
-        placeholder = "low, high")
-      ),
-    textInput("source_label", "source label",
-      placeholder = "Source: GAO analysis..."),
-    h4("export:"),
-    downloadButton(outputId = "bundle", label = "results", inline = TRUE),
-    bookmarkButton(inline = TRUE),
-    actionButton("fine_tuning", label = "fine tuning", icon = icon("sliders"), inline = TRUE)
+  conditionalPanel(
+    condition = "input.chart_type != '' & input.chart_type != 'pie'",
+    wellPanel(
+      h4("plot labels"),
+      textInput("x_label", "x-axis label"),
+      hidden(
+        radioButtons("x_val_format", label = "x value format",
+          choices = c("none" = "", "dollar", "comma", "percent"), inline = TRUE)
+        ),
+      textInput("y_label", "y-axis label"),
+      hidden(
+        radioButtons("y_val_format", label = "y value format",
+          choices = c("none" = "", "dollar", "comma", "percent"), inline = TRUE)
+        ),
+      conditionalPanel(condition = "input.z != ''",
+        textInput("z_guide", "discrete variable name"),
+        textInput("z_label", "discrete variable labels, separated by commas",
+          placeholder = "one, two, three, ...")
+        ),
+      conditionalPanel(
+        condition = "input.chart_type == 'scatterplot'",
+        textInput("smoother_label", "overall smoother label",
+          placeholder = "smoothed y on x")
+        ),
+      conditionalPanel(
+        condition = "(input.chart_type == 'heatmap' | input.chart_type == 'scatterplot') &
+        input.w != ''",
+        textInput("w_guide", "continuous variable name"),
+        textInput("w_label", "continuous variable labels, separated by commas",
+          placeholder = "low, high")
+        ),
+      textInput("source_label", "source label",
+        placeholder = "Source: GAO analysis..."),
+      h4("export:"),
+      downloadButton(outputId = "bundle", label = "results", inline = TRUE),
+      bookmarkButton(inline = TRUE),
+      actionButton("fine_tuning", label = "fine tuning", icon = icon("sliders"), inline = TRUE)
+      )
     )
 })
+
   # attempting to use the obvious test for numericness does not work here
+  # only show the value formatters for x and y if the variables are numeric
   observeEvent(input$x, {
     toggle("x_val_format",
       condition = (
         class(graph_data()[[input$x]])) %in% c("double", "integer", "numeric")
         )
-  })
+    })
 
   observeEvent(input$y, {
     toggle("y_val_format",
       condition = (
         class(graph_data()[[input$y]])) %in% c("double", "integer", "numeric")
         )
-  })
+    })
 
   observeEvent(input$fine_tuning, toggle("fine_tuning_well"))
 
@@ -697,22 +727,22 @@ graph_it <- eventReactive(input$do_plot, {
     print ("xy fired")
   }
 
-    # z and no w
+  ## z and no w ---------------------------------------------------------------
   else if (input$z != "" & input$w == "") {
     
     if (input$wrap == "grid") {
-      if (input$z_label == "") {
+      if (input$z_label == "") { # unlabeled grid
         p <- p + which_geom_xy() + facet_wrap(as.formula(paste("~", input$z)))
-      } else {
+      } else { # grid with custom labels
         plot_labels <- unlist(strsplit(input$z_label, ",", fixed = TRUE))
         label_wrap <- function(variable, value) {
           unlist(strsplit(input$z_label, ",", fixed = TRUE))
         }  
         p <- p + which_geom_xy() + facet_wrap(as.formula(paste("~", input$z)), labeller = label_wrap)
       }
-    } else {
+    } else { # z mapped to color rather than grid
       # apply color or fill if no custom labels are set based on chart type
-      if (input$z_label == "") {
+      if (input$z_label == "") { # default labels
         if (input$chart_type %in% c("histogram", "boxplot", "bar")) {
           p <- p + scale_fill_manual(values = which_palette())
           p <- p + guides(fill = guide_legend(title.position = "top", ncol = 1))
@@ -732,7 +762,7 @@ graph_it <- eventReactive(input$do_plot, {
           p <- p + scale_color_manual(values = which_palette())
           p <- p + guides(fill = guide_legend(title.position = "top", ncol = 1))
         }
-      } else {
+      } else { # apply custom labels
         plot_labels <- unlist(strsplit(input$z_label, ",", fixed = TRUE))
         if (input$chart_type %in% c("histogram", "boxplot", "bar")) {
           p <- p + scale_fill_manual(values = which_palette(), labels = plot_labels)
@@ -769,10 +799,10 @@ graph_it <- eventReactive(input$do_plot, {
     print ("z fired")
   }
 
-    # w and no z
+  ## w and no z ---------------------------------------------------------------
   else if (input$z == "" & input$w != "") {
 
-    if (input$w_label == "") {
+    if (input$w_label == "") { # default labels
       if (input$chart_type == "scatterplot") {  
         p <- p + scale_color_gradientn(colors = which_palette())
         p <- p + guides(
@@ -785,7 +815,7 @@ graph_it <- eventReactive(input$do_plot, {
       } else if (input$chart_type == "heatmap") {
         p <- p + scale_fill_gradientn(colors = which_palette())
       }
-    } else {
+    } else { # custom w labels
       plot_labels <- unlist(strsplit(input$w_label, ",", fixed = TRUE))
       if (input$chart_type == "scatterplot") {  
         p <- p + scale_color_gradientn(
@@ -817,17 +847,18 @@ graph_it <- eventReactive(input$do_plot, {
     p <- p + which_geom_w()
     print ("w fired")
   }
-    # z and w
+
+  ## z and w ------------------------------------------------------------------
   else if (input$z!= "" & input$w != "") {
     if (input$wrap == "grid") {
-      if (input$z_label == "") {
+      if (input$z_label == "") { # grid, default labels
         p <- p + scale_color_gradientn(colors = which_palette())
         p <- p + facet_wrap(as.formula(paste("~", input$z)))
         p <- p + guides(
           color = guide_colorbar(order = 1, title.position = "top"),
           fill  = guide_legend(order = 2)
           )
-      } else {
+      } else { # grid, custom labels
         plot_labels <- unlist(strsplit(input$z_label, ",", fixed = TRUE))
         label_wrap <- function(variable, value) {
           unlist(strsplit(input$z_label, ",", fixed = TRUE))
@@ -839,15 +870,15 @@ graph_it <- eventReactive(input$do_plot, {
           fill  = guide_legend(order = 2)
           )
       }
-    } else {
-      if (input$z_label == "") {
+    } else { # z mapped to color
+      if (input$z_label == "") { # default labels
         p <- p + scale_color_manual(values = which_palette())
         p <- p + guides(
           color = guide_legend(order = 1, title.position = "top"),
           size  = guide_legend(order = 2, title.position = "top"),
           fill  = guide_legend(order = 3)
           )
-      } else {
+      } else { # custom labels
         plot_labels <- unlist(strsplit(input$z_label, ",", fixed = TRUE))
         p <- p + scale_color_manual(values = which_palette(), labels = plot_labels)
         p <- p + guides(
@@ -861,9 +892,7 @@ graph_it <- eventReactive(input$do_plot, {
     print ("w & z fired")
     }
 
-    ## additional geom layers -------------------------------------------------
-    ## apply smoother to scatter plot
-
+  ## apply smoother to scatter plot -------------------------------------------
   if (!is.null(input[[paste0(plot_opts(), "scatter_option_smooth")]])) {
     
     switch(input[[paste0(plot_opts(), "scatter_option_smooth")]],
@@ -907,8 +936,8 @@ graph_it <- eventReactive(input$do_plot, {
       }
     )
   }
-    ## custom labels ----------------------------------------------------------
 
+  ## custom axis and series labels --------------------------------------------
   if (input$x_label != "") {
     p <- p + labs(x = input$x_label)
   }
@@ -954,7 +983,7 @@ graph_it <- eventReactive(input$do_plot, {
   }
   p <- p + theme_gao
   
-  # after you set the theme, look for any offsets
+  # titile position adjustments -----------------------------------------------
   if (input$offset_x != "") {
     p <- p + theme(axis.title.x = element_text(hjust = input$offset_x))
   }
@@ -968,9 +997,9 @@ graph_it <- eventReactive(input$do_plot, {
   p
   })
 
-# Using paste() results in "factor()" appearing in the z variable by default
-# this observer sets the value of the z-guide to the name of the variable
-# selected in Z once a variable is selected
+# since several function calls are constructed with paste(), observers are used
+# to set the label field to the name of the selected variable, which obscures
+# the call to "factor()" or the like in the plot assembly
 observeEvent(input$z, {
   updateTextInput(session, "z_guide", value = input$z) 
   })
@@ -983,11 +1012,12 @@ observeEvent(input$reorder_x, {
   updateTextInput(session, "x_label", value = input$x) 
   })
 
+## render the plot ------------------------------------------------------------
 output$graph <- renderPlot({
   graph_it()
   })
 
-   # Download file -------------------------------------------------------------
+# Download zip file ------------------------------------------------------------
 output$bundle <- downloadHandler(
   contentType = "application/zip",
   filename = function() {
