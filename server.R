@@ -17,8 +17,7 @@ theme_gao <- list(
     legend.title = element_text(size = 7, face = "bold"),
     plot.title = element_text(size = 7, face = "bold"),
     axis.title.x = element_text(hjust = 0, size = 7, face = "bold"),
-    axis.text = element_text(size = 7, face = "bold"),
-    panel.grid = element_blank()
+    axis.text = element_text(size = 7, face = "bold")
     )
   )
 
@@ -212,6 +211,10 @@ shinyServer(function(input, output, session) {
             "point transparency", 
             min = 0, max = 1, value = 1, step = .01,
             ticks = FALSE
+            ),
+          checkboxInput(
+            inputId = paste0(plot_opts(), "scatter_option_grid"),
+            "show gridlines (useful for cleveland dot plots)"
             ),
           selectInput(
             inputId = paste0(plot_opts(), "scatter_option_smooth"),
@@ -454,42 +457,42 @@ which_geom_xy <- reactive({
   switch(input$chart_type,
    "histogram" = {
      if (sapply(graph_data()[,input$x], class) %in% c("character", "factor")) {
-       stat_count(fill = "#044F91")
+       stat_count(fill = "#0039A6")
      } else {
        geom_histogram(
-        fill = "#044F91",
+        fill = "#0039A6",
         bins = input[[paste0(plot_opts(), "hist_bins")]]
         )
      }
    },
-   "density" = geom_density(fill = "#044F91"),
-   "line" = geom_line(color = "#044F91", size = 1.1),
-   "step" = geom_step(color = "#044F91"),
+   "density" = geom_density(fill = "#0039A6"),
+   "line" = geom_line(color = "#0039A6", size = 1.1),
+   "step" = geom_step(color = "#0039A6"),
    "scatterplot" = geom_point(
-    alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]], 
-    color = "#044F91"
-    ),
+      alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]],
+      color = "#0039A6"
+      ),
    "bar" = {
      if (input$y == "") {  
-      geom_bar(position = "stack", fill = "#044F91")
+      geom_bar(position = "stack", fill = "#0039A6")
     } else {
-      geom_bar(position = "stack", stat = "identity", fill = "#044F91")
+      geom_bar(position = "stack", stat = "identity", fill = "#0039A6")
     } 
   },
-  "boxplot" = geom_boxplot(color = "#044F91"),
+  "boxplot" = geom_boxplot(color = "#0039A6"),
   "pointrange" = geom_pointrange(
     aes_string(
       ymin = input[[paste0(plot_opts(), "pointrange_lower")]],
       ymax = input[[paste0(plot_opts(), "pointrange_upper")]] 
       ),
-    color = "#044F91"
+    color = "#0039A6"
     ),
   "error bar" = geom_errorbar(
     aes_string(
       ymin = input[[paste0(plot_opts(), "errorbar_lower")]],
       ymax = input[[paste0(plot_opts(), "errorbar_upper")]]
       ),
-    color = "#044F91"
+    color = "#0039A6"
     )
   )
 })
@@ -997,7 +1000,17 @@ graph_it <- eventReactive(input$do_plot, {
       "percent" = p <- p + scale_y_continuous(labels = scales::percent)
       )
   }
-  p <- p + theme_gao
+
+  # suppress gridlines except in case of cleveland plots
+  if (!is.null(input[[paste0(plot_opts(), "scatter_option_grid")]])) { 
+    if (input[[paste0(plot_opts(), "scatter_option_grid")]] == FALSE) {
+      p <- p + theme_gao + theme(panel.grid = element_blank())
+    } else { # scatter_option_grid == TRUE
+      p <- p + theme_gao
+    }
+  } else { # apply default GAO theme for all other plots
+    p <- p + theme_gao + theme(panel.grid = element_blank())
+  }
   
   # titile position adjustments -----------------------------------------------
   if (input$offset_x != "") {
