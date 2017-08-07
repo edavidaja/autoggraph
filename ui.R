@@ -44,7 +44,9 @@ function(request) {
               ),
             fileInput("infile", label = "upload your data (in excel or csv format)"),
             uiOutput("excel_sheet_selector"),
-            uiOutput("variable_selector")
+            uiOutput("variable_selector"),
+            uiOutput('sortable_rui'),
+            uiOutput('sortable_rui_z')
             ),
            uiOutput("plot_options")
            ),
