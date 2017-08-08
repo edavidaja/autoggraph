@@ -163,6 +163,14 @@ shinyServer(function(input, output, session) {
           )
         ),
         conditionalPanel(
+          condition = "input.wrap == 'grid'",
+          radioButtons("free_facet", label = "allow axes to vary",
+            choices = c("no" = "fixed", "by x" = "free_x", "by y" = "free_y", "both" = "free"),
+            selected = "fixed",
+            inline = TRUE
+            )
+          ),
+        conditionalPanel(
           condition = "input.chart_type == 'heatmap' | input.chart_type == 'scatterplot'",
           selectInput("w",
             "add an additional continuous variable:",
@@ -738,13 +746,13 @@ graph_it <- eventReactive(input$do_plot, {
     
     if (input$wrap == "grid") {
       if (input$z_label == "") { # unlabeled grid
-        p <- p + which_geom_xy() + facet_wrap(as.formula(paste("~", input$z)))
+        p <- p + which_geom_xy() + facet_wrap(as.formula(paste("~", input$z)), scales = input$free_facet)
       } else { # grid with custom labels
         plot_labels <- unlist(strsplit(input$z_label, ",", fixed = TRUE))
         label_wrap <- function(variable, value) {
           unlist(strsplit(input$z_label, ",", fixed = TRUE))
         }  
-        p <- p + which_geom_xy() + facet_wrap(as.formula(paste("~", input$z)), labeller = label_wrap)
+        p <- p + which_geom_xy() + facet_wrap(as.formula(paste("~", input$z)), labeller = label_wrap, scales = input$free_facet)
       }
     } else { # z mapped to color rather than grid
       # apply color or fill if no custom labels are set based on chart type
@@ -859,7 +867,7 @@ graph_it <- eventReactive(input$do_plot, {
     if (input$wrap == "grid") {
       if (input$z_label == "") { # grid, default labels
         p <- p + scale_color_gradientn(colors = which_palette())
-        p <- p + facet_wrap(as.formula(paste("~", input$z)))
+        p <- p + facet_wrap(as.formula(paste("~", input$z)), scales = input$free_facet)
         p <- p + guides(
           color = guide_colorbar(order = 1, title.position = "top"),
           fill  = guide_legend(order = 2)
@@ -869,7 +877,7 @@ graph_it <- eventReactive(input$do_plot, {
         label_wrap <- function(variable, value) {
           unlist(strsplit(input$z_label, ",", fixed = TRUE))
           }
-        p <- p + which_geom_xy() + facet_wrap(as.formula(paste("~", input$z)), labeller = label_wrap)
+        p <- p + which_geom_xy() + facet_wrap(as.formula(paste("~", input$z)), labeller = label_wrap, scales = input$free_facet)
         p <- p + scale_color_gradientn(colors = which_palette())
         p <- p + guides(
           color = guide_colorbar(order = 1, title.position = "top"),
