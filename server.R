@@ -19,8 +19,6 @@ theme_gao <- list(
     axis.text = element_text(size = 7, face = "bold")
     )
   )
-)
-
 
 # server ----------------------------------------------------------------------
 shinyServer(function(input, output, session) {
@@ -439,6 +437,7 @@ observeEvent({c(input$w, input$z)}, {
       new_factor_order$data <- factor(graph_data()[[input$x]], levels = input$factor_order)
       new_factor_order$reorder <- TRUE
     }
+
     if (input$x != "" & input$y == "" & input$z == "" & input$w == "") {
       
       if (new_factor_order$reorder == TRUE) {  
@@ -446,6 +445,7 @@ observeEvent({c(input$w, input$z)}, {
       } else {
         aes_string(x = input$x)
       }
+    }
     # x and y
     else if (input$x != "" & input$y != "" & input$z == "" & input$w == "") {
       
@@ -456,8 +456,7 @@ observeEvent({c(input$w, input$z)}, {
       else if (input$reorder_x != "") {
         aes_string(x = paste0("reorder(",  input$x,", ", input$reorder_x, ")"), y = input$y)
       } else {
-
-        aes_string(x = as.name(input$x), y = as.name(input$y))
+        aes_string(x = input$x, y = input$y)
       }
     }
     # x and z
@@ -466,35 +465,30 @@ observeEvent({c(input$w, input$z)}, {
       if (new_factor_order$reorder == TRUE) {  
         aes_string(x = 'new_factor_order$data')
       } else {
-
         aes_string(x = input$x)
       }
-      
     }
     #  x, y and, z
     else if (input$x != "" & input$y != "" & input$z != "" & input$w == "") {
       
-      if (new_factor_order$reorder == TRUE) {  
+      if (new_factor_order$reorder == TRUE) {
         aes_string(x = 'new_factor_order$data', y =  input$y)
       }
-      else if (input$reorder_x != ""){
+      else if (input$reorder_x != "") {
         aes_string(x = paste0("reorder(",  input$x,", ", input$reorder_x, ")"), y = input$y)
       } else {
-
         aes_string(x = input$x, y = input$y)
       }
     } 
     # x, y, and w
     else if (input$x != "" & input$y != "" & input$z == "" & input$w != "") {
       
-      if (new_factor_order$reorder == TRUE) {  
-        aes_string(x = "new_factor_order$data", y = input$y)
-        
+      if (new_factor_order$reorder == TRUE) {
+        aes_string(x = "new_factor_order$data", y = input$y) 
       }
       else if (input$reorder_x != '') {
-        aes_string(x = paste0("reorder(", input$x, ", ", input$reorder_x, ")"), y =  as.name(input$y))
+        aes_string(x = paste0("reorder(", input$x, ", ", input$reorder_x, ")"), y = input$y)
       } else {
-
         aes_string(x = input$x, y = input$y)
       }
     }
@@ -507,10 +501,10 @@ observeEvent({c(input$w, input$z)}, {
       else if (input$reorder_x != "") {
         aes_string(x = paste0("reorder(", input$x, ", ", input$reorder_x, ")"), y = input$y)
       } else {
-
         aes_string(x = input$x, y = input$y)
       }
     }
+
   })
   
   # geometries ----------------------------------------------------------------
@@ -563,6 +557,7 @@ observeEvent({c(input$w, input$z)}, {
     )
   )
 })
+
   which_geom_z <- reactive({
     
     req(graph_data())
@@ -578,14 +573,13 @@ observeEvent({c(input$w, input$z)}, {
              if (sapply(graph_data()[,input$x], class) %in% c("character", "factor")) {
                
                stat_count(
-                 aes_string(fill = 
-                              ifelse(new_z_order$reorder == TRUE, 'new_z_order$data',  paste("factor(", as.name(input$z), ")"))
+                 aes_string(fill = ifelse(new_z_order$reorder == TRUE, 'new_z_order$data', paste("factor(", input$z, ")"))
                  )
                )
              } else { 
                geom_histogram(
                  aes_string(fill = 
-                              ifelse(new_z_order$reorder == TRUE, 'new_z_order$data',  paste("factor(", as.name(input$z), ")"))
+                              ifelse(new_z_order$reorder == TRUE, 'new_z_order$data',  paste("factor(", input$z, ")"))
                  ),
                  bins = input[[paste0(plot_opts(), "hist_bins")]]
                )
@@ -593,35 +587,35 @@ observeEvent({c(input$w, input$z)}, {
            },
            "density" = geom_density(
              aes_string(
-               color    = ifelse(new_z_order$reorder == TRUE, 'new_z_order$data',  paste("factor(", as.name(input$z), ")")),
-               linetype = ifelse(new_z_order$reorder == TRUE, 'new_z_order$data',  paste("factor(", as.name(input$z), ")"))
+               color    = ifelse(new_z_order$reorder == TRUE, 'new_z_order$data',  paste("factor(", input$z, ")")),
+               linetype = ifelse(new_z_order$reorder == TRUE, 'new_z_order$data',  paste("factor(", input$z, ")"))
              ),
              size = 1.1
            ),
            "line" = geom_line(
              aes_string(
-               color    = ifelse(new_z_order$reorder == TRUE, 'new_z_order$data',  paste("factor(", as.name(input$z), ")")),
-               linetype = ifelse(new_z_order$reorder == TRUE, 'new_z_order$data',  paste("factor(", as.name(input$z), ")"))
+               color    = ifelse(new_z_order$reorder == TRUE, 'new_z_order$data',  paste("factor(", input$z, ")")),
+               linetype = ifelse(new_z_order$reorder == TRUE, 'new_z_order$data',  paste("factor(", input$z, ")"))
              ),
              size = 1.1
            ),
            "step" = geom_step(
              aes_string(
-               color    = ifelse(new_z_order$reorder == TRUE, 'new_z_order$data',  paste("factor(", as.name(input$z), ")")),
-               linetype = ifelse(new_z_order$reorder == TRUE, 'new_z_order$data',  paste("factor(", as.name(input$z), ")"))
+               color    = ifelse(new_z_order$reorder == TRUE, 'new_z_order$data',  paste("factor(", input$z, ")")),
+               linetype = ifelse(new_z_order$reorder == TRUE, 'new_z_order$data',  paste("factor(", input$z, ")"))
              ),
              size = 1.1
            ),
            "boxplot" = geom_boxplot(
              aes_string(
-               fill = ifelse(new_z_order$reorder == TRUE, 'new_z_order$data',  paste("factor(", as.name(input$z), ")"))
+               fill = ifelse(new_z_order$reorder == TRUE, 'new_z_order$data',  paste("factor(", input$z, ")"))
              ),
              color = "black"
            ),
            "scatterplot" = geom_point(
              aes_string(
-               color = ifelse(new_z_order$reorder == TRUE, 'new_z_order$data',  paste("factor(", as.name(input$z), ")")),
-               shape = ifelse(new_z_order$reorder == TRUE, 'new_z_order$data',  paste("factor(", as.name(input$z), ")"))
+               color = ifelse(new_z_order$reorder == TRUE, 'new_z_order$data',  paste("factor(", input$z, ")")),
+               shape = ifelse(new_z_order$reorder == TRUE, 'new_z_order$data',  paste("factor(", input$z, ")"))
              ),
              size = 2,
              alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]]
@@ -630,7 +624,7 @@ observeEvent({c(input$w, input$z)}, {
              if (input$y == "") {  
                geom_bar(
                  aes_string(
-                   fill = ifelse(new_z_order$reorder == TRUE, 'new_z_order$data',  paste("factor(", as.name(input$z), ")")),
+                   fill = ifelse(new_z_order$reorder == TRUE, 'new_z_order$data',  paste("factor(", input$z, ")")),
                    position =  input[[paste0(plot_opts(), "bar_type")]],
                    color = "black"
                  )
@@ -638,7 +632,7 @@ observeEvent({c(input$w, input$z)}, {
              } else {
                geom_bar(
                  aes_string(
-                   fill = ifelse(new_z_order$reorder == TRUE, 'new_z_order$data',  paste("factor(", as.name(input$z), ")")),
+                   fill = ifelse(new_z_order$reorder == TRUE, 'new_z_order$data',  paste("factor(", input$z, ")")),
                    position =  input[[paste0(plot_opts(), "bar_type")]],
                    stat = "identity",
                    color = "black"
@@ -648,29 +642,29 @@ observeEvent({c(input$w, input$z)}, {
            },
            "pointrange" = geom_pointrange(
              aes_string(
-               ymin  = as.name(input[[paste0(plot_opts(), "pointrange_lower")]]),
-               ymax  = as.name(input[[paste0(plot_opts(), "pointrange_upper")]]),
-               color = ifelse(new_z_order$reorder == TRUE, 'new_z_order$data',  paste("factor(", as.name(input$z), ")"))
+               ymin  = input[[paste0(plot_opts(), "pointrange_lower")]],
+               ymax  = input[[paste0(plot_opts(), "pointrange_upper")]],
+               color = ifelse(new_z_order$reorder == TRUE, 'new_z_order$data',  paste("factor(", input$z, ")"))
              )
            ),
            "error bar" = geom_errorbar(
              aes_string(
-               ymin  = as.name(input[[paste0(plot_opts(), "errorbar_lower")]]),
-               ymax  = as.name(input[[paste0(plot_opts(), "errorbar_upper")]]),
-               color = ifelse(new_z_order$reorder == TRUE, 'new_z_order$data',  paste("factor(", as.name(input$z), ")"))
+               ymin  = input[[paste0(plot_opts(), "errorbar_lower")]],
+               ymax  = input[[paste0(plot_opts(), "errorbar_upper")]],
+               color = ifelse(new_z_order$reorder == TRUE, 'new_z_order$data',  paste("factor(", input$z, ")"))
              )
            ),
            "area" = list(
              geom_area(
                aes_string(
-                 fill = ifelse(new_z_order$reorder == TRUE, 'new_z_order$data',  paste("factor(", as.name(input$z), ")"))
+                 fill = ifelse(new_z_order$reorder == TRUE, 'new_z_order$data',  paste("factor(", input$z, ")"))
                ),
                alpha = .1
              ), 
              geom_line(
                aes_string(
-                 color = ifelse(new_z_order$reorder == TRUE, 'new_z_order$data',  paste("factor(", as.name(input$z), ")")),
-                 linetype = ifelse(new_z_order$reorder == TRUE, 'new_z_order$data',  paste("factor(", as.name(input$z), ")"))
+                 color = ifelse(new_z_order$reorder == TRUE, 'new_z_order$data',  paste("factor(", input$z, ")")),
+                 linetype = ifelse(new_z_order$reorder == TRUE, 'new_z_order$data',  paste("factor(", input$z, ")"))
                ),
                size = 1.1,
                position = "stack"
