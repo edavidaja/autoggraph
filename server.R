@@ -1055,6 +1055,16 @@ observeEvent(c(input$reorder_x, input$flip_axes), {
   }
   })
 
+observeEvent(input$flip_axes, {
+  if (input$flip_axes == TRUE) {
+    updateTextInput(session, "y_val_format", label = "x value format")
+    updateTextInput(session, "x_val_format", label = "y value format")
+  } else {
+    updateTextInput(session, "x_val_format", label = "x value format")
+    updateTextInput(session, "y_val_format", label = "y value format")
+  }
+  })
+
 ## render the plot ------------------------------------------------------------
 output$graph <- renderPlot({
   graph_it()
