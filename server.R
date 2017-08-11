@@ -1045,8 +1045,14 @@ observeEvent(input$w, {
   updateTextInput(session, "w_guide", value = input$w) 
   })
 
-observeEvent(input$reorder_x, {
-  updateTextInput(session, "x_label", value = input$x) 
+observeEvent(c(input$reorder_x, input$flip_axes), {
+  if (input$flip_axes == FALSE) {
+    updateTextInput(session, "x_label", value = input$x)
+    reset("y_label")
+  } else {
+    updateTextInput(session, "y_label", value = input$x)
+    reset("x_label")
+  }
   })
 
 ## render the plot ------------------------------------------------------------
