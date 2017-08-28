@@ -688,7 +688,9 @@ output$plot_labels <- renderUI({
           placeholder = "low, high")
         ),
       textInput("source_label", "source label",
-        placeholder = "Source: GAO analysis..."),
+        placeholder = "GAO analysis..."),
+      textInput("gao_number_label", "GAO ID label",
+        placeholder = "GAO-XX-XXX"),
       h4("export:"),
       downloadButton(outputId = "bundle", label = "results", inline = TRUE),
       bookmarkButton(inline = TRUE),
@@ -973,7 +975,7 @@ graph_it <- eventReactive(input$do_plot, {
   }
   
   if (input$source_label != "") {
-    p <- p + labs(caption = input$source_label)
+    p <- p + labs(caption = paste("Source: ", input$source_label, " | ", input$gao_number_label, sep=""))
   }
   if (input$z_guide != "" & input$w_guide == "") {
     if (input$chart_type %in% c("histogram", "boxplot", "bar")) {
