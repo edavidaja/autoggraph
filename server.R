@@ -357,9 +357,9 @@ which_palette <- reactive({
   switch(input$palette_selector,
     "classic" = {
       if (input$chart_type %in% c("bar", "boxplot")) {
-        c("#FFFFFF", "#5EB6E4", "#0039A6", "#008B95", "#5E2750")
+        c("#FFFFFF", "#99CCFF", "#044F91", "#409993", "#330033")
       } else {
-        c("#5EB6E4", "#0039A6", "#008B95", "#5E2750")
+        c("#99CCFF", "#044F91", "#409993", "#330033")
       }
     },
     "qualitative" = brewer.pal(level_count, "Set2"),
