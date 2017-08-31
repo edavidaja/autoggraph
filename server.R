@@ -212,6 +212,8 @@ shinyServer(function(input, output, session) {
     
     req(input$chart_type)
     
+    
+    
     switch(input$chart_type,
       "scatterplot" = 
       list(
@@ -400,7 +402,9 @@ observeEvent({c(input$w, input$z)}, {
     # return aesthetics based on which combinations of  
     # data input fields are selected
     # x only
-    if (!is.null(input$factor_order_x)) {
+    
+
+    if (!is.null(input$factor_order_x) & sapply(graph_data()[,input$x], class) %in% c("character", "factor")) {
       new_factor_order$order   <- input$factor_order_x
       new_factor_order$data    <- factor(graph_data()[[input$x]], levels = input$factor_order_x)
       new_factor_order$reorder <- TRUE
@@ -417,6 +421,8 @@ observeEvent({c(input$w, input$z)}, {
     # x and y
     else if (input$x != "" & input$y != "" & input$z == "" & input$w == "") {
       
+      print(new_factor_order$reorder)
+      print(input$factor_order_x)
       if (new_factor_order$reorder == TRUE) {
         aes_string(x = "new_factor_order$data", y =  input$y)
       }
@@ -729,17 +735,25 @@ output$plot_labels <- renderUI({
 
   output$drag_drop_x <- renderUI({
     
-    req(input$x, sapply(graph_data()[,input$x], class) %in% c("character", "factor"))
-
-    selectizeInput("factor_order_x", "click and drag to reorder your x variable", 
-      choices = unique(graph_data()[[input$x]]),
-      selected = unique(graph_data()[[input$x]]),
-      multiple = TRUE, 
-      options = list(plugins = list("drag_drop"))
-      )
-    })
-
-  output$drag_drop_z <- renderUI({
+    req(input$x)
+    
+    if (sapply(graph_data()[,input$x], class) %in% c("character", "factor"))
+    {
+      selectizeInput("factor_order_x", "click and drag to reorder your x variable", 
+        choices = unique(graph_data()[[input$x]]),
+        selected = unique(graph_data()[[input$x]]),
+        multiple = TRUE, 
+        options = list(plugins = list("drag_drop"))
+        
+        )
+    }
+    else{
+      new_factor_order$reorder <- FALSE
+      NULL
+    }
+  })
+  
+output$drag_drop_z <- renderUI({
     
     req(input$z)
     
