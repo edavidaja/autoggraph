@@ -134,21 +134,22 @@ shinyServer(function(input, output, session) {
   # conditional panels are used to display only the relevant input variables
   # for the selected plot type
   output$variable_selector <- renderUI({
-
-    #req(graph_data()$data)
+    
+    req(graph_data())
 
     list(
       conditionalPanel(
         condition = "input.chart_type != '' & input.chart_type != 'pie'",
         selectInput("x",
          "select your x variable:",
-         choices =  c("x variable" = "", names(graph_data()$data))
-         ),
+         choices =  c("x variable" = "", names(graph_data()$orig_data))
+         )
+        ),
         conditionalPanel(
           condition = "input.chart_type != 'density' & input.chart_type != 'histogram'", 
           selectInput("y",
             "select your y variable:",
-            choices =  c("y variable" = "", names(graph_data()$data))
+            choices =  c("y variable" = "", names(graph_data()$orig_data))
             )
           ),
        conditionalPanel(
@@ -159,14 +160,14 @@ shinyServer(function(input, output, session) {
             input.chart_type == 'area') &
             input.x != ''",
           selectInput("reorder_x", label = "reorder your x axis", 
-            choices = c("order by" = "", names(graph_data()$data))
+            choices = c("order by" = "", names(graph_data()$orig_data))
           )
         ),
         conditionalPanel(
           condition = "input.chart_type != 'heatmap'",
           selectInput("z",
             "add an additional discrete variable:",
-            choices =  c("discrete variable" = "", names(graph_data()$data))
+            choices =  c("discrete variable" = "", names(graph_data()$orig_data))
             )
           ),
         conditionalPanel(
@@ -189,7 +190,7 @@ shinyServer(function(input, output, session) {
           condition = "input.chart_type == 'heatmap' | input.chart_type == 'scatterplot'",
           selectInput("w",
             "add an additional continuous variable:",
-            choices =  c("continuous variable" = "", names(graph_data()$data))
+            choices =  c("continuous variable" = "", names(graph_data()$orig_data))
             )
           ),
         conditionalPanel(
@@ -200,7 +201,6 @@ shinyServer(function(input, output, session) {
             )
           ),
         actionButton("do_plot", "can i have your autoggraph?", icon = icon("area-chart"))
-        )
       )
   })
 
@@ -213,8 +213,7 @@ shinyServer(function(input, output, session) {
   plot_opts <- eventReactive(input$chart_type, {
     
     print ('plot opts fired')
-    print (str(graph_data()))
-    
+
     if(!is.null(original_ops$id) & original_ops$loaded == FALSE) {
       original_ops$loaded <- TRUE
       original_ops$id
@@ -891,9 +890,9 @@ output$drag_drop_z <- renderUI({
       else{
         stored_data$data[[input$x]] <- stored_data$orig_data[[input$x]]
       }
-      
     }
     
+  
     # generate base plot:
     p <- ggplot(data = graph_data()$data) + base_aes() + labs(y = "", title = input$y)
     # add geom function depending on selected variables
