@@ -774,7 +774,11 @@ graph_it <- eventReactive(input$do_plot, {
           p <- p + scale_fill_manual(values = which_palette())    
           p <- p + scale_linetype_manual(values = c(1, 2, 3, 4, 5, 6))
           p <- p + scale_color_manual(values = which_palette())
-          p <- p + guides(fill = guide_legend(title.position = "top", ncol = 1))
+          p <- p + guides(
+            fill     = guide_legend(input$z, title.position = "top", ncol = 1),
+            color    = guide_legend(input$z, title.position = "top", ncol = 1),
+            linetype = guide_legend(input$z, title.position = "top", ncol = 1)
+            )
         }
       } else { # apply custom labels
         plot_labels <- unlist(strsplit(input$z_label, ",", fixed = TRUE))
