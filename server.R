@@ -30,6 +30,7 @@ shinyServer(function(input, output, session) {
       # option is set here rather than in global because the sessions variable
       # is only available within the scope of the server function
       Sys.setenv(R_ZIPCMD="/usr/bin/zip")
+      Sys.setenv(RSTUDIO_PANDOC="/usr/local/bin")
       includeHTML("www/ins-deploy.html")
     } else {
       includeHTML("www/ins.html")
