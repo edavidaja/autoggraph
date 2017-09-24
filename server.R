@@ -689,7 +689,9 @@ output$plot_labels <- renderUI({
           placeholder = "low, high")
         ),
       textInput("source_label", "source label",
-        placeholder = "Source: GAO analysis..."),
+        placeholder = "GAO analysis..."),
+      textInput("report_number", "report number",
+        placeholder = "GAO-XX-XXX"),
       h4("export:"),
       downloadButton(outputId = "bundle", label = "results", inline = TRUE),
       bookmarkButton(inline = TRUE),
@@ -733,7 +735,10 @@ graph_it <- eventReactive(input$do_plot, {
   req(input$chart_type, graph_data(), input$x)
 
     # generate base plot:
-  p <- ggplot(data = graph_data()) + base_aes() + labs(y = "", title = input$y)
+  p <- ggplot(data = graph_data()) +
+    base_aes() +
+    labs(y = "", title = input$y,
+      caption = paste("Source: ", input$source_label, " | ", input$report_number, sep=""))
 
     # add geom function depending on selected variables
     # only x or x & y
@@ -977,9 +982,6 @@ graph_it <- eventReactive(input$do_plot, {
     }
   }
   
-  if (input$source_label != "") {
-    p <- p + labs(caption = input$source_label)
-  }
   if (input$z_guide != "" & input$w_guide == "") {
     if (input$chart_type %in% c("histogram", "boxplot", "bar")) {
       p <- p + labs(fill = input$z_guide)
