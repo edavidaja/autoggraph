@@ -2,3 +2,5 @@
 *.sublime-workspace
 .Rhistory
 Thumbs.db
+packrat/lib*/
+packrat/src*/
