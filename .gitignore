@@ -3,4 +3,5 @@
 .Rhistory
 Thumbs.db
 packrat/lib*/
-packrat/src*/
+packrat/src/*
+packrat/bundles/*
