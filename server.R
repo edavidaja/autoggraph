@@ -11,6 +11,7 @@ library(magrittr)
 theme_gao <- list(
   theme_minimal(),
   theme(
+    text = element_text(family = "Liberation Sans"),
     plot.caption = element_text(hjust = 0, size = 6),
     legend.position = "bottom",
     legend.justification = "left",
@@ -1084,17 +1085,22 @@ output$bundle <- downloadHandler(
     paste("autoggraph-", input$chart_type, ".zip", sep = "" ) 
   },
   content = function(file) {
-    vector_out       <- tempfile(pattern = "vector_", fileext = ".svg")
-    raster_out       <- tempfile(pattern = "raster_", fileext = ".png")
-    plotobj_out      <- tempfile(pattern = "plot_object_", fileext = ".rds")
-    log_out          <- tempfile(pattern = "log_", fileext = ".txt")
 
-    ggsave(vector_out, width = input$export_width, height = input$export_height)
-    ggsave(raster_out, width = input$export_width, height = input$export_height,
-      units = "in", dpi = 600
+    tif_out <- tempfile(pattern = "tif_", fileext = ".tiff")
+    svg_out <- tempfile(pattern = "svg_", fileext = ".svg")
+    png_out <- tempfile(pattern = "png_", fileext = ".png")
+    rds_out <- tempfile(pattern = "plot_object_", fileext = ".rds")
+    log_out <- tempfile(pattern = "log_", fileext = ".txt")
+
+    ggsave(svg_out, width = input$export_width, height = input$export_height)
+    ggsave(tif_out, width = input$export_width, height = input$export_height,
+      units = "in", dpi = 300
+      )
+    ggsave(png_out, width = input$export_width, height = input$export_height,
+      units = "in", dpi = 300
       )
 
-    write_rds(graph_it(), plotobj_out, compress = "none")
+    write_rds(graph_it(), rds_out, compress = "none")
 
     write_lines(
       paste(
@@ -1110,7 +1116,7 @@ output$bundle <- downloadHandler(
 
     zip(
       zipfile = file,
-      files = c(plotobj_out, log_out, raster_out, vector_out)
+      files = c(rds_out, log_out, png_out, svg_out, tif_out)
       ) 
   })
 
