@@ -6,6 +6,7 @@ library(RColorBrewer)
 library(shiny)
 library(shinyjs)
 library(magrittr)
+library(extrafont)
 
 # gao theme -------------------------------------------------------------------
 theme_gao <- list(
