@@ -1093,7 +1093,8 @@ output$bundle <- downloadHandler(
     rds_out <- tempfile(pattern = "plot_object_", fileext = ".rds")
     log_out <- tempfile(pattern = "log_", fileext = ".txt")
 
-    ggsave(svg_out, width = input$export_width, height = input$export_height)
+    ggsave(svg_out, width = input$export_width, height = input$export_height,
+      system_fonts = list(sans = "Liberation Sans"))
     ggsave(tif_out, width = input$export_width, height = input$export_height,
       units = "in", dpi = 300
       )
