@@ -351,23 +351,43 @@ which_palette <- reactive({
     level_count <- 5
   }
 
-  # check whether the number of classes exceeds
-  validate(
-    need(level_count < 10, "you have selected a variable with too many classes"
-      )
-    )
-
   switch(input$palette_selector,
     "classic" = {
       if (input$chart_type %in% c("bar", "boxplot")) {
+        validate(
+          need(level_count < 6, "The classic GAO palette for this graph type accepts at most 5 classes. Try 'qualitative' instead."
+          )
+        )
         c("#FFFFFF", "#99CCFF", "#044F91", "#409993", "#330033")
       } else {
+        validate(
+          need(level_count < 5, "The classic GAO palette for this graph type accepts at most 4 classes. Try 'qualitative' instead."
+            )
+          )
         c("#99CCFF", "#044F91", "#409993", "#330033")
       }
     },
-    "qualitative" = brewer.pal(level_count, "Set2"),
-    "sequential"  = brewer.pal(level_count, "Blues"),
-    "diverging"   = brewer.pal(level_count, "RdYlBu")
+    "qualitative" = {
+      validate(
+        need(level_count < 9, "The qualitative palette accepts at most 8 classes."
+          )
+        )
+      brewer.pal(level_count, "Set2")
+    },
+    "sequential" = {
+      validate(
+        need(level_count < 10, "The sequential palette accepts at most 9 classes."
+          )
+        )
+      brewer.pal(level_count, "Blues")
+    },
+    "diverging" = {
+      validate(
+        need(level_count < 12, "The diverging palette accepts at most 11 classes."
+          )
+        )
+      brewer.pal(level_count, "RdYlBu")
+    }
     )
 
 })
