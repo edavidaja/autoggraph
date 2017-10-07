@@ -49,16 +49,16 @@ shinyServer(function(input, output, session) {
   # since the plot_opts id is randomly generated, onBookmark must be used in
   # order to save its state 
   onBookmark(function(state) {
-    plot_id <- plot_opts()
-    state$values$id <- plot_id
+    plot_id             <- plot_opts()
+    state$values$id     <- plot_id
     state$values$infile <- fil$infile
   })
   
-  fil <- reactiveValues(infile = NULL)
+  fil          <- reactiveValues(infile = NULL)
   original_ops <- reactiveValues(id = NULL, loaded = FALSE, infile = NULL)
  
   onRestore(function(state) {
-    original_ops$id <- state$values$id
+    original_ops$id     <- state$values$id
     original_ops$infile <- state$values$infile
   })
   
@@ -72,17 +72,8 @@ shinyServer(function(input, output, session) {
 
     ext <- tools::file_ext(input$infile$name)
     if (ext %in% c("xls", "xlsx")) {
-
-      if (!is.null(original_ops$infile)) {
-        selectInput("which_sheet", "select a worksheet:", 
-          choices = excel_sheets(paste(original_ops$infile$datapath, ext, sep=".")))             
-      } else {
-        file.rename(input$infile$datapath, paste(input$infile$datapath, ext, sep="."))
-        fil$infile <- input$infile
-        selectInput("which_sheet", "select a worksheet:", 
-          choices = excel_sheets(paste(input$infile$datapath, ext, sep=".")))          
+      selectInput("which_sheet", "select a worksheet:", choices = excel_sheets(input$infile$datapath))
       }
-    }
   })
 
   # make.names() is used to coerce all column names to valid R names after using
@@ -92,23 +83,16 @@ shinyServer(function(input, output, session) {
     req(input$infile$name)
 
     ext <- tools::file_ext(input$infile$name)
-    if (ext %in% c("xls", "xlsx")) {
-      
+    if (ext == "xls") {
       req(input$which_sheet)
-      if (!is.null(original_ops$infile)) {
-        temp <- read_excel(
-          paste(original_ops$infile$datapath, ext, sep="."),
-          sheet = input$which_sheet)
-        names(temp) %<>% make.names(., unique = TRUE)
-        temp
-      } else {
-        file.rename(input$infile$datapath, paste(input$infile$datapath, ext, sep="."))        
-        temp <- read_excel(
-          paste(input$infile$datapath, ext, sep="."),
-          sheet = input$which_sheet)
-        names(temp) %<>% make.names(., unique = TRUE)
-        temp
-      }
+      temp <- read_xlsx(input$infile$datapath, sheet = input$which_sheet)
+      names(temp) %<>% make.names(., unique = TRUE)
+      temp
+    } else if (ext == "xlsx") {
+      req(input$which_sheet)
+      temp <- read_xlsx(input$infile$datapath, sheet = input$which_sheet)
+      names(temp) %<>% make.names(., unique = TRUE)
+      temp
     } else if (ext == "csv") {
       temp <- read_csv(input$infile$datapath)
       names(temp) %<>% make.names(., unique = TRUE)
