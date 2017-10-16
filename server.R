@@ -428,6 +428,20 @@ observeEvent({c(input$w, input$z)}, {
       }
     }
     
+    
+    if (! is.null(input$factor_order_x)){
+      
+      stored_data$data[[input$x]] <- factor(stored_data$data[[input$x]], levels = input$factor_order_x)
+      
+    }
+    
+    if (!is.null(input$factor_order_z)) {
+      
+      stored_data$data[[input$z]] <- factor(stored_data$data[[input$z]], levels = input$factor_order_z)
+      
+    }
+    
+    
     if (input$x != "" & input$y == "" & input$z == "" & input$w == "") {
       
       aes(x = graph_data()$data[[input$x]])
@@ -487,12 +501,7 @@ observeEvent({c(input$w, input$z)}, {
     # select geom based on selected chart type for the univariate or
     # two-variable case.    
   req(graph_data()$data)
-  
-  if (! is.null(input$factor_order_x)){
-    
-    stored_data$data[[input$x]] <- factor(stored_data$data[[input$x]], levels = input$factor_order_x)
-    
-  }
+
 
   switch(input$chart_type,
    "histogram" = {
@@ -540,12 +549,6 @@ observeEvent({c(input$w, input$z)}, {
   which_geom_z <- reactive({
     
     req(graph_data()$data)
-    
-    if (!is.null(input$factor_order_z)) {
-      
-      stored_data$data[[input$z]] <- factor(stored_data$data[[input$z]], levels = input$factor_order_z)
-
-    }
     
     switch(input$chart_type,
        "histogram" = {
