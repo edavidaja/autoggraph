@@ -6,6 +6,7 @@ library(RColorBrewer)
 library(shiny)
 library(shinyjs)
 library(magrittr)
+library(dplyr)
 
 # gao theme -------------------------------------------------------------------
 theme_gao <- list(
@@ -108,7 +109,7 @@ shinyServer(function(input, output, session) {
           paste(original_ops$infile$datapath, ext, sep="."),
           sheet = input$which_sheet)
         names(temp) %<>% make.names(., unique = TRUE)
-        graph_data()$data <- temp
+        stored_data$data <- temp
         stored_data$orig_data <- temp
       } else {
         file.rename(input$infile$datapath, paste(input$infile$datapath, ext, sep="."))        
@@ -116,7 +117,7 @@ shinyServer(function(input, output, session) {
           paste(input$infile$datapath, ext, sep="."),
           sheet = input$which_sheet)
         names(temp) %<>% make.names(., unique = TRUE)
-        graph_data()$data <- temp
+        stored_data$data <- temp
         stored_data$orig_data <- temp
       }
     } else if (ext == "csv") {
@@ -135,21 +136,23 @@ shinyServer(function(input, output, session) {
   # for the selected plot type
   output$variable_selector <- renderUI({
     
-    req(graph_data())
+    req(graph_data()$orig_data)
+    
+    isolate({
 
     list(
       conditionalPanel(
         condition = "input.chart_type != '' & input.chart_type != 'pie'",
         selectInput("x",
          "select your x variable:",
-         choices =  c("x variable" = "", names(graph_data()$orig_data))
+         choices =  c("x variable" = "", names(graph_data()$data))
          )
         ),
         conditionalPanel(
           condition = "input.chart_type != 'density' & input.chart_type != 'histogram'", 
           selectInput("y",
             "select your y variable:",
-            choices =  c("y variable" = "", names(graph_data()$orig_data))
+            choices =  c("y variable" = "", names(graph_data()$data))
             )
           ),
        conditionalPanel(
@@ -160,14 +163,14 @@ shinyServer(function(input, output, session) {
             input.chart_type == 'area') &
             input.x != ''",
           selectInput("reorder_x", label = "reorder your x axis", 
-            choices = c("order by" = "", names(graph_data()$orig_data))
+            choices = c("order by" = "", names(graph_data()$data))
           )
         ),
         conditionalPanel(
           condition = "input.chart_type != 'heatmap'",
           selectInput("z",
             "add an additional discrete variable:",
-            choices =  c("discrete variable" = "", names(graph_data()$orig_data))
+            choices =  c("discrete variable" = "", names(graph_data()$data))
             )
           ),
         conditionalPanel(
@@ -190,7 +193,7 @@ shinyServer(function(input, output, session) {
           condition = "input.chart_type == 'heatmap' | input.chart_type == 'scatterplot'",
           selectInput("w",
             "add an additional continuous variable:",
-            choices =  c("continuous variable" = "", names(graph_data()$orig_data))
+            choices =  c("continuous variable" = "", names(graph_data()$data))
             )
           ),
         conditionalPanel(
@@ -202,6 +205,7 @@ shinyServer(function(input, output, session) {
           ),
         actionButton("do_plot", "can i have your autoggraph?", icon = icon("area-chart"))
       )
+    })
   })
 
   # plot specific options -----------------------------------------------------
@@ -414,29 +418,24 @@ observeEvent({c(input$w, input$z)}, {
     # return aesthetics based on which combinations of  
     # data input fields are selected
     # x only
-    # if (!is.null(input$factor_order_x) & sapply(graph_data()$data[,input$x], class) %in% c("character", "factor")) {
-    #   new_factor_order$order   <- input$factor_order_x
-    #   new_factor_order$data    <- factor(graph_data()$data[[input$x]], levels = input$factor_order_x)
-    #   new_factor_order$reorder <- TRUE
-    # }
-
+    if (input$type_variable != ''){
+      
+      if (input$type_variable == 'factor'){
+        stored_data$data[[input$x]] <- as.factor(as.character(stored_data$data[[input$x]]))
+      }
+      else if (input$type_variable == 'numeric'){
+        stored_data$data[[input$x]] <- as.numeric(stored_data$data[[input$x]])
+      }
+    }
+    
     if (input$x != "" & input$y == "" & input$z == "" & input$w == "") {
       
-      # if (new_factor_order$reorder == TRUE) {
-      #   aes_string(x = 'new_factor_order$data')
-      # } else {
-        aes_string(x = input$x)
-      
+      aes(x = graph_data()$data[[input$x]])
     }
+
     # x and y
     else if (input$x != "" & input$y != "" & input$z == "" & input$w == "") {
       
-      # print(new_factor_order$reorder)
-      # print(input$factor_order_x)
-      # if (new_factor_order$reorder == TRUE) {
-      #   aes_string(x = "new_factor_order$data", y =  input$y)
-      # }
-      # 
       if (input$reorder_x != "") {
         aes_string(x = paste0("reorder(",  input$x,", ", input$reorder_x, ")"), y = input$y)
       } else {
@@ -446,18 +445,12 @@ observeEvent({c(input$w, input$z)}, {
     # x and z
     else if (input$x != "" & input$y == "" & input$z != "" & input$w == "") {
       
-      # if (new_factor_order$reorder == TRUE) {  
-      #   aes_string(x = 'new_factor_order$data')
-      # } else {
         aes_string(x = input$x)
-      #}
+
     }
     #  x, y and, z
     else if (input$x != "" & input$y != "" & input$z != "" & input$w == "") {
       
-      # if (new_factor_order$reorder == TRUE) {
-      #   aes_string(x = 'new_factor_order$data', y =  input$y)
-      # }
       if (input$reorder_x != "") {
         aes_string(x = paste0("reorder(",  input$x,", ", input$reorder_x, ")"), y = input$y)
       } else {
@@ -467,9 +460,6 @@ observeEvent({c(input$w, input$z)}, {
     # x, y, and w
     else if (input$x != "" & input$y != "" & input$z == "" & input$w != "") {
       
-      # if (new_factor_order$reorder == TRUE) {
-      #   aes_string(x = "new_factor_order$data", y = input$y) 
-      # }
       if (input$reorder_x != "") {
         aes_string(x = paste0("reorder(", input$x, ", ", input$reorder_x, ")"), y = input$y)
       } else {
@@ -479,15 +469,14 @@ observeEvent({c(input$w, input$z)}, {
     # x, y, z, and w
     else if (input$x != "" & input$y != "" & input$z != "" & input$w != "") {
       # 
-      # if (new_factor_order$reorder == TRUE) {  
-      #   aes_string(x = "new_factor_order$data", y = input$y)
-      # }
      if (input$reorder_x != "") {
         aes_string(x = paste0("reorder(", input$x, ", ", input$reorder_x, ")"), y = input$y)
       } else {
         aes_string(x = input$x, y = input$y)
       }
     }
+    
+
 
   })
   
@@ -499,6 +488,12 @@ observeEvent({c(input$w, input$z)}, {
     # two-variable case.    
   req(graph_data()$data)
   
+  if (! is.null(input$factor_order_x)){
+    
+    stored_data$data[[input$x]] <- factor(stored_data$data[[input$x]], levels = input$factor_order_x)
+    
+  }
+
   switch(input$chart_type,
    "histogram" = {
      if (sapply(graph_data()$data[,input$x], class) %in% c("character", "factor")) {
@@ -547,56 +542,55 @@ observeEvent({c(input$w, input$z)}, {
     req(graph_data()$data)
     
     if (!is.null(input$factor_order_z)) {
-      new_z_order$order   <- as.numeric(as.factor(input$factor_order_z))
-      new_z_order$data    <- factor(graph_data()$data[[input$z]], levels = levels(as.factor(graph_data()$data[[input$z]]))[new_z_order$order])
-      new_z_order$reorder <- TRUE
+      
+      stored_data$data[[input$z]] <- factor(stored_data$data[[input$z]], levels = input$factor_order_z)
+
     }
     
     switch(input$chart_type,
        "histogram" = {
          if (sapply(graph_data()$data[,input$x], class) %in% c("character", "factor")) {
            stat_count(
-             aes_string(fill = ifelse(new_z_order$reorder == TRUE, "new_z_order$data", paste("factor(", input$z, ")"))
-             )
+             aes_string(fill = input$z)
            )
          } else { 
            geom_histogram(
-            aes_string(fill = ifelse(new_z_order$reorder == TRUE, "new_z_order$data", paste("factor(", input$z, ")"))),
+            aes_string(fill = input$z),
             bins = input[[paste0(plot_opts(), "hist_bins")]]
            )
          }
        },
        "density" = geom_density(
          aes_string(
-           color    = ifelse(new_z_order$reorder == TRUE, "new_z_order$data",  paste("factor(", input$z, ")")),
-           linetype = ifelse(new_z_order$reorder == TRUE, "new_z_order$data",  paste("factor(", input$z, ")"))
+           color    = input$z,
+           linetype = input$z
          ),
          size = 1.1
        ),
        "line" = geom_line(
          aes_string(
-           color    = ifelse(new_z_order$reorder == TRUE, "new_z_order$data",  paste("factor(", input$z, ")")),
-           linetype = ifelse(new_z_order$reorder == TRUE, "new_z_order$data",  paste("factor(", input$z, ")"))
+           color    = input$z,
+           linetype = input$z
          ),
          size = 1.1
        ),
        "step" = geom_step(
          aes_string(
-           color    = ifelse(new_z_order$reorder == TRUE, "new_z_order$data",  paste("factor(", input$z, ")")),
-           linetype = ifelse(new_z_order$reorder == TRUE, "new_z_order$data",  paste("factor(", input$z, ")"))
+           color    = input$z,
+           linetype = input$z
          ),
          size = 1.1
        ),
        "boxplot" = geom_boxplot(
          aes_string(
-           fill = ifelse(new_z_order$reorder == TRUE, "new_z_order$data",  paste("factor(", input$z, ")"))
+           fill = input$z
          ),
          color = "black"
        ),
        "scatterplot" = geom_point(
          aes_string(
-           color = ifelse(new_z_order$reorder == TRUE, "new_z_order$data",  paste("factor(", input$z, ")")),
-           shape = ifelse(new_z_order$reorder == TRUE, "new_z_order$data",  paste("factor(", input$z, ")"))
+           color = input$z,
+           shape = input$z
          ),
          size = 2,
          alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]]
@@ -605,7 +599,7 @@ observeEvent({c(input$w, input$z)}, {
          if (input$y == "") {  
           geom_bar(
             aes_string(
-              fill = ifelse(new_z_order$reorder == TRUE, "new_z_order$data",  paste("factor(", input$z, ")")),
+              fill = input$z,
               position =  input[[paste0(plot_opts(), "bar_type")]],
               color = "black"
               )
@@ -613,7 +607,7 @@ observeEvent({c(input$w, input$z)}, {
          } else {
            geom_bar(
              aes_string(
-               fill = ifelse(new_z_order$reorder == TRUE, "new_z_order$data",  paste("factor(", input$z, ")")),
+               fill = input$z,
                position =  input[[paste0(plot_opts(), "bar_type")]],
                stat = "identity",
                color = "black"
@@ -625,27 +619,27 @@ observeEvent({c(input$w, input$z)}, {
          aes_string(
            ymin  = input[[paste0(plot_opts(), "pointrange_lower")]],
            ymax  = input[[paste0(plot_opts(), "pointrange_upper")]],
-           color = ifelse(new_z_order$reorder == TRUE, "new_z_order$data",  paste("factor(", input$z, ")"))
+           color = input$z
          )
        ),
        "error bar" = geom_errorbar(
          aes_string(
            ymin  = input[[paste0(plot_opts(), "errorbar_lower")]],
            ymax  = input[[paste0(plot_opts(), "errorbar_upper")]],
-           color = ifelse(new_z_order$reorder == TRUE, "new_z_order$data",  paste("factor(", input$z, ")"))
+           color = input$z
          )
        ),
        "area" = list(
          geom_area(
            aes_string(
-             fill = ifelse(new_z_order$reorder == TRUE, "new_z_order$data",  paste("factor(", input$z, ")"))
+             fill = input$z
            ),
            alpha = .1
          ), 
          geom_line(
            aes_string(
-             color    = ifelse(new_z_order$reorder == TRUE, "new_z_order$data",  paste("factor(", input$z, ")")),
-             linetype = ifelse(new_z_order$reorder == TRUE, "new_z_order$data",  paste("factor(", input$z, ")"))
+             color    = input$z,
+             linetype = input$z
            ),
            size = 1.1,
            position = "stack"
@@ -806,33 +800,33 @@ output$plot_labels <- renderUI({
     
     if (sapply(graph_data()$data[,input$x], class) %in% c("character", "factor"))
     {
-      selectizeInput("factor_order_x", "click and drag to reorder your x variable", 
-        choices = unique(graph_data()$data[[input$x]]),
-        selected = unique(graph_data()$data[[input$x]]),
+      choices <-  levels(unique(as.factor(graph_data()$data[[input$x]])))
+
+      selectizeInput("factor_order_x", "click and drag to reorder your x variable",
+        choices =  choices,
+        selected =  choices,
         multiple = TRUE, 
         options = list(plugins = list("drag_drop"))
         
         )
     }
-    # else{
-    #   new_factor_order$reorder <- FALSE
-    #   NULL
-    # }
+
   })
   
 output$drag_drop_z <- renderUI({
     
     req(input$z)
     
+    
     if (input$z_label != "") {
-      new_z_order$choices <-  unlist(strsplit(input$z_label, ",", fixed = TRUE))
+      choices <-  unlist(strsplit(input$z_label, ",", fixed = TRUE))
     } else {
-      new_z_order$choices <- unique(graph_data()$data[[input$z]])
+      choices <- levels(unique(as.factor(graph_data()$data[[input$z]])))
     }
 
     selectizeInput("factor_order_z", "click and drag to reorder your discrete variable:",
-      choices = new_z_order$choices,
-      selected = new_z_order$choices,
+      choices = choices,
+      selected = choices,
       multiple = TRUE, 
       options = list(plugins = list("drag_drop"))
       )
@@ -841,17 +835,21 @@ output$drag_drop_z <- renderUI({
   # attempting to use the obvious test for numericness does not work here
   # only show the value formatters for x and y if the variables are numeric
   observeEvent(input$x, {
-    toggle("x_val_format",
+
+  toggle("x_val_format",
       condition = (
         class(graph_data()$data[[input$x]])) %in% c("double", "integer", "numeric")
-        )
+        ) 
     })
+
   observeEvent(input$x, {
+
     toggle("type_variable",
            condition = (
-             graph_data()$data[[input$x]] != '')
-    )
-  })
+             graph_data()$data[[input$x]] != ''
+    )      
+    )})
+  
   
   observeEvent(input$y, {
     toggle("y_val_format",
@@ -878,20 +876,7 @@ output$drag_drop_z <- renderUI({
     # rendering a plot
     req(input$chart_type, graph_data()$data)
     
-    # 
-    if (input$type_variable != ''){
-      
-      if (input$type_variable == 'factor'){
-        stored_data$data[[input$x]] <- as.character(stored_data$data[[input$x]])
-      }
-      else if (input$type_variable == 'numeric'){
-        stored_data$data[[input$x]] <- as.numeric(stored_data$data[[input$x]])
-      }
-      else{
-        stored_data$data[[input$x]] <- stored_data$orig_data[[input$x]]
-      }
-    }
-    
+
   
     # generate base plot:
     p <- ggplot(data = graph_data()$data) + base_aes() + labs(y = "", title = input$y)
