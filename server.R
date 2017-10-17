@@ -441,7 +441,11 @@ observeEvent({c(input$w, input$z)}, {
       
     }
     
-    
+    if (input$reorder_x != ""){
+      
+      stored_data$data[[input$x]] <- reorder(stored_data$data[[input$x]], stored_data$data[[input$reorder_x]])
+    }    
+
     if (input$x != "" & input$y == "" & input$z == "" & input$w == "") {
       
       aes(x = graph_data()$data[[input$x]])
@@ -450,44 +454,29 @@ observeEvent({c(input$w, input$z)}, {
     # x and y
     else if (input$x != "" & input$y != "" & input$z == "" & input$w == "") {
       
-      if (input$reorder_x != "") {
-        aes_string(x = paste0("reorder(",  input$x,", ", input$reorder_x, ")"), y = input$y)
-      } else {
-        aes_string(x = input$x, y = input$y)
-      }
+      aes(x = graph_data()$data[[input$x]], y = graph_data()$data[[input$y]])
+      
     }
     # x and z
     else if (input$x != "" & input$y == "" & input$z != "" & input$w == "") {
       
-        aes_string(x = input$x)
+      aes(x = graph_data()$data[[input$x]])
 
     }
     #  x, y and, z
     else if (input$x != "" & input$y != "" & input$z != "" & input$w == "") {
       
-      if (input$reorder_x != "") {
-        aes_string(x = paste0("reorder(",  input$x,", ", input$reorder_x, ")"), y = input$y)
-      } else {
-        aes_string(x = input$x, y = input$y)
-      }
+        aes(x = graph_data()$data[[input$x]], y = graph_data()$data[[input$y]])
     } 
     # x, y, and w
     else if (input$x != "" & input$y != "" & input$z == "" & input$w != "") {
       
-      if (input$reorder_x != "") {
-        aes_string(x = paste0("reorder(", input$x, ", ", input$reorder_x, ")"), y = input$y)
-      } else {
-        aes_string(x = input$x, y = input$y)
-      }
+        aes(x = graph_data()$data[[input$x]], y = graph_data()$data[[input$y]])
     }
     # x, y, z, and w
     else if (input$x != "" & input$y != "" & input$z != "" & input$w != "") {
       # 
-     if (input$reorder_x != "") {
-        aes_string(x = paste0("reorder(", input$x, ", ", input$reorder_x, ")"), y = input$y)
-      } else {
-        aes_string(x = input$x, y = input$y)
-      }
+        aes(x = graph_data()$data[[input$x]], y = graph_data()$data[[input$y]])
     }
     
 
