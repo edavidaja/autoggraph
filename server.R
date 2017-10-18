@@ -436,9 +436,16 @@ observeEvent({c(input$w, input$z)}, {
       }
     }
     
-    #print (stored_data$data[[input$x]])
-    
-    # TODO IT IS NOT REGISTERING!!!!
+    if (input$type_variable_y != ''){
+      
+      if (input$type_variable_y == 'factor'){
+        stored_data$data[[input$y]] <- as.factor(as.character(stored_data$data[[input$y]]))
+      }
+      else if (input$type_variable_y == 'numeric'){
+        stored_data$data[[input$y]] <- as.numeric(as.character(stored_data$data[[input$y]]))
+      }
+    }
+
     print (input$type_variable)
     
     if (! is.null(input$factor_order_x)){
@@ -448,12 +455,21 @@ observeEvent({c(input$w, input$z)}, {
       }
     }
     
+    if (!is.null(input$factor_order_y)){
+      
+      if (sapply(stored_data$data[,input$y], class) %in% c("character", "factor")){
+        stored_data$data[[input$y]] <- factor(stored_data$data[[input$y]], levels = input$factor_order_y)
+      }
+    }
+    
     if (!is.null(input$factor_order_z)){
       
       if (sapply(stored_data$data[,input$z], class) %in% c("character", "factor")){
         stored_data$data[[input$z]] <- factor(stored_data$data[[input$z]], levels = input$factor_order_z)
       }
     }
+    
+
     
     if (input$reorder_x != ""){
       
@@ -693,51 +709,6 @@ which_geom_w_z <- reactive({
 
 })  
 
-# variable adjustments ----------------------------------------------------
-# 
-# output$variable_adjustments <- renderUI({
-#   
-# })
-# 
-# 
-# # do stuff when add filter is hit -----------------------------------------
-# 
-# observeEvent(input$add_filter, {
-# 
-#   if (! is.null(filters$ids))
-#   {
-#     filters$ids <- c(filters$ids, as.character(paste0(round(runif(1, 1, 100), 0), "_")))
-#   }
-#   else{
-#     filters$ids <- as.character(paste0(round(runif(1, 1, 100), 0), "_"))
-#   }
-#   
-# })
-# 
-# # filters -----------------------------------------------------------------
-# 
-# output$filters <- renderUI({
-#   
-#   req(graph_data()$data)
-#   
-#   id_list <- NULL
-#   
-#   if (! is.null(filters$ids))
-#   {
-#     for (filter in filters$ids)
-#     {
-#       id_list <- c(id_list, selectInput(paste0(filter, '_id'),
-#                   "select your variable:",
-#                   choices =  c("variable" = "", names(graph_data()$data)))
-#       )
-#     }
-#   }
-# 
-#   list(
-#     id_list,
-#     actionButton("add_filter", "add a filter")
-#   )
-# })
 
 
 # plot labels ----------------------------------------------------------------- 
@@ -768,6 +739,11 @@ output$plot_labels <- renderUI({
         radioButtons("y_val_format", label = "y value format",
           choices = c("none" = "", "dollar", "comma", "percent"), inline = TRUE)
         ),
+      radioButtons("type_variable_y", label = "change the type of variable",
+                   choices = c(
+                     "keep as is" = "", "factor", "numeric"
+                   ), inline = TRUE),
+      uiOutput("drag_drop_y"),
       # TODO(ajae): consider whether it is worth restricting the conditions under
       # which the option to flip axes appears
       checkboxInput("flip_axes", "reverse x and y axes"),
@@ -825,6 +801,24 @@ output$drag_drop_x <- renderUI({
   
 
 })
+
+output$drag_drop_y <- renderUI({
+  
+  req(input$y)
+  req(sapply(graph_data()$data[,input$y], class) %in% c("character", "factor"))
+  
+  choices <-  levels(unique(as.factor(graph_data()$data[[input$y]])))
+  
+  selectizeInput("factor_order_y", "click and drag to reorder your x variable",
+                 choices =  choices,
+                 selected =  choices,
+                 multiple = TRUE, 
+                 options = list(plugins = list("drag_drop"))
+                 
+  )
+  
+  
+})
   
 output$drag_drop_z <- renderUI({
     
@@ -855,14 +849,7 @@ output$drag_drop_z <- renderUI({
         ) 
     })
 
-  # observeEvent(input$x, {
-  # 
-  #   toggle("type_variable",
-  #          condition = (
-  #            graph_data()$data[[input$x]] != ''
-  #   )      
-  #   )})
-  # 
+
   
   observeEvent(input$y, {
     toggle("y_val_format",

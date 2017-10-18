@@ -26,18 +26,6 @@ function(request) {
         ),
        uiOutput("landing_page")
        ),
-    # filters UI ---------------------------------------------------------
-    # tabPanel("upload data",
-    #          fluidRow(  
-    #            column(3,
-    #                   wellPanel(
-    #          fileInput("infile", label = "upload your data (in excel or csv format)"),
-    #          uiOutput("excel_sheet_selector") 
-    #                   )),
-    #          column(3,
-    #                 uiOutput("variable_adjustments")
-    #          ))
-    # ),
     # plot UI -----------------------------------------------------------------
       tabPanel("plots",
         includeCSS("www/simplex.css"),
