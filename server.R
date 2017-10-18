@@ -8,6 +8,7 @@ library(shinyjs)
 library(magrittr)
 library(extrafont)
 library(dplyr)
+library(tidyr)
 
 
 # gao theme -------------------------------------------------------------------
@@ -760,6 +761,7 @@ output$plot_labels <- renderUI({
                      choices = c(
                        "keep as is" = "", "factor", "numeric"
                      ), inline = TRUE),
+      uiOutput("break_x"),
       uiOutput("drag_drop_x"),
       textInput("y_label", "y-axis label"),
       hidden(
@@ -799,23 +801,30 @@ output$plot_labels <- renderUI({
     )
 })
 
-  output$drag_drop_x <- renderUI({
-    
-    req(input$x)
-    req(sapply(graph_data()$data[,input$x], class) %in% c("character", "factor"))
-    
-      choices <-  levels(unique(as.factor(graph_data()$data[[input$x]])))
+output$break_x <- renderUI({
+  
+  req(input$x)
+  req(sapply(graph_data()$data[,input$x], class) %in% c("numeric"))
+  textInput("x_breaks", "break after every nth point")
+})
 
-      selectizeInput("factor_order_x", "click and drag to reorder your x variable",
-        choices =  choices,
-        selected =  choices,
-        multiple = TRUE, 
-        options = list(plugins = list("drag_drop"))
-        
-        )
-    
+output$drag_drop_x <- renderUI({
+  
+  req(input$x)
+  req(sapply(graph_data()$data[,input$x], class) %in% c("character", "factor"))
+  
+    choices <-  levels(unique(as.factor(graph_data()$data[[input$x]])))
 
-  })
+    selectizeInput("factor_order_x", "click and drag to reorder your x variable",
+      choices =  choices,
+      selected =  choices,
+      multiple = TRUE, 
+      options = list(plugins = list("drag_drop"))
+      
+      )
+  
+
+})
   
 output$drag_drop_z <- renderUI({
     
@@ -1151,6 +1160,16 @@ output$drag_drop_z <- renderUI({
   } else if (input$w_guide != "" & input$z_guide != "") {
     p <- p + labs(size = input$w_guide, color = input$z_guide, fill = "")
   }
+  
+  if (input$x_breaks != ''){
+    
+    seq <- as.numeric(unlist(strsplit(input$x_breaks, ",", fixed = TRUE)))
+    
+    p <- p + scale_x_continuous(breaks = seq(from = seq[1],
+                                             to = seq[2],
+                                             by = seq[3]))
+  }
+  
   if (input$x_val_format != "") {
     switch(input$x_val_format,
       "dollar"  = p <- p + scale_x_continuous(labels = scales::dollar),
