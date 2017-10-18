@@ -521,7 +521,7 @@ observeEvent({c(input$w, input$z)}, {
     # two-variable case.    
   req(graph_data()$data)
 
-
+  print( input[[paste0(plot_opts(), "pointrange_lower")]])
   switch(input$chart_type,
    "histogram" = {
      if (sapply(graph_data()$data[,input$x], class) %in% c("character", "factor")) {
@@ -639,16 +639,16 @@ observeEvent({c(input$w, input$z)}, {
        },
        "pointrange" = geom_pointrange(
          aes_string(
-           ymin  = input[[paste0(plot_opts(), "pointrange_lower")]],
-           ymax  = input[[paste0(plot_opts(), "pointrange_upper")]],
-           color = input$z
+           ymin  = stored_data$data[[input[[paste0(plot_opts(), "pointrange_lower")]]]],
+           ymax  = stored_data$data[[input[[paste0(plot_opts(), "pointrange_upper")]]]],
+           color = stored_data$data[[input$z]]
          )
        ),
        "error bar" = geom_errorbar(
          aes_string(
-           ymin  = input[[paste0(plot_opts(), "errorbar_lower")]],
-           ymax  = input[[paste0(plot_opts(), "errorbar_upper")]],
-           color = input$z
+           ymin  = stored_data$data[[input[[paste0(plot_opts(), "pointrange_lower")]]]],
+           ymax  = stored_data$data[[input[[paste0(plot_opts(), "pointrange_upper")]]]],
+           color = stored_data$data[[input$z]]
          )
        ),
        "area" = list(
@@ -681,7 +681,7 @@ observeEvent({c(input$w, input$z)}, {
 	       alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]]
 	     ),
 	   "heatmap" = geom_tile(
-	     aes_string(fill = input$w)
+	     aes_string(fill = stored_data$data[[input$w]])
 	   )
     )
   })
@@ -692,18 +692,18 @@ which_geom_w_z <- reactive({
   
   if (input$wrap == "grid") {
     geom_point(
-      aes_string(
-        color = input$w
+      aes(
+        color = stored_data$data[[input$w]]
       ),
-      alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]]    
+      alpha = stored_data$data[[input[[paste0(plot_opts(), "scatter_option_alpha")]]]]    
     )     
   } else {
     geom_point(
       aes_string(
-        size = input$w,
-        colour = input$z
+        size = stored_data$data[[input$w]],
+        colour = stored_data$data[[input$z]]
       ),
-      alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]]    
+      alpha = stored_data$data[[input[[paste0(plot_opts(), "scatter_option_alpha")]]]]    
     )    
   }
 
@@ -781,7 +781,7 @@ output$break_x <- renderUI({
   
   req(input$x)
   req(sapply(graph_data()$data[,input$x], class) %in% c("numeric"))
-  textInput("x_breaks", "break after every nth point")
+  textInput("x_breaks", "break after every nth point", "")
 })
 
 output$drag_drop_x <- renderUI({
@@ -1148,13 +1148,16 @@ output$drag_drop_z <- renderUI({
     p <- p + labs(size = input$w_guide, color = input$z_guide, fill = "")
   }
   
-  if (input$x_breaks != ''){
-    
-    seq <- as.numeric(unlist(strsplit(input$x_breaks, ",", fixed = TRUE)))
-    
-    p <- p + scale_x_continuous(breaks = seq(from = seq[1],
-                                             to = seq[2],
-                                             by = seq[3]))
+  print (input$x_breaks)
+  if (! is.null(input$x_breaks)){
+    if (input$x_breaks != ''){
+      seq <- as.numeric(unlist(strsplit(input$x_breaks, ",", fixed = TRUE)))
+      
+      p <- p + scale_x_continuous(breaks = seq(from = seq[1],
+                                               to = seq[2],
+                                               by = seq[3]))      
+    }
+
   }
   
   if (input$x_val_format != "") {
