@@ -6,11 +6,14 @@ library(RColorBrewer)
 library(shiny)
 library(shinyjs)
 library(magrittr)
+library(extrafont)
 
 # gao theme -------------------------------------------------------------------
 theme_gao <- list(
   theme_minimal(),
   theme(
+    text = element_text(family = "Liberation Sans"),
+    plot.caption = element_text(hjust = 0, size = 6),
     legend.position = "bottom",
     legend.justification = "left",
     legend.title = element_text(size = 7, face = "bold"),
@@ -29,6 +32,7 @@ shinyServer(function(input, output, session) {
       # option is set here rather than in global because the sessions variable
       # is only available within the scope of the server function
       Sys.setenv(R_ZIPCMD="/usr/bin/zip")
+      Sys.setenv(RSTUDIO_PANDOC="/usr/local/bin")
       includeHTML("www/ins-deploy.html")
     } else {
       includeHTML("www/ins.html")
@@ -49,16 +53,16 @@ shinyServer(function(input, output, session) {
   # since the plot_opts id is randomly generated, onBookmark must be used in
   # order to save its state 
   onBookmark(function(state) {
-    plot_id <- plot_opts()
-    state$values$id <- plot_id
+    plot_id             <- plot_opts()
+    state$values$id     <- plot_id
     state$values$infile <- fil$infile
   })
   
-  fil <- reactiveValues(infile = NULL)
+  fil          <- reactiveValues(infile = NULL)
   original_ops <- reactiveValues(id = NULL, loaded = FALSE, infile = NULL)
 
   onRestore(function(state) {
-    original_ops$id <- state$values$id
+    original_ops$id     <- state$values$id
     original_ops$infile <- state$values$infile
   })
   
@@ -72,17 +76,8 @@ shinyServer(function(input, output, session) {
     
     ext <- tools::file_ext(input$infile$name)
     if (ext %in% c("xls", "xlsx")) {
-
-      if (!is.null(original_ops$infile)) {
-        selectInput("which_sheet", "select a worksheet:", 
-          choices = excel_sheets(paste(original_ops$infile$datapath, ext, sep=".")))             
-      } else {
-        file.rename(input$infile$datapath, paste(input$infile$datapath, ext, sep="."))
-        fil$infile <- input$infile
-        selectInput("which_sheet", "select a worksheet:", 
-          choices = excel_sheets(paste(input$infile$datapath, ext, sep=".")))          
+      selectInput("which_sheet", "select a worksheet:", choices = excel_sheets(input$infile$datapath))
       }
-    }
   })
 
   # make.names() is used to coerce all column names to valid R names after using
@@ -92,23 +87,16 @@ shinyServer(function(input, output, session) {
     req(input$infile$name)
     
     ext <- tools::file_ext(input$infile$name)
-    if (ext %in% c("xls", "xlsx")) {
-      file.rename(input$infile$datapath, paste(input$infile$datapath, ext, sep="."))
+    if (ext == "xls") {
       req(input$which_sheet)
-      if (!is.null(original_ops$infile)) {
-        temp <- read_excel(
-          paste(original_ops$infile$datapath, ext, sep="."),
-          sheet = input$which_sheet)
-        names(temp) %<>% make.names(., unique = TRUE)
-        temp
-      } else {
-        file.rename(input$infile$datapath, paste(input$infile$datapath, ext, sep="."))        
-        temp <- read_excel(
-          paste(input$infile$datapath, ext, sep="."),
-          sheet = input$which_sheet)
-        names(temp) %<>% make.names(., unique = TRUE)
-        temp
-      }
+      temp <- read_xlsx(input$infile$datapath, sheet = input$which_sheet)
+      names(temp) %<>% make.names(., unique = TRUE)
+      temp
+    } else if (ext == "xlsx") {
+      req(input$which_sheet)
+      temp <- read_xlsx(input$infile$datapath, sheet = input$which_sheet)
+      names(temp) %<>% make.names(., unique = TRUE)
+      temp
     } else if (ext == "csv") {
       temp <- read_csv(input$infile$datapath)
       names(temp) %<>% make.names(., unique = TRUE)
@@ -353,23 +341,43 @@ which_palette <- reactive({
     level_count <- 5
   }
 
-  # check whether the number of classes exceeds
-  validate(
-    need(level_count < 10, "you have selected a variable with too many classes"
-      )
-    )
-
   switch(input$palette_selector,
     "classic" = {
       if (input$chart_type %in% c("bar", "boxplot")) {
-        c("#FFFFFF", "#5EB6E4", "#0039A6", "#008B95", "#5E2750")
+        validate(
+          need(level_count < 6, "The classic GAO palette for this graph type accepts at most 5 classes. Try 'qualitative' instead."
+          )
+        )
+        c("#FFFFFF", "#99CCFF", "#044F91", "#409993", "#330033")
       } else {
-        c("#5EB6E4", "#0039A6", "#008B95", "#5E2750")
+        validate(
+          need(level_count < 5, "The classic GAO palette for this graph type accepts at most 4 classes. Try 'qualitative' instead."
+            )
+          )
+        c("#99CCFF", "#044F91", "#409993", "#330033")
       }
     },
-    "qualitative" = brewer.pal(level_count, "Set2"),
-    "sequential"  = brewer.pal(level_count, "Blues"),
-    "diverging"   = brewer.pal(level_count, "RdYlBu")
+    "qualitative" = {
+      validate(
+        need(level_count < 9, "The qualitative palette accepts at most 8 classes."
+          )
+        )
+      brewer.pal(level_count, "Set2")
+    },
+    "sequential" = {
+      validate(
+        need(level_count < 10, "The sequential palette accepts at most 9 classes."
+          )
+        )
+      brewer.pal(level_count, "Blues")
+    },
+    "diverging" = {
+      validate(
+        need(level_count < 12, "The diverging palette accepts at most 11 classes."
+          )
+        )
+      brewer.pal(level_count, "RdYlBu")
+    }
     )
 
 })
@@ -724,7 +732,9 @@ output$plot_labels <- renderUI({
           placeholder = "low, high")
         ),
       textInput("source_label", "source label",
-        placeholder = "Source: GAO analysis..."),
+        placeholder = "GAO analysis..."),
+      textInput("report_number", "report number",
+        placeholder = "GAO-XX-XXX"),
       h4("export:"),
       downloadButton(outputId = "bundle", label = "results", inline = TRUE),
       bookmarkButton(inline = TRUE),
@@ -806,8 +816,16 @@ output$drag_drop_z <- renderUI({
     req(input$chart_type, graph_data(), input$x)
     
     # generate base plot:
+<<<<<<< HEAD
     p <- ggplot(data = graph_data()) + base_aes() + labs(y = "", title = input$y)
     
+=======
+  p <- ggplot(data = graph_data()) +
+    base_aes() +
+    labs(y = "", title = input$y,
+      caption = paste("Source: ", input$source_label, " | ", input$report_number, sep=""))
+
+>>>>>>> f7faf2af8e537053a55555fb9eb1efa391d3f006
     # add geom function depending on selected variables
     # only x or x & y
   if (input$z == "" & input$w == "") {
@@ -848,7 +866,11 @@ output$drag_drop_z <- renderUI({
           p <- p + scale_fill_manual(values = which_palette())    
           p <- p + scale_linetype_manual(values = c(1, 2, 3, 4, 5, 6))
           p <- p + scale_color_manual(values = which_palette())
-          p <- p + guides(fill = guide_legend(title.position = "top", ncol = 1))
+          p <- p + guides(
+            fill     = guide_legend(input$z, title.position = "top", ncol = 1),
+            color    = guide_legend(input$z, title.position = "top", ncol = 1),
+            linetype = guide_legend(input$z, title.position = "top", ncol = 1)
+            )
         }
       } else { # apply custom labels
         if (new_z_order$reorder == TRUE) {
@@ -1049,9 +1071,6 @@ output$drag_drop_z <- renderUI({
     }
   }
   
-  if (input$source_label != "") {
-    p <- p + labs(caption = input$source_label)
-  }
   if (input$z_guide != "" & input$w_guide == "") {
     if (input$chart_type %in% c("histogram", "boxplot", "bar")) {
       p <- p + labs(fill = input$z_guide)
@@ -1122,8 +1141,24 @@ observeEvent(input$w, {
   updateTextInput(session, "w_guide", value = input$w) 
   })
 
-observeEvent(input$reorder_x, {
-  updateTextInput(session, "x_label", value = input$x) 
+observeEvent(c(input$reorder_x, input$flip_axes), {
+  if (input$flip_axes == FALSE) {
+    updateTextInput(session, "x_label", value = input$x)
+    reset("y_label")
+  } else {
+    updateTextInput(session, "y_label", value = input$x)
+    reset("x_label")
+  }
+  })
+
+observeEvent(input$flip_axes, {
+  if (input$flip_axes == TRUE) {
+    updateTextInput(session, "y_val_format", label = "x value format")
+    updateTextInput(session, "x_val_format", label = "y value format")
+  } else {
+    updateTextInput(session, "x_val_format", label = "x value format")
+    updateTextInput(session, "y_val_format", label = "y value format")
+  }
   })
 
 ## render the plot ------------------------------------------------------------
@@ -1138,17 +1173,23 @@ output$bundle <- downloadHandler(
     paste("autoggraph-", input$chart_type, ".zip", sep = "" ) 
   },
   content = function(file) {
-    vector_out       <- tempfile(pattern = "vector_", fileext = ".svg")
-    raster_out       <- tempfile(pattern = "raster_", fileext = ".png")
-    plotobj_out      <- tempfile(pattern = "plot_object_", fileext = ".rds")
-    log_out          <- tempfile(pattern = "log_", fileext = ".txt")
 
-    ggsave(vector_out, width = input$export_width, height = input$export_height)
-    ggsave(raster_out, width = input$export_width, height = input$export_height,
-      units = "in", dpi = 600
+    tif_out <- tempfile(pattern = "tif_", fileext = ".tiff")
+    svg_out <- tempfile(pattern = "svg_", fileext = ".svg")
+    png_out <- tempfile(pattern = "png_", fileext = ".png")
+    rds_out <- tempfile(pattern = "plot_object_", fileext = ".rds")
+    log_out <- tempfile(pattern = "log_", fileext = ".txt")
+
+    ggsave(svg_out, width = input$export_width, height = input$export_height,
+      system_fonts = list(sans = "Liberation Sans"))
+    ggsave(tif_out, width = input$export_width, height = input$export_height,
+      units = "in", dpi = 300
+      )
+    ggsave(png_out, width = input$export_width, height = input$export_height,
+      units = "in", dpi = 300
       )
 
-    write_rds(graph_it(), plotobj_out, compress = "none")
+    write_rds(graph_it(), rds_out, compress = "none")
 
     write_lines(
       paste(
@@ -1164,7 +1205,7 @@ output$bundle <- downloadHandler(
 
     zip(
       zipfile = file,
-      files = c(plotobj_out, log_out, raster_out, vector_out)
+      files = c(rds_out, log_out, png_out, svg_out, tif_out)
       ) 
   })
 
