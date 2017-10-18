@@ -424,21 +424,27 @@ observeEvent({c(input$w, input$z)}, {
         stored_data$data[[input$x]] <- as.factor(as.character(stored_data$data[[input$x]]))
       }
       else if (input$type_variable == 'numeric'){
-        stored_data$data[[input$x]] <- as.numeric(stored_data$data[[input$x]])
+        stored_data$data[[input$x]] <- as.numeric(as.character(stored_data$data[[input$x]]))
       }
     }
     
+    #print (stored_data$data[[input$x]])
+    
+    # TODO IT IS NOT REGISTERING!!!!
+    print (input$type_variable)
     
     if (! is.null(input$factor_order_x)){
       
-      stored_data$data[[input$x]] <- factor(stored_data$data[[input$x]], levels = input$factor_order_x)
-      
+      if (sapply(stored_data$data[,input$x], class) %in% c("character", "factor")){
+        stored_data$data[[input$x]] <- factor(stored_data$data[[input$x]], levels = input$factor_order_x)
+      }
     }
     
-    if (!is.null(input$factor_order_z)) {
+    if (!is.null(input$factor_order_z)){
       
-      stored_data$data[[input$z]] <- factor(stored_data$data[[input$z]], levels = input$factor_order_z)
-      
+      if (sapply(stored_data$data[,input$z], class) %in% c("character", "factor")){
+        stored_data$data[[input$z]] <- factor(stored_data$data[[input$z]], levels = input$factor_order_z)
+      }
     }
     
     if (input$reorder_x != ""){
@@ -541,48 +547,48 @@ observeEvent({c(input$w, input$z)}, {
     
     switch(input$chart_type,
        "histogram" = {
-         if (sapply(graph_data()$data[,input$x], class) %in% c("character", "factor")) {
+         if (sapply(stored_data$data[,input$z], class) %in% c("character", "factor")) {
            stat_count(
-             aes_string(fill = input$z)
+             aes(fill = stored_data$data[[input$z]])
            )
          } else { 
            geom_histogram(
-            aes_string(fill = input$z),
+            aes(fill = stored_data$data[[input$z]]),
             bins = input[[paste0(plot_opts(), "hist_bins")]]
            )
          }
        },
        "density" = geom_density(
-         aes_string(
-           color    = input$z,
-           linetype = input$z
+         aes(
+           color    = stored_data$data[[input$z]],
+           linetype = stored_data$data[[input$z]]
          ),
          size = 1.1
        ),
        "line" = geom_line(
-         aes_string(
-           color    = input$z,
-           linetype = input$z
+         aes(
+           color    = stored_data$data[[input$z]],
+           linetype = stored_data$data[[input$z]]
          ),
          size = 1.1
        ),
        "step" = geom_step(
-         aes_string(
-           color    = input$z,
-           linetype = input$z
+         aes(
+           color    = stored_data$data[[input$z]],
+           linetype = stored_data$data[[input$z]]
          ),
          size = 1.1
        ),
        "boxplot" = geom_boxplot(
-         aes_string(
-           fill = input$z
+         aes(
+           fill = stored_data$data[[input$z]]
          ),
          color = "black"
        ),
        "scatterplot" = geom_point(
-         aes_string(
-           color = input$z,
-           shape = input$z
+         aes(
+           color = stored_data$data[[input$z]],
+           shape = stored_data$data[[input$z]]
          ),
          size = 2,
          alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]]
@@ -590,16 +596,16 @@ observeEvent({c(input$w, input$z)}, {
        "bar" = {
          if (input$y == "") {  
           geom_bar(
-            aes_string(
-              fill = input$z,
+            aes(
+              fill = stored_data$data[[input$z]],
               position =  input[[paste0(plot_opts(), "bar_type")]],
               color = "black"
               )
            )
          } else {
            geom_bar(
-             aes_string(
-               fill = input$z,
+             aes(
+               fill = stored_data$data[[input$z]],
                position =  input[[paste0(plot_opts(), "bar_type")]],
                stat = "identity",
                color = "black"
@@ -623,15 +629,15 @@ observeEvent({c(input$w, input$z)}, {
        ),
        "area" = list(
          geom_area(
-           aes_string(
-             fill = input$z
+           aes(
+             fill = stored_data$data[[input$z]]
            ),
            alpha = .1
          ), 
          geom_line(
            aes_string(
-             color    = input$z,
-             linetype = input$z
+             color    = stored_data$data[[input$z]],
+             linetype = stored_data$data[[input$z]]
            ),
            size = 1.1,
            position = "stack"
@@ -743,12 +749,10 @@ output$plot_labels <- renderUI({
         radioButtons("x_val_format", label = "x value format",
           choices = c("none" = "", "dollar", "comma", "percent"), inline = TRUE)
         ),
-      hidden(
         radioButtons("type_variable", label = "change the type of variable",
                      choices = c(
                        "keep as is" = "", "factor", "numeric"
-                     ), inline = TRUE)
-      ),
+                     ), inline = TRUE),
       uiOutput("drag_drop_x"),
       textInput("y_label", "y-axis label"),
       hidden(
@@ -789,9 +793,8 @@ output$plot_labels <- renderUI({
   output$drag_drop_x <- renderUI({
     
     req(input$x)
+    req(sapply(graph_data()$data[,input$x], class) %in% c("character", "factor"))
     
-    if (sapply(graph_data()$data[,input$x], class) %in% c("character", "factor"))
-    {
       choices <-  levels(unique(as.factor(graph_data()$data[[input$x]])))
 
       selectizeInput("factor_order_x", "click and drag to reorder your x variable",
@@ -801,7 +804,7 @@ output$plot_labels <- renderUI({
         options = list(plugins = list("drag_drop"))
         
         )
-    }
+    
 
   })
   
@@ -834,14 +837,14 @@ output$drag_drop_z <- renderUI({
         ) 
     })
 
-  observeEvent(input$x, {
-
-    toggle("type_variable",
-           condition = (
-             graph_data()$data[[input$x]] != ''
-    )      
-    )})
-  
+  # observeEvent(input$x, {
+  # 
+  #   toggle("type_variable",
+  #          condition = (
+  #            graph_data()$data[[input$x]] != ''
+  #   )      
+  #   )})
+  # 
   
   observeEvent(input$y, {
     toggle("y_val_format",
