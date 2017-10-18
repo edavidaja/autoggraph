@@ -705,6 +705,7 @@ output$plot_labels <- renderUI({
           choices = c("none" = "", "dollar", "comma", "percent"), inline = TRUE)
         ),
       uiOutput("drag_drop_x"),
+      uiOutput("break_x"),
       textInput("y_label", "y-axis label"),
       hidden(
         radioButtons("y_val_format", label = "y value format",
