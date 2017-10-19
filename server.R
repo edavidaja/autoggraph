@@ -133,14 +133,14 @@ shinyServer(function(input, output, session) {
         condition = "input.chart_type != '' & input.chart_type != 'pie'",
         selectInput("x",
          "select your x variable:",
-         choices =  c("x variable" = "", names(graph_data()$data))
+         choices =  c("x variable" = "", names(stored_data$data))
          )
         ),
         conditionalPanel(
           condition = "input.chart_type != 'density' & input.chart_type != 'histogram'", 
           selectInput("y",
             "select your y variable:",
-            choices =  c("y variable" = "", names(graph_data()$data))
+            choices =  c("y variable" = "", names(stored_data$data))
             )
           ),
        conditionalPanel(
@@ -151,14 +151,14 @@ shinyServer(function(input, output, session) {
             input.chart_type == 'area') &
             input.x != ''",
           selectInput("reorder_x", label = "reorder your x axis", 
-            choices = c("order by" = "", names(graph_data()$data))
+            choices = c("order by" = "", names(stored_data$data))
           )
         ),
         conditionalPanel(
           condition = "input.chart_type != 'heatmap'",
           selectInput("z",
             "add an additional discrete variable:",
-            choices =  c("discrete variable" = "", names(graph_data()$data))
+            choices =  c("discrete variable" = "", names(stored_data$data))
             )
           ),
         conditionalPanel(
@@ -181,7 +181,7 @@ shinyServer(function(input, output, session) {
           condition = "input.chart_type == 'heatmap' | input.chart_type == 'scatterplot'",
           selectInput("w",
             "add an additional continuous variable:",
-            choices =  c("continuous variable" = "", names(graph_data()$data))
+            choices =  c("continuous variable" = "", names(stored_data$data))
             )
           ),
         conditionalPanel(
@@ -249,12 +249,12 @@ shinyServer(function(input, output, session) {
             selectInput(
               inputId = paste0(plot_opts(), "pointrange_lower"),
               "lower bound", 
-              choices = c("lower bound" = "", names(graph_data()$data))
+              choices = c("lower bound" = "", names(stored_data$data))
               ),
             selectInput(
               inputId = paste0(plot_opts(), "pointrange_upper"),
               "upper bound", 
-              choices = c("upper bound" = "", names(graph_data()$data))
+              choices = c("upper bound" = "", names(stored_data$data))
               )
             )
           ),
@@ -265,12 +265,12 @@ shinyServer(function(input, output, session) {
             selectInput(
               inputId = paste0(plot_opts(), "errorbar_lower"),
               "lower bound", 
-              choices = c("lower bound" = "", names(graph_data()$data))
+              choices = c("lower bound" = "", names(stored_data$data))
               ),
             selectInput(
               inputId = paste0(plot_opts(), "errorbar_upper"),
               "upper bound", 
-              choices = c("upper bound" = "", names(graph_data()$data))
+              choices = c("upper bound" = "", names(stored_data$data))
               )
             )
           ),
@@ -352,7 +352,7 @@ which_palette <- reactive({
   # number of levels of the discrete variable; otherwise, a five class
   # palette is used
   if (input$z !=  "") {
-    level_count <- nrow(unique(graph_data()$data[input$z]))
+    level_count <- nrow(unique(stored_data$data[input$z]))
   } else {
     level_count <- 5
   }
@@ -478,35 +478,35 @@ observeEvent({c(input$w, input$z)}, {
 
     if (input$x != "" & input$y == "" & input$z == "" & input$w == "") {
       
-      aes(x = graph_data()$data[[input$x]])
+      aes(x = stored_data$data[[input$x]])
     }
 
     # x and y
     else if (input$x != "" & input$y != "" & input$z == "" & input$w == "") {
       
-      aes(x = graph_data()$data[[input$x]], y = graph_data()$data[[input$y]])
+      aes(x = stored_data$data[[input$x]], y = stored_data$data[[input$y]])
       
     }
     # x and z
     else if (input$x != "" & input$y == "" & input$z != "" & input$w == "") {
       
-      aes(x = graph_data()$data[[input$x]])
+      aes(x = stored_data$data[[input$x]])
 
     }
     #  x, y and, z
     else if (input$x != "" & input$y != "" & input$z != "" & input$w == "") {
       
-        aes(x = graph_data()$data[[input$x]], y = graph_data()$data[[input$y]])
+        aes(x = stored_data$data[[input$x]], y = stored_data$data[[input$y]])
     } 
     # x, y, and w
     else if (input$x != "" & input$y != "" & input$z == "" & input$w != "") {
       
-        aes(x = graph_data()$data[[input$x]], y = graph_data()$data[[input$y]])
+        aes(x = stored_data$data[[input$x]], y = stored_data$data[[input$y]])
     }
     # x, y, z, and w
     else if (input$x != "" & input$y != "" & input$z != "" & input$w != "") {
       # 
-        aes(x = graph_data()$data[[input$x]], y = graph_data()$data[[input$y]])
+        aes(x = stored_data$data[[input$x]], y = stored_data$data[[input$y]])
     }
     
 
@@ -519,12 +519,12 @@ observeEvent({c(input$w, input$z)}, {
     
     # select geom based on selected chart type for the univariate or
     # two-variable case.    
-  req(graph_data()$data)
+  req(stored_data$data)
 
   print( input[[paste0(plot_opts(), "pointrange_lower")]])
   switch(input$chart_type,
    "histogram" = {
-     if (sapply(graph_data()$data[,input$x], class) %in% c("character", "factor")) {
+     if (sapply(stored_data$data[,input$x], class) %in% c("character", "factor")) {
        stat_count(fill = "#0039A6")
      } else {
        geom_histogram(
@@ -567,7 +567,7 @@ observeEvent({c(input$w, input$z)}, {
 
   which_geom_z <- reactive({
     
-    req(graph_data()$data)
+    req(stored_data$data)
     
     switch(input$chart_type,
        "histogram" = {
@@ -672,7 +672,7 @@ observeEvent({c(input$w, input$z)}, {
   
   which_geom_w <- reactive({
     
-    req(graph_data()$data)
+    req(stored_data$data)
     
     switch(input$chart_type,
 	   "scatterplot" =
@@ -688,7 +688,7 @@ observeEvent({c(input$w, input$z)}, {
 
 which_geom_w_z <- reactive({
 
-  req(graph_data()$data)
+  req(stored_data$data)
   
   if (input$wrap == "grid") {
     geom_point(
@@ -715,7 +715,7 @@ which_geom_w_z <- reactive({
 output$plot_labels <- renderUI({
   
 
-  req(graph_data()$data)
+  req(stored_data$data)
   
 
   
@@ -788,9 +788,9 @@ output$plot_labels <- renderUI({
 output$drag_drop_x <- renderUI({
   
   req(input$x)
-  req(sapply(graph_data()$data[,input$x], class) %in% c("character", "factor"))
+  req(sapply(stored_data$data[,input$x], class) %in% c("character", "factor"))
   
-    choices <-  levels(unique(as.factor(graph_data()$data[[input$x]])))
+    choices <-  levels(unique(as.factor(stored_data$data[[input$x]])))
 
     selectizeInput("factor_order_x", "click and drag to reorder your x variable",
       choices =  choices,
@@ -806,9 +806,9 @@ output$drag_drop_x <- renderUI({
 output$drag_drop_y <- renderUI({
   
   req(input$y)
-  req(sapply(graph_data()$data[,input$y], class) %in% c("character", "factor"))
+  req(sapply(stored_data$data[,input$y], class) %in% c("character", "factor"))
   
-  choices <-  levels(unique(as.factor(graph_data()$data[[input$y]])))
+  choices <-  levels(unique(as.factor(stored_data$data[[input$y]])))
   
   selectizeInput("factor_order_y", "click and drag to reorder your x variable",
                  choices =  choices,
@@ -829,7 +829,7 @@ output$drag_drop_z <- renderUI({
     if (input$z_label != "") {
       choices <-  unlist(strsplit(input$z_label, ",", fixed = TRUE))
     } else {
-      choices <- levels(unique(as.factor(graph_data()$data[[input$z]])))
+      choices <- levels(unique(as.factor(stored_data$data[[input$z]])))
     }
 
     selectizeInput("factor_order_z", "click and drag to reorder your discrete variable:",
@@ -846,7 +846,7 @@ output$drag_drop_z <- renderUI({
     
     toggle("x_breaks",
            condition = (
-             class(graph_data()$data[[input$x]]) %in% c("double", "integer", "numeric"))
+             class(stored_data$data[[input$x]]) %in% c("double", "integer", "numeric"))
     ) 
   })
 
@@ -854,7 +854,7 @@ output$drag_drop_z <- renderUI({
     
     toggle("y_breaks",
            condition = (
-             class(graph_data()$data[[input$y]]) %in% c("double", "integer", "numeric"))
+             class(stored_data$data[[input$y]]) %in% c("double", "integer", "numeric"))
     ) 
   })
   
@@ -865,7 +865,7 @@ output$drag_drop_z <- renderUI({
 
   toggle("x_val_format",
       condition = (
-        class(graph_data()$data[[input$x]]) %in% c("double", "integer", "numeric"))
+        class(stored_data$data[[input$x]]) %in% c("double", "integer", "numeric"))
         ) 
     })
 
@@ -874,7 +874,7 @@ output$drag_drop_z <- renderUI({
   observeEvent(input$y, {
     toggle("y_val_format",
       condition = (
-        class(graph_data()$data[[input$y]]) %in% c("double", "integer", "numeric"))
+        class(stored_data$data[[input$y]]) %in% c("double", "integer", "numeric"))
         )
     })
 
@@ -894,12 +894,12 @@ output$drag_drop_z <- renderUI({
     # require chart type, data to be loaded, 
     # and an x variable to be selected before
     # rendering a plot
-    req(input$chart_type, graph_data()$data)
+    req(input$chart_type, stored_data$data)
     
 
   
     # generate base plot:
-  p <- ggplot(data = graph_data()$data) +
+  p <- ggplot(data = stored_data$data) +
     base_aes() +
     labs(y = "", title = input$y,
       caption = paste("Source: ", input$source_label, " | ", input$report_number, sep=""))
@@ -1011,8 +1011,8 @@ output$drag_drop_z <- renderUI({
         p <- p + scale_color_gradientn(
           colors = which_palette(),
           breaks = c(
-            min(graph_data()$data[input$w], na.rm = TRUE), 
-            max(graph_data()$data[input$w], na.rm = TRUE)
+            min(stored_data$data[input$w], na.rm = TRUE), 
+            max(stored_data$data[input$w], na.rm = TRUE)
             ),
           labels = c(plot_labels[1], plot_labels[2])
           )
@@ -1027,8 +1027,8 @@ output$drag_drop_z <- renderUI({
         p <- p + scale_fill_gradientn(
           colors = which_palette(),
           breaks = c(
-            min(graph_data()$data[input$w], na.rm = TRUE), 
-            max(graph_data()$data[input$w], na.rm = TRUE)
+            min(stored_data$data[input$w], na.rm = TRUE), 
+            max(stored_data$data[input$w], na.rm = TRUE)
             ),
           labels = c(plot_labels[1], plot_labels[2])
           )
@@ -1314,7 +1314,7 @@ output$bundle <- downloadHandler(
       file.copy("proof.Rmd", tempproof, overwrite = TRUE)
 
       # Set up parameters to pass to Rmd document
-      params <- list(data = graph_data()$data, plot = graph_it())
+      params <- list(data = stored_data$data, plot = graph_it())
 
       # Knit the document, passing in the `params` list, and eval it in a
       # child of the global environment (this isolates the code in the document
