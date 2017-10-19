@@ -732,7 +732,9 @@ output$plot_labels <- renderUI({
                      choices = c(
                        "keep as is" = "", "factor", "numeric"
                      ), inline = TRUE),
-      uiOutput("break_x"),
+      hidden(
+        textInput("x_breaks", "break after every nth point", "")
+      ),
       uiOutput("drag_drop_x"),
       textInput("y_label", "y-axis label"),
       hidden(
@@ -743,6 +745,9 @@ output$plot_labels <- renderUI({
                    choices = c(
                      "keep as is" = "", "factor", "numeric"
                    ), inline = TRUE),
+      hidden(
+        textInput("y_breaks", "break after every nth point", "")
+      ),
       uiOutput("drag_drop_y"),
       # TODO(ajae): consider whether it is worth restricting the conditions under
       # which the option to flip axes appears
@@ -777,12 +782,8 @@ output$plot_labels <- renderUI({
     )
 })
 
-output$break_x <- renderUI({
-  
-  req(input$x)
-  req(sapply(graph_data()$data[,input$x], class) %in% c("numeric"))
-  textInput("x_breaks", "break after every nth point", "")
-})
+
+
 
 output$drag_drop_x <- renderUI({
   
@@ -839,13 +840,32 @@ output$drag_drop_z <- renderUI({
       )
     })
 
+
+
+  observeEvent(input$x, {
+    
+    toggle("x_breaks",
+           condition = (
+             class(graph_data()$data[[input$x]]) %in% c("double", "integer", "numeric"))
+    ) 
+  })
+
+  observeEvent(input$y, {
+    
+    toggle("y_breaks",
+           condition = (
+             class(graph_data()$data[[input$y]]) %in% c("double", "integer", "numeric"))
+    ) 
+  })
+  
+
   # attempting to use the obvious test for numericness does not work here
   # only show the value formatters for x and y if the variables are numeric
   observeEvent(input$x, {
 
   toggle("x_val_format",
       condition = (
-        class(graph_data()$data[[input$x]])) %in% c("double", "integer", "numeric")
+        class(graph_data()$data[[input$x]]) %in% c("double", "integer", "numeric"))
         ) 
     })
 
@@ -854,7 +874,7 @@ output$drag_drop_z <- renderUI({
   observeEvent(input$y, {
     toggle("y_val_format",
       condition = (
-        class(graph_data()$data[[input$y]])) %in% c("double", "integer", "numeric")
+        class(graph_data()$data[[input$y]]) %in% c("double", "integer", "numeric"))
         )
     })
 
@@ -1064,14 +1084,14 @@ output$drag_drop_z <- renderUI({
 
   ## apply smoother to scatter plot -------------------------------------------
   if (!is.null(input[[paste0(plot_opts(), "scatter_option_smooth")]])) {
-    
+    # TO DO YOU CAN JUST CHANGE THIS BACK
     switch(input[[paste0(plot_opts(), "scatter_option_smooth")]],
       "loess" = {
         if (input[[paste0(plot_opts(), "scatter_option_smooth_group")]] == 'groups') {
           p <- p + geom_smooth(
             method = "loess",
-            aes_string(color = paste("factor(", input$z, ")")),
-            span = input[[paste0(plot_opts(), "scatter_option_loess_span")]],
+            aes(color =  stored_data$data[[input$z]]),          
+            span = input[[paste0(plot_opts(), "scatter_option_loess_span")]],           
             se = input[[paste0(plot_opts(), "scatter_option_smooth_se")]],
             linetype = "dashed"
           )
@@ -1091,7 +1111,7 @@ output$drag_drop_z <- renderUI({
         if (input[[paste0(plot_opts(), "scatter_option_smooth_group")]] == 'groups') {
           p <- p + geom_smooth(
             method = "lm",
-            aes_string(color = paste("factor(", input$z, ")")),
+            aes(color =  stored_data$data[[input$z]]),
             linetype = "dashed"
             )
         } else {
@@ -1148,17 +1168,22 @@ output$drag_drop_z <- renderUI({
     p <- p + labs(size = input$w_guide, color = input$z_guide, fill = "")
   }
   
-  print (input$x_breaks)
-  if (! is.null(input$x_breaks)){
-    if (input$x_breaks != ''){
-      seq <- as.numeric(unlist(strsplit(input$x_breaks, ",", fixed = TRUE)))
-      
-      p <- p + scale_x_continuous(breaks = seq(from = seq[1],
-                                               to = seq[2],
-                                               by = seq[3]))      
-    }
-
+  if (input$x_breaks != ''){
+    seq <- as.numeric(unlist(strsplit(input$x_breaks, ",", fixed = TRUE)))
+    
+    p <- p + scale_x_continuous(breaks = seq(from = seq[1],
+                                             to = seq[2],
+                                             by = seq[3]))      
   }
+  
+  if (input$y_breaks != ''){
+    seq <- as.numeric(unlist(strsplit(input$y_breaks, ",", fixed = TRUE)))
+    
+    p <- p + scale_y_continuous(breaks = seq(from = seq[1],
+                                             to = seq[2],
+                                             by = seq[3]))      
+  }
+
   
   if (input$x_val_format != "") {
     switch(input$x_val_format,
