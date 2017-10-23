@@ -846,7 +846,7 @@ output$drag_drop_z <- renderUI({
     
     toggle("x_breaks",
            condition = (
-             class(stored_data$data[[input$x]]) %in% c("double", "integer", "numeric"))
+             class(stored_data$data[[input$x]]) %in% c("double", "integer", "numeric", "Date"))
     ) 
   })
 
