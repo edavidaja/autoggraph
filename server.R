@@ -89,8 +89,8 @@ shinyServer(function(input, output, session) {
 
   # make.names() is used to coerce all column names to valid R names after using
   # read_csv() or read_excel()
-  graph_data <- reactive({
-    
+  observeEvent(input$infile, {
+
     req(input$infile$name)
 
     ext <- tools::file_ext(input$infile$name)
@@ -110,8 +110,6 @@ shinyServer(function(input, output, session) {
       stored_data$data <- temp
       stored_data$orig_data <- temp
     }
-    stored_data
-    
   })
   
   # Variable selectors ----------------------------------------------------------
@@ -120,7 +118,7 @@ shinyServer(function(input, output, session) {
   # for the selected plot type
   output$variable_selector <- renderUI({
     
-    req(graph_data()$orig_data)
+    req(stored_data$orig_data)
     
     isolate({
 
