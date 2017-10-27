@@ -92,7 +92,9 @@ shinyServer(function(input, output, session) {
   observeEvent(input$infile, {
 
     req(input$infile$name)
-
+  
+    print (paste(input$x, 'we are the start'))
+    
     ext <- tools::file_ext(input$infile$name)
     if (ext == "xls") {
       req(input$which_sheet)
@@ -107,9 +109,9 @@ shinyServer(function(input, output, session) {
     } else if (ext == "csv") {
       temp <- read_csv(input$infile$datapath)
       names(temp) %<>% make.names(., unique = TRUE)
-      stored_data$data <- temp
-      stored_data$orig_data <- temp
     }
+    stored_data$data <- temp
+    stored_data$orig_data <- temp
   })
   
   # Variable selectors ----------------------------------------------------------
@@ -119,22 +121,23 @@ shinyServer(function(input, output, session) {
   output$variable_selector <- renderUI({
     
     req(stored_data$orig_data)
+    req(input$infile$name)
+  
+    print (names(stored_data$orig_data))
     
-    isolate({
-
     list(
       conditionalPanel(
         condition = "input.chart_type != '' & input.chart_type != 'pie'",
         selectInput("x",
          "select your x variable:",
-         choices =  c("x variable" = "", names(stored_data$data))
+         choices =  c("x variable" = "", names(stored_data$orig_data))
          )
         ),
         conditionalPanel(
           condition = "input.chart_type != 'density' & input.chart_type != 'histogram'", 
           selectInput("y",
             "select your y variable:",
-            choices =  c("y variable" = "", names(stored_data$data))
+            choices =  c("y variable" = "", names(stored_data$orig_data))
             )
           ),
        conditionalPanel(
@@ -145,14 +148,14 @@ shinyServer(function(input, output, session) {
             input.chart_type == 'area') &
             input.x != ''",
           selectInput("reorder_x", label = "reorder your x axis", 
-            choices = c("order by" = "", names(stored_data$data))
+            choices = c("order by" = "", names(stored_data$orig_data))
           )
         ),
         conditionalPanel(
           condition = "input.chart_type != 'heatmap'",
           selectInput("z",
             "add an additional discrete variable:",
-            choices =  c("discrete variable" = "", names(stored_data$data))
+            choices =  c("discrete variable" = "", names(stored_data$orig_data))
             )
           ),
         conditionalPanel(
@@ -175,7 +178,7 @@ shinyServer(function(input, output, session) {
           condition = "input.chart_type == 'heatmap' | input.chart_type == 'scatterplot'",
           selectInput("w",
             "add an additional continuous variable:",
-            choices =  c("continuous variable" = "", names(stored_data$data))
+            choices =  c("continuous variable" = "", names(stored_data$orig_data))
             )
           ),
         conditionalPanel(
@@ -187,7 +190,6 @@ shinyServer(function(input, output, session) {
           ),
         actionButton("do_plot", "can i have your autoggraph?", icon = icon("area-chart"))
       )
-    })
   })
 
   # plot specific options -----------------------------------------------------
