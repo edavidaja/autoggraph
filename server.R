@@ -112,7 +112,7 @@ shinyServer(function(input, output, session) {
   output$variable_selector <- renderUI({
 
     req(graph_data())
-
+    print(input$x)
     list(
       conditionalPanel(
         condition = "input.chart_type != '' & input.chart_type != 'pie'",
@@ -817,16 +817,11 @@ output$drag_drop_z <- renderUI({
     req(input$chart_type, graph_data(), input$x)
     
     # generate base plot:
-<<<<<<< HEAD
-    p <- ggplot(data = graph_data()) + base_aes() + labs(y = "", title = input$y)
-    
-=======
   p <- ggplot(data = graph_data()) +
     base_aes() +
     labs(y = "", title = input$y,
       caption = paste("Source: ", input$source_label, " | ", input$report_number, sep=""))
 
->>>>>>> f7faf2af8e537053a55555fb9eb1efa391d3f006
     # add geom function depending on selected variables
     # only x or x & y
   if (input$z == "" & input$w == "") {
