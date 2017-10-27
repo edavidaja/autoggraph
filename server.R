@@ -92,8 +92,6 @@ shinyServer(function(input, output, session) {
   observeEvent(input$infile, {
 
     req(input$infile$name)
-  
-    print (paste(input$x, 'we are the start'))
     
     ext <- tools::file_ext(input$infile$name)
     if (ext == "xls") {
@@ -114,6 +112,12 @@ shinyServer(function(input, output, session) {
     stored_data$orig_data <- temp
   })
   
+  reactiveName <- reactive({
+    names(stored_data$orig_data)
+  })
+  
+  
+  
   # Variable selectors ----------------------------------------------------------
   # variable selectors are rendered once graph data is uploaded
   # conditional panels are used to display only the relevant input variables
@@ -123,8 +127,6 @@ shinyServer(function(input, output, session) {
     req(stored_data$orig_data)
     req(input$infile$name)
   
-    print (names(stored_data$orig_data))
-    
     list(
       conditionalPanel(
         condition = "input.chart_type != '' & input.chart_type != 'pie'",
@@ -418,6 +420,8 @@ observeEvent({c(input$w, input$z)}, {
   # aesthetics ----------------------------------------------------------------
   
   base_aes <- reactive({
+  
+    req(reactiveName())
     
     # return aesthetics based on which combinations of  
     # data input fields are selected
@@ -442,30 +446,26 @@ observeEvent({c(input$w, input$z)}, {
       }
     }
 
-    print (input$type_variable)
-    
-    if (! is.null(input$factor_order_x)){
+    if (! is.null(input$factor_order_x) & input$x != ''){
       
       if (sapply(stored_data$data[,input$x], class) %in% c("character", "factor")){
         stored_data$data[[input$x]] <- factor(stored_data$data[[input$x]], levels = input$factor_order_x)
       }
     }
     
-    if (!is.null(input$factor_order_y)){
+    if (!is.null(input$factor_order_y) & input$y != ''){
       
       if (sapply(stored_data$data[,input$y], class) %in% c("character", "factor")){
         stored_data$data[[input$y]] <- factor(stored_data$data[[input$y]], levels = input$factor_order_y)
       }
     }
     
-    if (!is.null(input$factor_order_z)){
+    if (!is.null(input$factor_order_z) & input$z != ''){
       
       if (sapply(stored_data$data[,input$z], class) %in% c("character", "factor")){
         stored_data$data[[input$z]] <- factor(stored_data$data[[input$z]], levels = input$factor_order_z)
       }
     }
-    
-
     
     if (input$reorder_x != ""){
       
