@@ -89,7 +89,7 @@ shinyServer(function(input, output, session) {
     ext <- tools::file_ext(input$infile$name)
     if (ext == "xls") {
       req(input$which_sheet)
-      temp <- read_xlsx(input$infile$datapath, sheet = input$which_sheet)
+      temp <- read_xls(input$infile$datapath, sheet = input$which_sheet)
       names(temp) %<>% make.names(., unique = TRUE)
       temp
     } else if (ext == "xlsx") {
