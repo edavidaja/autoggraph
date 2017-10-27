@@ -48,10 +48,6 @@ shinyServer(function(input, output, session) {
     js$showFileModified()
   })
 
-  # set up new factor order
-  new_factor_order <- reactiveValues(order = NULL, data = NULL, reorder = FALSE)
-  new_z_order      <- reactiveValues(order = NULL, data = NULL, choices = NULL, reorder = FALSE)
-
   # bookmarking state ----------------------------------------------------------
   # since the plot_opts id is randomly generated, onBookmark must be used in
   # order to save its state 
@@ -828,6 +824,7 @@ output$drag_drop_z <- renderUI({
     
     if (input$z_label != "") {
       choices <-  unlist(strsplit(input$z_label, ",", fixed = TRUE))
+      levels(stored_data$data[[input$z]]) <- choices
     } else {
       choices <- levels(unique(as.factor(stored_data$data[[input$z]])))
     }
@@ -950,11 +947,9 @@ output$drag_drop_z <- renderUI({
             )
         }
       } else { # apply custom labels
-        if (new_z_order$reorder == TRUE) {
-          plot_labels <- input$factor_order_z
-        } else {
-          plot_labels <- unlist(strsplit(input$z_label, ",", fixed = TRUE))
-        }
+        
+        plot_labels <- unlist(strsplit(input$z_label, ",", fixed = TRUE))
+        
         if (input$chart_type %in% c("histogram", "boxplot", "bar")) {
           p <- p + scale_fill_manual(values = which_palette(), labels = plot_labels)
           p <- p + guides(fill = guide_legend(title.position = "top", ncol = 1))
