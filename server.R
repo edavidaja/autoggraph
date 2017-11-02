@@ -41,12 +41,102 @@ shinyServer(function(input, output, session) {
       includeHTML("www/ins.html")
     }
   })
-
+  
+  # set up a counter for dynamic reshaping ----------------------------------
+  counter <- reactiveValues(countervalue = 0) 
+  
+  observeEvent(input$add1, {
+    counter$countervalue <- counter$countervalue + 1     # if the add button is clicked, increment the value by 1 and update it
+  })
+  observeEvent(input$sub1, {
+    counter$countervalue <- counter$countervalue - 1  # if the sub button is clicked, decrement the value by 1 and update it
+  })
+  observeEvent(input$reset, {
+    counter$countervalue <- 0                     # if the reset button is clicked, set the counter value to zero
+  })
+  
+  output$reshape_page <- renderUI({
+    textOutput('I want to...')
+  })
+  
+  # set up reshaping --------------------------------------------------------
+  
+  
+  output$reshape_me <- renderUI({
+    
+    req(input$infile)
+    
+    req(counter$countervalue > 0)
+    
+    lapply(1:counter$countervalue, function(i) {
+      list(selectInput(paste0('reshape_variables', i), "",
+                       choices = list(
+                         `select a what you want to do` = "",
+                         'make my data longer',
+                         'make my data wider',
+                         'separate columns',
+                         'unite columns',
+                         'summarise',
+                         'transform',
+                         'recode a numeric variable',
+                         'recode a character/factor variable'
+                       )
+      ),
+      selectizeInput(paste0('select_variables', i), 
+                     label = 'select which variables you want to do it to', 
+                     choices = names(stored_data$data), selected = NULL, multiple = TRUE,
+                     options = NULL)
+      )
+    })
+  })
+  
+  
+  output$table_btn <- renderUI({
+    actionButton("do_table", "can you reshape me?", icon = icon("area-chart"))
+  })
+  
+  do_reshaping <- eventReactive({c(input$do_table)}, {
+    
+    
+    if (counter$countervalue == 0){
+      
+      stored_data$data <- stored_data$orig_data
+      
+    }
+    else{
+      for (i in counter$countervalue){
+        
+          if (input[[paste0('reshape_variables', i)]] != '' &
+              input[[paste0('select_variables', i)]] != '')
+          {
+            
+            stored_data$data <- stored_data$data %>%
+              when(
+                (input[[paste0('reshape_variables', i)]] == 'make my data longer') ~ 
+                  stored_data$data %>% gather_('key', 'value', input[[paste0('select_variables', i)]])
+              )
+          }
+        
+      }
+    }
+    
+    stored_data$data %>% head()
+  
+  })
+  
+  
+  
+  output$table <- renderTable(
+      do_reshaping()
+  )
+  
   # the custom javascript function for recovering the modification time of the
   # uploaded file is executed whenever a file is uploaded
   observeEvent(input$infile, {
     js$showFileModified()
   })
+
+
 
   # bookmarking state ----------------------------------------------------------
   # since the plot_opts id is randomly generated, onBookmark must be used in
@@ -915,6 +1005,7 @@ output$drag_drop_z <- renderUI({
     p
   })
   
+
   # plot builder --------------------------------------------------------------
   graph_it <- eventReactive({c(input$do_plot, input$infile)}, {
     # require chart type, data to be loaded, 
