@@ -6,13 +6,14 @@ library(RColorBrewer)
 library(shiny)
 library(shinyjs)
 library(magrittr)
-library(extrafont)
+library(svglite)
+# library(extrafont)
 
 # gao theme -------------------------------------------------------------------
 theme_gao <- list(
   theme_minimal(),
   theme(
-    text = element_text(family = "Liberation Sans"),
+    # text = element_text(family = "Liberation Sans"),
     plot.caption = element_text(hjust = 0, size = 6),
     legend.position = "bottom",
     legend.justification = "left",
