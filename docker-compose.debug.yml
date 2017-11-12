@@ -1,0 +1,10 @@
+version: '2.1'
+
+services:
+  autoggraph:
+    image: autoggraph
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 8787:8787
