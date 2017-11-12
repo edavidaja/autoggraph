@@ -1,12 +1,5 @@
 image: rocker/verse 
 
-cache:
-  paths:
-    # Packrat packages
-    - packrat/lib
-    # PhantomJS
-    - gitlab_phantomjs
-
 # Install PhantomJS (if not cached)
 before_script:
   - R -e 'if (system.file(package="packrat") == "") install.packages("packrat")'
