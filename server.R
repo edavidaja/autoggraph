@@ -55,80 +55,80 @@ shinyServer(function(input, output, session) {
     counter$countervalue <- 0                     # if the reset button is clicked, set the counter value to zero
   })
   
-  output$reshape_page <- renderUI({
-    textOutput('I want to...')
-  })
+  # output$reshape_page <- renderUI({
+  #   textOutput('I want to...')
+  # })
   
   # set up reshaping --------------------------------------------------------
   
   
-  output$reshape_me <- renderUI({
-    
-    req(input$infile)
-    
-    req(counter$countervalue > 0)
-    
-    lapply(1:counter$countervalue, function(i) {
-      list(selectInput(paste0('reshape_variables', i), "",
-                       choices = list(
-                         `select a what you want to do` = "",
-                         'make my data longer',
-                         'make my data wider',
-                         'separate columns',
-                         'unite columns',
-                         'summarise',
-                         'transform',
-                         'recode a numeric variable',
-                         'recode a character/factor variable'
-                       )
-      ),
-      selectizeInput(paste0('select_variables', i), 
-                     label = 'select which variables you want to do it to', 
-                     choices = names(stored_data$data), selected = NULL, multiple = TRUE,
-                     options = NULL)
-      )
-    })
-  })
-  
-  
-  output$table_btn <- renderUI({
-    actionButton("do_table", "can you reshape me?", icon = icon("area-chart"))
-  })
-  
-  do_reshaping <- eventReactive({c(input$do_table)}, {
-    
-    
-    if (counter$countervalue == 0){
-      
-      stored_data$data <- stored_data$orig_data
-      
-    }
-    else{
-      for (i in counter$countervalue){
-        
-          if (input[[paste0('reshape_variables', i)]] != '' &
-              input[[paste0('select_variables', i)]] != '')
-          {
-            
-            stored_data$data <- stored_data$data %>%
-              when(
-                (input[[paste0('reshape_variables', i)]] == 'make my data longer') ~ 
-                  stored_data$data %>% gather_('key', 'value', input[[paste0('select_variables', i)]])
-              )
-          }
-        
-      }
-    }
-    
-    stored_data$data %>% head()
-  
-  })
-  
-  
-  
-  output$table <- renderTable(
-      do_reshaping()
-  )
+  # output$reshape_me <- renderUI({
+  #   
+  #   req(input$infile)
+  #   
+  #   req(counter$countervalue > 0)
+  #   
+  #   lapply(1:counter$countervalue, function(i) {
+  #     list(selectInput(paste0('reshape_variables', i), "",
+  #                      choices = list(
+  #                        `select a what you want to do` = "",
+  #                        'make my data longer',
+  #                        'make my data wider',
+  #                        'separate columns',
+  #                        'unite columns',
+  #                        'summarise',
+  #                        'transform',
+  #                        'recode a numeric variable',
+  #                        'recode a character/factor variable'
+  #                      )
+  #     ),
+  #     selectizeInput(paste0('select_variables', i), 
+  #                    label = 'select which variables you want to do it to', 
+  #                    choices = names(stored_data$data), selected = NULL, multiple = TRUE,
+  #                    options = NULL)
+  #     )
+  #   })
+  # })
+  # 
+  # 
+  # output$table_btn <- renderUI({
+  #   actionButton("do_table", "can you reshape me?", icon = icon("area-chart"))
+  # })
+  # 
+  # do_reshaping <- eventReactive({c(input$do_table)}, {
+  #   
+  #   
+  #   if (counter$countervalue == 0){
+  #     
+  #     stored_data$data <- stored_data$orig_data
+  #     
+  #   }
+  #   else{
+  #     for (i in counter$countervalue){
+  #       
+  #         if (input[[paste0('reshape_variables', i)]] != '' &
+  #             input[[paste0('select_variables', i)]] != '')
+  #         {
+  #           
+  #           stored_data$data <- stored_data$data %>%
+  #             when(
+  #               (input[[paste0('reshape_variables', i)]] == 'make my data longer') ~ 
+  #                 stored_data$data %>% gather_('key', 'value', input[[paste0('select_variables', i)]])
+  #             )
+  #         }
+  #       
+  #     }
+  #   }
+  #   
+  #   stored_data$data %>% head()
+  # 
+  # })
+  # 
+  # 
+  # 
+  # output$table <- renderTable(
+  #     do_reshaping()
+  # )
   
   # the custom javascript function for recovering the modification time of the
   # uploaded file is executed whenever a file is uploaded
@@ -541,7 +541,7 @@ observeEvent({c(input$w, input$z)}, {
     }
     
     if (! is.null(input$factor_order_x) & input$x != ''){
-      
+
       if (sapply(stored_data$data[,input$x], class) %in% c("character", "factor")){
         stored_data$data[[input$x]] <- factor(stored_data$data[[input$x]], levels = input$factor_order_x)
       }
@@ -560,11 +560,16 @@ observeEvent({c(input$w, input$z)}, {
         stored_data$data[[input$z]] <- factor(stored_data$data[[input$z]], levels = input$factor_order_z)
       }
     }
-    
+    # TODO check if factor
     if (input$reorder_x != ""){
-      
-      stored_data$data[[input$x]] <- reorder(stored_data$data[[input$x]], stored_data$data[[input$reorder_x]])
-    }    
+      if (sapply(stored_data$data[,input$x], class) %in% c("character", "factor")){
+        stored_data$data[[input$x]] <- (reorder(stored_data$data[[input$x]], stored_data$data[[input$reorder_x]]))
+      }
+      else{
+        stored_data$data[[input$x]] <- as.numeric(reorder(stored_data$data[[input$x]], stored_data$data[[input$reorder_x]]))
+        
+      }
+    }
   })
   
 
@@ -935,21 +940,6 @@ reactiveChoice <- reactive({
   choices
   
 })
-  
-output$drag_drop_z <- renderUI({
-  
-  req(input$z)
-  req(input$z %in% names(stored_data$data))
-  req(sapply(stored_data$data[,input$z], class) %in% c("character", "factor"))
-
-    selectizeInput("factor_order_z", "click and drag to reorder your discrete variable:",
-      choices = reactiveChoice(),
-      selected = reactiveChoice(),
-      multiple = TRUE, 
-      options = list(plugins = list("drag_drop"))
-      )
-    })
-
 
 
   observeEvent(input$x, {
@@ -966,6 +956,15 @@ output$drag_drop_z <- renderUI({
            condition = (
              class(stored_data$data[[input$y]]) %in% c("double", "integer", "numeric"))
     ) 
+  })
+  
+  # z is alawys a factor!
+  observeEvent(input$z, {
+    
+    req(input$z)
+    
+    stored_data$data[[input$z]] <- factor(stored_data$data[[input$z]])
+    
   })
   
 
@@ -989,6 +988,20 @@ output$drag_drop_z <- renderUI({
     })
 
   observeEvent(input$fine_tuning, toggle("fine_tuning_well"))
+  
+  
+  output$drag_drop_z <- renderUI({
+    
+    req(input$z)
+    req(input$z %in% names(stored_data$data))
+
+    selectizeInput("factor_order_z", "click and drag to reorder your discrete variable:",
+                   choices = reactiveChoice(),
+                   selected = reactiveChoice(),
+                   multiple = TRUE, 
+                   options = list(plugins = list("drag_drop"))
+    )
+  })
 
   output$preview <- downloadHandler(
   filename = function() {
