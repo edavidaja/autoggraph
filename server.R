@@ -7,8 +7,9 @@ library(shiny)
 library(shinyjs)
 library(magrittr)
 library(extrafont)
-library(dplyr)
-library(tidyr)
+# TODO(portnows): I didn't see aything below that required the libs in this branch
+# library(dplyr)
+# library(tidyr)
 
 
 # gao theme -------------------------------------------------------------------
@@ -514,9 +515,9 @@ observeEvent({c(input$w, input$z)}, {
     "heatmap" = updateSelectInput(session, "palette_selector", selected = "diverging")
     )
 })
-
+# TODO(portnows): can we call this something more like what it does? "set_var_types", perhaps?
   change_vars <- reactive({
-    
+    # TODO(portnows): can you leave a comment here explaining what this does? It's not obvious from looking
     req(input$x %in% names(stored_data$data) | input$y %in% names(stored_data$data) | input$z %in% names(stored_data$data))
     
   
@@ -913,7 +914,7 @@ output$drag_drop_y <- renderUI({
   
   choices <-  levels(unique(as.factor(stored_data$data[[input$y]])))
   
-  selectizeInput("factor_order_y", "click and drag to reorder your x variable",
+  selectizeInput("factor_order_y", "click and drag to reorder your y variable",
                  choices =  choices,
                  selected =  choices,
                  multiple = TRUE, 
@@ -924,6 +925,7 @@ output$drag_drop_y <- renderUI({
   
 })
 
+# TODO(portnows): can we call this z_levels so that its relationship to the factors of z is more clear?
 reactiveChoice <- reactive({
   
   if (input$z_label != "") {
@@ -932,14 +934,14 @@ reactiveChoice <- reactive({
     } 
   else if (input$z != '') {
     choices <- levels(unique(as.factor(stored_data$data[[input$z]])))
-  }
-  else{
+  } else{
     choices <- NULL  
   }
   
   choices
   
 })
+
 
 
   observeEvent(input$x, {
