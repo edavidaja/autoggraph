@@ -6,7 +6,7 @@ library(RColorBrewer)
 library(shiny)
 library(shinyjs)
 library(magrittr)
-library(extrafont)
+# library(extrafont)
 # TODO(portnows): I didn't see aything below that required the libs in this branch
 # library(dplyr)
 # library(tidyr)
@@ -16,7 +16,7 @@ library(extrafont)
 theme_gao <- list(
   theme_minimal(),
   theme(
-    text = element_text(family = "Liberation Sans"),
+    # text = element_text(family = "Liberation Sans"),
     plot.caption = element_text(hjust = 0, size = 6),
     legend.position = "bottom",
     legend.justification = "left",
@@ -514,68 +514,66 @@ observeEvent({c(input$w, input$z)}, {
     },
     "heatmap" = updateSelectInput(session, "palette_selector", selected = "diverging")
     )
-})
-# TODO(portnows): can we call this something more like what it does? "set_var_types", perhaps?
-  change_vars <- reactive({
+  })
+
+  set_var_types <- reactive({
     # TODO(portnows): can you leave a comment here explaining what this does? It's not obvious from looking
     req(input$x %in% names(stored_data$data) | input$y %in% names(stored_data$data) | input$z %in% names(stored_data$data))
     
   
-    if (input$type_variable != ''){
+    if (input$type_variable != ""){
       
-      if (input$type_variable == 'factor'){
+      if (input$type_variable == "factor") {
         stored_data$data[[input$x]] <- as.factor(as.character(stored_data$data[[input$x]]))
       }
-      else if (input$type_variable == 'numeric'){
+      else if (input$type_variable == "numeric") {
         stored_data$data[[input$x]] <- as.numeric(as.character(stored_data$data[[input$x]]))
       }
     }
     
-    if (input$type_variable_y != ''){
+    if (input$type_variable_y != ""){
       
-      if (input$type_variable_y == 'factor'){
+      if (input$type_variable_y == "factor") {
         stored_data$data[[input$y]] <- as.factor(as.character(stored_data$data[[input$y]]))
       }
-      else if (input$type_variable_y == 'numeric'){
+      else if (input$type_variable_y == "numeric"){
         stored_data$data[[input$y]] <- as.numeric(as.character(stored_data$data[[input$y]]))
       }
     }
     
-    if (! is.null(input$factor_order_x) & input$x != ''){
+    if (! is.null(input$factor_order_x) & input$x != "") {
 
-      if (sapply(stored_data$data[,input$x], class) %in% c("character", "factor")){
+      if (sapply(stored_data$data[,input$x], class) %in% c("character", "factor")) {
         stored_data$data[[input$x]] <- factor(stored_data$data[[input$x]], levels = input$factor_order_x)
       }
     }
     
-    if (!is.null(input$factor_order_y) & input$y != ''){
+    if (!is.null(input$factor_order_y) & input$y != "") {
       
-      if (sapply(stored_data$data[,input$y], class) %in% c("character", "factor")){
+      if (sapply(stored_data$data[,input$y], class) %in% c("character", "factor")) {
         stored_data$data[[input$y]] <- factor(stored_data$data[[input$y]], levels = input$factor_order_y)
       }
     }
     
-    if (!is.null(input$factor_order_z) & input$z != ''){
+    if (!is.null(input$factor_order_z) & input$z != "") {
       
-      if (sapply(stored_data$data[,input$z], class) %in% c("character", "factor")){
+      if (sapply(stored_data$data[,input$z], class) %in% c("character", "factor")) {
         stored_data$data[[input$z]] <- factor(stored_data$data[[input$z]], levels = input$factor_order_z)
       }
     }
     # TODO check if factor
-    if (input$reorder_x != ""){
-      if (sapply(stored_data$data[,input$x], class) %in% c("character", "factor")){
+    if (input$reorder_x != "") {
+      if (sapply(stored_data$data[,input$x], class) %in% c("character", "factor")) {
         stored_data$data[[input$x]] <- (reorder(stored_data$data[[input$x]], stored_data$data[[input$reorder_x]]))
-      }
-      else{
+      } else {
         stored_data$data[[input$x]] <- as.numeric(reorder(stored_data$data[[input$x]], stored_data$data[[input$reorder_x]]))
-        
       }
     }
   })
   
 
   base_aes <- reactive({
-        # return aesthetics based on which combinations of  
+    # return aesthetics based on which combinations of  
     # data input fields are selected
     # x only
     
@@ -727,21 +725,17 @@ observeEvent({c(input$w, input$z)}, {
        "bar" = {
          if (input$y == "") {  
           geom_bar(
-            aes(
-              fill = stored_data$data[[input$z]],
+            aes(fill = stored_data$data[[input$z]]),
               position =  input[[paste0(plot_opts(), "bar_type")]],
               color = "black"
-              )
            )
          } else {
            geom_bar(
-             aes(
-               fill = stored_data$data[[input$z]],
-               position =  input[[paste0(plot_opts(), "bar_type")]],
-               stat = "identity",
-               color = "black"
-             )
-           )
+              aes(fill = stored_data$data[[input$z]]),
+                position =  input[[paste0(plot_opts(), "bar_type")]],
+                stat = "identity",
+                color = "black"
+            )
          }
        },
        "pointrange" = geom_pointrange(
@@ -902,8 +896,6 @@ output$drag_drop_x <- renderUI({
       options = list(plugins = list("drag_drop"))
       
       )
-  
-
 })
 
 output$drag_drop_y <- renderUI({
@@ -914,27 +906,26 @@ output$drag_drop_y <- renderUI({
   
   choices <-  levels(unique(as.factor(stored_data$data[[input$y]])))
   
-  selectizeInput("factor_order_y", "click and drag to reorder your y variable",
-                 choices =  choices,
-                 selected =  choices,
-                 multiple = TRUE, 
-                 options = list(plugins = list("drag_drop"))
-                 
+  selectizeInput(
+    "factor_order_y", "click and drag to reorder your y variable",
+      choices =  choices,
+      selected =  choices,
+      multiple = TRUE, 
+      options = list(plugins = list("drag_drop"))            
   )
   
   
 })
 
-# TODO(portnows): can we call this z_levels so that its relationship to the factors of z is more clear?
-reactiveChoice <- reactive({
+z_levels <- reactive({
   
   if (input$z_label != "") {
     choices <-  unlist(strsplit(input$z_label, ",", fixed = TRUE))
     levels(stored_data$data[[input$z]]) <- choices
     } 
-  else if (input$z != '') {
+  else if (input$z != "") {
     choices <- levels(unique(as.factor(stored_data$data[[input$z]])))
-  } else{
+  } else {
     choices <- NULL  
   }
   
@@ -942,21 +933,19 @@ reactiveChoice <- reactive({
   
 })
 
-
-
   observeEvent(input$x, {
     
     toggle("x_breaks",
-           condition = (
-             class(stored_data$data[[input$x]]) %in% c("double", "integer", "numeric", "Date"))
+      condition = (
+        class(stored_data$data[[input$x]]) %in% c("double", "integer", "numeric", "Date"))
     ) 
   })
 
   observeEvent(input$y, {
     
     toggle("y_breaks",
-           condition = (
-             class(stored_data$data[[input$y]]) %in% c("double", "integer", "numeric"))
+      condition = (
+        class(stored_data$data[[input$y]]) %in% c("double", "integer", "numeric"))
     ) 
   })
   
@@ -980,8 +969,6 @@ reactiveChoice <- reactive({
         ) 
     })
 
-
-  
   observeEvent(input$y, {
     toggle("y_val_format",
       condition = (
@@ -991,17 +978,17 @@ reactiveChoice <- reactive({
 
   observeEvent(input$fine_tuning, toggle("fine_tuning_well"))
   
-  
   output$drag_drop_z <- renderUI({
     
     req(input$z)
     req(input$z %in% names(stored_data$data))
 
-    selectizeInput("factor_order_z", "click and drag to reorder your discrete variable:",
-                   choices = reactiveChoice(),
-                   selected = reactiveChoice(),
-                   multiple = TRUE, 
-                   options = list(plugins = list("drag_drop"))
+    selectizeInput("factor_order_z",
+      "click and drag to reorder your discrete variable:",
+        choices  = z_levels(),
+        selected = z_levels(),
+        multiple = TRUE, 
+        options  = list(plugins = list("drag_drop"))
     )
   })
 
@@ -1015,8 +1002,7 @@ reactiveChoice <- reactive({
   })
   
   kill_graph <- reactive({
-    p <- basePlot() + 
-     aes()
+    p <- basePlot() + aes()
     p
   })
   
@@ -1028,9 +1014,8 @@ reactiveChoice <- reactive({
     # rendering a plot
     req(input$chart_type, input$infile)
 
-    
     # first make sure to change vars
-    change_vars()
+    set_var_types()
     # make sure this is updated! 
     # generate base plot:
     p <- basePlot() + 
@@ -1101,8 +1086,7 @@ reactiveChoice <- reactive({
           p <- p + scale_color_manual(values = which_palette(), labels = plot_labels)
           p <- p + scale_shape_manual(values = c(15, 16, 17, 18, 3, 8, 7), labels = plot_labels)
           p <- p + guides(
-            color = guide_legend(input$z, order = 1, title.position = "top", ncol = 1,
-              override.aes = list(alpha = 1, size = 3)),
+            color = guide_legend(input$z, order = 1, title.position = "top", ncol = 1, override.aes = list(alpha = 1, size = 3)),
             shape = guide_legend(input$z, order = 1, title.position = "top", ncol = 1 ),
             fill  = guide_legend(order = 2)
             )
@@ -1300,20 +1284,20 @@ reactiveChoice <- reactive({
     p <- p + labs(size = input$w_guide, color = input$z_guide, fill = "")
   }
   
-  if (input$x_breaks != ''){
+  if (input$x_breaks != "") {
     seq <- as.numeric(unlist(strsplit(input$x_breaks, ",", fixed = TRUE)))
     
-    p <- p + scale_x_continuous(breaks = seq(from = seq[1],
-                                             to = seq[2],
-                                             by = seq[3]))      
+    p <- p + scale_x_continuous(
+      breaks = seq(from = seq[1], to = seq[2], by = seq[3])
+      )      
   }
   
-  if (input$y_breaks != ''){
+  if (input$y_breaks != "") {
     seq <- as.numeric(unlist(strsplit(input$y_breaks, ",", fixed = TRUE)))
     
-    p <- p + scale_y_continuous(breaks = seq(from = seq[1],
-                                             to = seq[2],
-                                             by = seq[3]))      
+    p <- p + scale_y_continuous(
+      breaks = seq(from = seq[1], to = seq[2], by = seq[3])
+      )
   }
 
   
