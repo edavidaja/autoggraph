@@ -1,8 +1,7 @@
-image: edavidaja/autoggraph
+image: edavidaja/autoggraph:latest
 
 # restore packrat if not cached
 before_script:
-  - R -e 'if (system.file(package="packrat") == "") install.packages("packrat")'
   - R -e "packrat::packify(); packrat::restore()"
 
 shiny_tests:

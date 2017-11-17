@@ -23,5 +23,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   phantomjs --version
 
 COPY . /home/rstudio/autoggraph
+WORKDIR /home/rstudio/autoggraph
 
 RUN R -e 'if (system.file(package="packrat") == "") install.packages("packrat")'
+RUN R -e "packrat::packify(); packrat::restore()"
