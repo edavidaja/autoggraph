@@ -1,6 +1,6 @@
 image: edavidaja/autoggraph
 
-# Install PhantomJS (if not cached)
+# restore packrat if not cached
 before_script:
   - R -e 'if (system.file(package="packrat") == "") install.packages("packrat")'
   - R -e "packrat::packify(); packrat::restore()"
@@ -8,3 +8,6 @@ before_script:
 shiny_tests:
   script:
     - R -f run_tests.R
+  cache:
+    paths:
+      - packrat/lib

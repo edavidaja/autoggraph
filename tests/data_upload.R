@@ -7,6 +7,6 @@ app$setInputs(
   )
 app$uploadFile(infile = "iris_dat.csv")
 # Input '`shinyjs-resettable-y_label`' was set, but doesn't have an input binding.
-app$snapshot()
+app$snapshot(items = list(input = TRUE, output = "graph"))
 app$uploadFile(infile = "iris_dat.xlsx")
-app$snapshot()
+app$snapshot(items = list(input = TRUE, output = "graph"))
