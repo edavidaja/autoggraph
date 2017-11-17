@@ -1,4 +1,3 @@
-
 FROM rocker/verse
 LABEL Name=autoggraph Version=0.0.1 
 
