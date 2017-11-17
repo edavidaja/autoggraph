@@ -1,15 +1,9 @@
-image: rocker/verse 
+image: edavidaja/autoggraph
 
 # Install PhantomJS (if not cached)
 before_script:
   - R -e 'if (system.file(package="packrat") == "") install.packages("packrat")'
   - R -e "packrat::packify(); packrat::restore()"
-  - "export PHANTOMJS_VERSION=2.1.1"
-  - "export PATH=$PWD/gitlab_phantomjs/phantomjs-$PHANTOMJS_VERSION-linux-x86_64/bin:$PATH"
-  - "wget https://github.com/Medium/phantomjs/releases/download/v$PHANTOMJS_VERSION/phantomjs-$PHANTOMJS_VERSION-linux-x86_64.tar.bz2 -O $PWD/gitlab_phantomjs/phantomjs-$PHANTOMJS_VERSION-linux-x86_64.tar.bz2; fi"
-  - "tar -xvf $PWD/gitlab_phantomjs/phantomjs-$PHANTOMJS_VERSION-linux-x86_64.tar.bz2 -C $PWD/gitlab_phantomjs; fi"
-  - "hash -r; fi"
-  - "phantomjs --version"
 
 shiny_tests:
   script:
