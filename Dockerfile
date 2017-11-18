@@ -22,8 +22,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   ln -sf /usr/local/share/$PHANTOM_JS/bin/phantomjs /usr/bin/phantomjs && \
   phantomjs --version
 
-COPY . /home/rstudio/autoggraph
-WORKDIR /home/rstudio/autoggraph
+COPY . /autoggraph
+WORKDIR /autoggraph
 
-RUN R -e 'if (system.file(package="packrat") == "") install.packages("packrat")'
-RUN R -e "packrat::packify(); packrat::restore()"
+RUN install2.r --error \
+  -r 'https://cran.rstudio.com' \
+  shiny shinyjs \
+  && R -e 'devtools::install_github("rstudio/shinytest")'

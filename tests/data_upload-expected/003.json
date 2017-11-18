@@ -10,16 +10,16 @@
     "free_facet": "fixed",
     "infile": {
       "name": [
-        "mpg.csv"
+        "mpg.xlsx"
       ],
       "size": [
-        13451
+        21304
       ],
       "type": [
-        "text/csv"
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
       ],
       "datapath": [
-        "0.csv"
+        "0.xlsx"
       ]
     },
     "infile_mtime": "",
@@ -44,6 +44,7 @@
     "w_guide": "",
     "w_label": "",
     "which_panel": "plots",
+    "which_sheet": "Sheet 1",
     "wrap": "color",
     "x": "",
     "x_label": "",

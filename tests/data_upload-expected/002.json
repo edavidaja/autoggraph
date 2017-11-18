@@ -10,16 +10,16 @@
     "free_facet": "fixed",
     "infile": {
       "name": [
-        "mpg.csv"
+        "mpg.xls"
       ],
       "size": [
-        13451
+        45568
       ],
       "type": [
-        "text/csv"
+        "application/vnd.ms-excel"
       ],
       "datapath": [
-        "0.csv"
+        "0.xls"
       ]
     },
     "infile_mtime": "",
@@ -44,6 +44,7 @@
     "w_guide": "",
     "w_label": "",
     "which_panel": "plots",
+    "which_sheet": "mpg",
     "wrap": "color",
     "x": "",
     "x_label": "",
