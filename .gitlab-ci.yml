@@ -1,12 +1,5 @@
 image: edavidaja/autoggraph:latest
 
-# restore packrat if not cached
-before_script:
-  - R -e "packrat::status()"
-
 shiny_tests:
   script:
     - R -f run_tests.R
-  cache:
-    paths:
-      - packrat/lib
