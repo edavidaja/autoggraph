@@ -6,13 +6,14 @@ library(RColorBrewer)
 library(shiny)
 library(shinyjs)
 library(magrittr)
-library(extrafont)
+library(svglite)
+# library(extrafont)
 
 # gao theme -------------------------------------------------------------------
 theme_gao <- list(
   theme_minimal(),
   theme(
-    text = element_text(family = "Liberation Sans"),
+    # text = element_text(family = "Liberation Sans"),
     plot.caption = element_text(hjust = 0, size = 6),
     legend.position = "bottom",
     legend.justification = "left",
@@ -188,7 +189,7 @@ shinyServer(function(input, output, session) {
       original_ops$loaded <- TRUE
       original_ops$id
     } else {
-      as.character(paste0(round(runif(1, 1, 100), 0), "_"))
+      paste0("_", round(runif(1, 1, 100), 0))
     }
   })
 
@@ -202,17 +203,17 @@ shinyServer(function(input, output, session) {
         wellPanel(
           h4("plot specifics"),
           sliderInput(
-            inputId = paste0(plot_opts(), "scatter_option_alpha"), 
+            inputId = paste0("scatter_option_alpha", plot_opts()), 
             "point transparency", 
             min = 0, max = 1, value = 1, step = .01,
             ticks = FALSE
             ),
           checkboxInput(
-            inputId = paste0(plot_opts(), "scatter_option_grid"),
+            inputId = paste0("scatter_option_grid", plot_opts()),
             "show gridlines (useful for cleveland dot plots)"
             ),
           selectInput(
-            inputId = paste0(plot_opts(), "scatter_option_smooth"),
+            inputId = paste0("scatter_option_smooth", plot_opts()),
             "add a smoother:", 
             choices = c("smoother" = "", "loess", "linear")
           ),
@@ -225,12 +226,12 @@ shinyServer(function(input, output, session) {
           wellPanel(
             h4("plot specifics"),
             selectInput(
-              inputId = paste0(plot_opts(), "pointrange_lower"),
+              inputId = paste0("pointrange_lower", plot_opts()),
               "lower bound", 
               choices = c("lower bound" = "", names(graph_data()))
               ),
             selectInput(
-              inputId = paste0(plot_opts(), "pointrange_upper"),
+              inputId = paste0("pointrange_upper", plot_opts()),
               "upper bound", 
               choices = c("upper bound" = "", names(graph_data()))
               )
@@ -241,12 +242,12 @@ shinyServer(function(input, output, session) {
           wellPanel(
             h4("plot specifics"),
             selectInput(
-              inputId = paste0(plot_opts(), "errorbar_lower"),
+              inputId = paste0("errorbar_lower", plot_opts()),
               "lower bound", 
               choices = c("lower bound" = "", names(graph_data()))
               ),
             selectInput(
-              inputId = paste0(plot_opts(), "errorbar_upper"),
+              inputId = paste0("errorbar_upper", plot_opts()),
               "upper bound", 
               choices = c("upper bound" = "", names(graph_data()))
               )
@@ -265,7 +266,7 @@ shinyServer(function(input, output, session) {
         wellPanel(
           h4("plot specifics"),
           selectInput(
-            inputId = paste0(plot_opts(), "bar_type"),
+            inputId = paste0("bar_type", plot_opts()),
             "select a bar type",
             choices = c(
               "stacked" = "stack", "clustered" = "dodge", "filled" = "fill"
@@ -278,7 +279,7 @@ shinyServer(function(input, output, session) {
         wellPanel(
         h4("plot specifics"),
         numericInput(
-          inputId = paste0(plot_opts(), "hist_bins"),
+          inputId = paste0("hist_bins", plot_opts()),
           "number of bins", value = 30
           )
         )
@@ -291,17 +292,17 @@ shinyServer(function(input, output, session) {
 # method "lm" causes the smoother not to render at all
 output$smoother_options <- renderUI({
   
-  req(input[[paste0(plot_opts(), "scatter_option_smooth")]])
+  req(input[[paste0("scatter_option_smooth", plot_opts())]])
   list(
     radioButtons(
-      inputId = paste0(plot_opts(), "scatter_option_smooth_group"),
+      inputId = paste0("scatter_option_smooth_group", plot_opts()),
       "smooth over:",
       selected = "overall",
       choices = c("overall", "groups"),
       inline = TRUE
     ),
     radioButtons(
-      inputId  = paste0(plot_opts(), "scatter_option_smooth_se"),
+      inputId  = paste0("scatter_option_smooth_se", plot_opts()),
       "confidence interval?",
       choices = c("yes" = TRUE, "no" = FALSE),
       inline = TRUE
@@ -315,10 +316,10 @@ output$smoother_options <- renderUI({
 
 output$loess_options <- renderUI({
 
-  req(input[[paste0(plot_opts(), "scatter_option_smooth")]] == "loess")
+  req(input[[paste0("scatter_option_smooth")]] == "loess", plot_opts())
 
   sliderInput(
-    inputId = paste0(plot_opts(), "scatter_option_loess_span"),
+    inputId = paste0("scatter_option_loess_span", plot_opts()),
     "wiggle", min = 0, max = 1, value = .7, step = .1,
     ticks = FALSE
     )
@@ -476,7 +477,7 @@ which_geom_xy <- reactive({
      } else {
        geom_histogram(
         fill = "#0039A6",
-        bins = input[[paste0(plot_opts(), "hist_bins")]]
+        bins = input[[paste0("hist_bins", plot_opts())]]
         )
      }
    },
@@ -484,7 +485,7 @@ which_geom_xy <- reactive({
    "line" = geom_line(color = "#0039A6", size = 1.1),
    "step" = geom_step(color = "#0039A6"),
    "scatterplot" = geom_point(
-      alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]],
+      alpha = input[[paste0("scatter_option_alpha", plot_opts())]],
       color = "#0039A6"
       ),
    "bar" = {
@@ -497,15 +498,15 @@ which_geom_xy <- reactive({
   "boxplot" = geom_boxplot(color = "#0039A6"),
   "pointrange" = geom_pointrange(
     aes_string(
-      ymin = input[[paste0(plot_opts(), "pointrange_lower")]],
-      ymax = input[[paste0(plot_opts(), "pointrange_upper")]] 
+      ymin = input[[paste0("pointrange_lower", plot_opts())]],
+      ymax = input[[paste0("pointrange_upper", plot_opts())]] 
       ),
     color = "#0039A6"
     ),
   "error bar" = geom_errorbar(
     aes_string(
-      ymin = input[[paste0(plot_opts(), "errorbar_lower")]],
-      ymax = input[[paste0(plot_opts(), "errorbar_upper")]]
+      ymin = input[[paste0("errorbar_lower", plot_opts())]],
+      ymax = input[[paste0("errorbar_upper", plot_opts())]]
       ),
     color = "#0039A6"
     )
@@ -529,7 +530,7 @@ which_geom_z <- reactive({
           aes_string(
             fill = paste("factor(", input$z, ")")
             ),
-          bins = input[[paste0(plot_opts(), "hist_bins")]]
+          bins = input[[paste0("hist_bins", plot_opts())]]
           )
       }
     },
@@ -566,19 +567,19 @@ which_geom_z <- reactive({
         shape = paste("factor(", input$z, ")")
         ),
       size = 2,
-      alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]]
+      alpha = input[[paste0("scatter_option_alpha", plot_opts())]]
       ),
     "bar" = { 
       if (input$y == "") {  
         geom_bar(
           aes_string(fill = paste("factor(", input$z, ")")),
-          position =  input[[paste0(plot_opts(), "bar_type")]],
+          position =  input[[paste0("bar_type", plot_opts())]],
           color = "black"
           )
       } else {
         geom_bar(
           aes_string(fill = paste("factor(", input$z, ")")),
-          position =  input[[paste0(plot_opts(), "bar_type")]],
+          position =  input[[paste0("bar_type", plot_opts())]],
           stat = "identity",
           color = "black"
           )
@@ -586,15 +587,15 @@ which_geom_z <- reactive({
     },
     "pointrange" = geom_pointrange(
       aes_string(
-        ymin  = input[[paste0(plot_opts(), "pointrange_lower")]],
-        ymax  = input[[paste0(plot_opts(), "pointrange_upper")]],
+        ymin  = input[[paste0("pointrange_lower", plot_opts())]],
+        ymax  = input[[paste0("pointrange_upper", plot_opts())]],
         color = paste("factor(", input$z, ")")
         )
       ),
     "error bar" = geom_errorbar(
       aes_string(
-        ymin  = input[[paste0(plot_opts(), "errorbar_lower")]],
-        ymax  = input[[paste0(plot_opts(), "errorbar_upper")]],
+        ymin  = input[[paste0("errorbar_lower", plot_opts())]],
+        ymax  = input[[paste0("errorbar_upper", plot_opts())]],
         color = paste("factor(", input$z, ")")
         )
       ),
@@ -625,7 +626,7 @@ which_geom_w <- reactive({
     "scatterplot" =
     geom_point(
       aes_string(color = input$w),
-      alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]]
+      alpha = input[[paste0("scatter_option_alpha", plot_opts())]]
       ),
     "heatmap" = geom_tile(
       aes_string(fill = input$w)
@@ -642,7 +643,7 @@ which_geom_w_z <- reactive({
       aes_string(
         color = input$w
       ),
-      alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]]    
+      alpha = input[[paste0("scatter_option_alpha", plot_opts())]]    
     )     
   } else {
     geom_point(
@@ -650,7 +651,7 @@ which_geom_w_z <- reactive({
         size = input$w,
         colour = input$z
       ),
-      alpha = input[[paste0(plot_opts(), "scatter_option_alpha")]]    
+      alpha = input[[paste0("scatter_option_alpha", plot_opts())]]    
     )    
   }
 
@@ -923,24 +924,24 @@ graph_it <- eventReactive(input$do_plot, {
     }
 
   ## apply smoother to scatter plot -------------------------------------------
-  if (!is.null(input[[paste0(plot_opts(), "scatter_option_smooth")]])) {
+  if (!is.null(input[[paste0("scatter_option_smooth", plot_opts())]])) {
     
-    switch(input[[paste0(plot_opts(), "scatter_option_smooth")]],
+    switch(input[[paste0("scatter_option_smooth", plot_opts())]],
       "loess" = {
-        if (input[[paste0(plot_opts(), "scatter_option_smooth_group")]] == 'groups') {
+        if (input[[paste0("scatter_option_smooth_group", plot_opts())]] == 'groups') {
           p <- p + geom_smooth(
             method = "loess",
             aes_string(color = paste("factor(", input$z, ")")),
-            span = input[[paste0(plot_opts(), "scatter_option_loess_span")]],
-            se = input[[paste0(plot_opts(), "scatter_option_smooth_se")]],
+            span = input[[paste0("scatter_option_loess_span", plot_opts())]],
+            se = input[[paste0("scatter_option_smooth_se", plot_opts())]],
             linetype = "dashed"
           )
         } else {
           p <- p + geom_smooth(
             method = "loess", 
             aes_string(fill = quote(input$smoother_label)),
-            span = input[[paste0(plot_opts(), "scatter_option_loess_span")]], 
-            se = input[[paste0(plot_opts(), "scatter_option_smooth_se")]],
+            span = input[[paste0("scatter_option_loess_span", plot_opts())]], 
+            se = input[[paste0("scatter_option_smooth_se", plot_opts())]],
             color = "black",
             linetype = "dashed"
             ) + 
@@ -948,7 +949,7 @@ graph_it <- eventReactive(input$do_plot, {
         }
         },
       "linear" = {
-        if (input[[paste0(plot_opts(), "scatter_option_smooth_group")]] == 'groups') {
+        if (input[[paste0("scatter_option_smooth_group", plot_opts())]] == 'groups') {
           p <- p + geom_smooth(
             method = "lm",
             aes_string(color = paste("factor(", input$z, ")")),
@@ -1023,8 +1024,8 @@ graph_it <- eventReactive(input$do_plot, {
   }
 
   # suppress gridlines except in case of cleveland plots
-  if (!is.null(input[[paste0(plot_opts(), "scatter_option_grid")]])) { 
-    if (input[[paste0(plot_opts(), "scatter_option_grid")]] == FALSE) {
+  if (!is.null(input[[paste0("scatter_option_grid", plot_opts())]])) { 
+    if (input[[paste0("scatter_option_grid", plot_opts())]] == FALSE) {
       p <- p + theme_gao + theme(panel.grid = element_blank())
     } else { # scatter_option_grid == TRUE
       p <- p + theme_gao
