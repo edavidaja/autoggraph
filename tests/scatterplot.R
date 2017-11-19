@@ -1,4 +1,4 @@
-app <- ShinyDriver$new("../")
+app <- ShinyDriver$new("../", seed = 7038)
 app$snapshotInit("scatterplot")
 
 app$setInputs(which_panel = "plots")

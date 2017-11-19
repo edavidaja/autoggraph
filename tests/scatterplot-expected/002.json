@@ -29,9 +29,9 @@
     "palette_selector": "classic",
     "reorder_x": "",
     "report_number": "",
-    "scatter_option_alpha_12": 1,
-    "scatter_option_grid_12": false,
-    "scatter_option_smooth_12": "",
+    "scatter_option_alpha_3": 1,
+    "scatter_option_grid_3": false,
+    "scatter_option_smooth_3": "",
     "shinyjs-resettable-y_label": {
       "y_label": {
         "type": "Text",
@@ -128,7 +128,7 @@
       ]
     },
     "plot_options": {
-      "html": "<div class=\"well\">\n  <h4>plot specifics<\/h4>\n  <div class=\"form-group shiny-input-container\">\n    <label class=\"control-label\" for=\"scatter_option_alpha_12\">point transparency<\/label>\n    <input class=\"js-range-slider\" id=\"scatter_option_alpha_12\" data-min=\"0\" data-max=\"1\" data-from=\"1\" data-step=\"0.01\" data-grid=\"false\" data-grid-snap=\"false\" data-prettify-separator=\",\" data-prettify-enabled=\"true\" data-keyboard=\"true\" data-keyboard-step=\"1\" data-data-type=\"number\"/>\n  <\/div>\n  <div class=\"form-group shiny-input-container\">\n    <div class=\"checkbox\">\n      <label>\n        <input id=\"scatter_option_grid_12\" type=\"checkbox\"/>\n        <span>show gridlines (useful for cleveland dot plots)<\/span>\n      <\/label>\n    <\/div>\n  <\/div>\n  <div class=\"form-group shiny-input-container\">\n    <label class=\"control-label\" for=\"scatter_option_smooth_12\">add a smoother:<\/label>\n    <div>\n      <select id=\"scatter_option_smooth_12\"><option value=\"\" selected>smoother<\/option>\n<option value=\"loess\">loess<\/option>\n<option value=\"linear\">linear<\/option><\/select>\n      <script type=\"application/json\" data-for=\"scatter_option_smooth_12\">{}<\/script>\n    <\/div>\n  <\/div>\n  <div id=\"smoother_options\" class=\"shiny-html-output\"><\/div>\n  <div id=\"loess_options\" class=\"shiny-html-output\"><\/div>\n<\/div>",
+      "html": "<div class=\"well\">\n  <h4>plot specifics<\/h4>\n  <div class=\"form-group shiny-input-container\">\n    <label class=\"control-label\" for=\"scatter_option_alpha_3\">point transparency<\/label>\n    <input class=\"js-range-slider\" id=\"scatter_option_alpha_3\" data-min=\"0\" data-max=\"1\" data-from=\"1\" data-step=\"0.01\" data-grid=\"false\" data-grid-snap=\"false\" data-prettify-separator=\",\" data-prettify-enabled=\"true\" data-keyboard=\"true\" data-keyboard-step=\"1\" data-data-type=\"number\"/>\n  <\/div>\n  <div class=\"form-group shiny-input-container\">\n    <div class=\"checkbox\">\n      <label>\n        <input id=\"scatter_option_grid_3\" type=\"checkbox\"/>\n        <span>show gridlines (useful for cleveland dot plots)<\/span>\n      <\/label>\n    <\/div>\n  <\/div>\n  <div class=\"form-group shiny-input-container\">\n    <label class=\"control-label\" for=\"scatter_option_smooth_3\">add a smoother:<\/label>\n    <div>\n      <select id=\"scatter_option_smooth_3\"><option value=\"\" selected>smoother<\/option>\n<option value=\"loess\">loess<\/option>\n<option value=\"linear\">linear<\/option><\/select>\n      <script type=\"application/json\" data-for=\"scatter_option_smooth_3\">{}<\/script>\n    <\/div>\n  <\/div>\n  <div id=\"smoother_options\" class=\"shiny-html-output\"><\/div>\n  <div id=\"loess_options\" class=\"shiny-html-output\"><\/div>\n<\/div>",
       "deps": [
         {
           "name": "ionrangeslider",
