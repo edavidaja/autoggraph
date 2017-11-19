@@ -1,4 +1,4 @@
-image: edavidaja/autoggraph:latest
+image: registry.gitlab.com/usgao/autoggraph:latest
 
 shiny_tests:
   script:
