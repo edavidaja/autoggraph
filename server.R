@@ -679,7 +679,20 @@ observeEvent({c(input$w, input$z)}, {
        )
     )
   })
-  
+
+which_geom_w <- reactive({
+
+  switch(input$chart_type,
+    "scatterplot" =
+    geom_point(
+      aes_string(color = input$w),
+      alpha = input[[paste0("scatter_option_alpha", plot_opts())]]
+      ),
+    "heatmap" = geom_tile(
+      aes_string(fill = stored_data$data[[input$w]])
+      )
+    )
+  })
 
 which_geom_w_z <- reactive({
   
@@ -1095,7 +1108,7 @@ z_levels <- reactive({
     }
 
   ## apply smoother to scatter plot -------------------------------------------
-  if (!is.null(input[[paste0("scatter_option_smooth")]]), plot_opts()) {
+  if (!is.null(input[[paste0("scatter_option_smooth", plot_opts())]])) {
     # TO DO YOU CAN JUST CHANGE THIS BACK
     switch(input[[paste0("scatter_option_smooth", plot_opts())]],
       "loess" = {

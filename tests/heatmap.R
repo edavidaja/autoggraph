@@ -17,5 +17,6 @@ app$setInputs(palette_selector = "sequential")
 app$setInputs(do_plot = "click")
 app$snapshot()
 # Relabel color bar
-app$setInputs(w_guide = "Miles per gallon")
+app$setInputs(x_label = "manufacturer", w_guide = "Miles per gallon")
+app$setInputs(do_plot = "click")
 app$snapshot()

@@ -5,6 +5,52 @@
     "do_plot": 5,
     "export_height": 6.83,
     "export_width": 7,
+    "factor_order_x": [
+      "ram 1500 pickup 4wd",
+      "durango 4wd",
+      "k1500 tahoe 4wd",
+      "f150 pickup 4wd",
+      "land cruiser wagon 4wd",
+      "range rover",
+      "dakota pickup 4wd",
+      "navigator 2wd",
+      "expedition 2wd",
+      "grand cherokee 4wd",
+      "c1500 suburban 2wd",
+      "explorer 4wd",
+      "mountaineer 4wd",
+      "pathfinder 4wd",
+      "4runner 4wd",
+      "toyota tacoma 4wd",
+      "caravan 2wd",
+      "mustang",
+      "a6 quattro",
+      "corvette",
+      "forester awd",
+      "maxima",
+      "a4 quattro",
+      "impreza awd",
+      "tiburon",
+      "grand prix",
+      "gti",
+      "passat",
+      "malibu",
+      "sonata",
+      "camry solara",
+      "a4",
+      "camry",
+      "altima",
+      "jetta",
+      "civic",
+      "new beetle",
+      "corolla"
+    ],
+    "factor_order_z": [
+      "4",
+      "5",
+      "6",
+      "8"
+    ],
     "fine_tuning": 0,
     "flip_axes": true,
     "free_facet": "fixed",
@@ -46,15 +92,19 @@
     },
     "smoother_label": "",
     "source_label": "",
+    "type_variable": "",
+    "type_variable_y": "",
     "w": "",
     "w_guide": "",
     "w_label": "",
     "which_panel": "plots",
     "wrap": "color",
     "x": "model",
+    "x_breaks": "",
     "x_label": "",
     "x_val_format": "",
     "y": "hwy",
+    "y_breaks": "",
     "y_label": "model",
     "y_val_format": "",
     "z": "cyl",
@@ -62,6 +112,80 @@
     "z_label": ""
   },
   "output": {
+    "drag_drop_x": {
+      "html": "<div class=\"form-group shiny-input-container\">\n  <label class=\"control-label\" for=\"factor_order_x\">click and drag to reorder your x variable<\/label>\n  <div>\n    <select id=\"factor_order_x\" class=\"form-control\" multiple=\"multiple\"><option value=\"ram 1500 pickup 4wd\" selected>ram 1500 pickup 4wd<\/option>\n<option value=\"durango 4wd\" selected>durango 4wd<\/option>\n<option value=\"k1500 tahoe 4wd\" selected>k1500 tahoe 4wd<\/option>\n<option value=\"f150 pickup 4wd\" selected>f150 pickup 4wd<\/option>\n<option value=\"land cruiser wagon 4wd\" selected>land cruiser wagon 4wd<\/option>\n<option value=\"range rover\" selected>range rover<\/option>\n<option value=\"dakota pickup 4wd\" selected>dakota pickup 4wd<\/option>\n<option value=\"navigator 2wd\" selected>navigator 2wd<\/option>\n<option value=\"expedition 2wd\" selected>expedition 2wd<\/option>\n<option value=\"grand cherokee 4wd\" selected>grand cherokee 4wd<\/option>\n<option value=\"c1500 suburban 2wd\" selected>c1500 suburban 2wd<\/option>\n<option value=\"explorer 4wd\" selected>explorer 4wd<\/option>\n<option value=\"mountaineer 4wd\" selected>mountaineer 4wd<\/option>\n<option value=\"pathfinder 4wd\" selected>pathfinder 4wd<\/option>\n<option value=\"4runner 4wd\" selected>4runner 4wd<\/option>\n<option value=\"toyota tacoma 4wd\" selected>toyota tacoma 4wd<\/option>\n<option value=\"caravan 2wd\" selected>caravan 2wd<\/option>\n<option value=\"mustang\" selected>mustang<\/option>\n<option value=\"a6 quattro\" selected>a6 quattro<\/option>\n<option value=\"corvette\" selected>corvette<\/option>\n<option value=\"forester awd\" selected>forester awd<\/option>\n<option value=\"maxima\" selected>maxima<\/option>\n<option value=\"a4 quattro\" selected>a4 quattro<\/option>\n<option value=\"impreza awd\" selected>impreza awd<\/option>\n<option value=\"tiburon\" selected>tiburon<\/option>\n<option value=\"grand prix\" selected>grand prix<\/option>\n<option value=\"gti\" selected>gti<\/option>\n<option value=\"passat\" selected>passat<\/option>\n<option value=\"malibu\" selected>malibu<\/option>\n<option value=\"sonata\" selected>sonata<\/option>\n<option value=\"camry solara\" selected>camry solara<\/option>\n<option value=\"a4\" selected>a4<\/option>\n<option value=\"camry\" selected>camry<\/option>\n<option value=\"altima\" selected>altima<\/option>\n<option value=\"jetta\" selected>jetta<\/option>\n<option value=\"civic\" selected>civic<\/option>\n<option value=\"new beetle\" selected>new beetle<\/option>\n<option value=\"corolla\" selected>corolla<\/option><\/select>\n    <script type=\"application/json\" data-for=\"factor_order_x\">{\"plugins\":[\"drag_drop\"]}<\/script>\n  <\/div>\n<\/div>",
+      "deps": [
+        {
+          "name": "selectize",
+          "version": "0.11.2",
+          "src": {
+            "href": "shared/selectize"
+          },
+          "meta": null,
+          "script": null,
+          "stylesheet": "css/selectize.bootstrap3.css",
+          "head": "<!--[if lt IE 9]>\n<script src=\"shared/selectize/js/es5-shim.min.js\"><\/script>\n<![endif]-->\n<script src=\"shared/selectize/js/selectize.min.js\"><\/script>",
+          "attachment": null,
+          "package": null,
+          "all_files": true
+        },
+        {
+          "name": "jqueryui",
+          "version": "1.12.1",
+          "src": {
+            "href": "shared/jqueryui"
+          },
+          "meta": null,
+          "script": "jquery-ui.min.js",
+          "stylesheet": null,
+          "head": null,
+          "attachment": null,
+          "package": null,
+          "all_files": true
+        }
+      ]
+    },
+    "drag_drop_y": {
+      "message": "",
+      "call": "NULL",
+      "type": [
+        "shiny.silent.error",
+        "validation"
+      ]
+    },
+    "drag_drop_z": {
+      "html": "<div class=\"form-group shiny-input-container\">\n  <label class=\"control-label\" for=\"factor_order_z\">click and drag to reorder your discrete variable:<\/label>\n  <div>\n    <select id=\"factor_order_z\" class=\"form-control\" multiple=\"multiple\"><option value=\"4\" selected>4<\/option>\n<option value=\"5\" selected>5<\/option>\n<option value=\"6\" selected>6<\/option>\n<option value=\"8\" selected>8<\/option><\/select>\n    <script type=\"application/json\" data-for=\"factor_order_z\">{\"plugins\":[\"drag_drop\"]}<\/script>\n  <\/div>\n<\/div>",
+      "deps": [
+        {
+          "name": "selectize",
+          "version": "0.11.2",
+          "src": {
+            "href": "shared/selectize"
+          },
+          "meta": null,
+          "script": null,
+          "stylesheet": "css/selectize.bootstrap3.css",
+          "head": "<!--[if lt IE 9]>\n<script src=\"shared/selectize/js/es5-shim.min.js\"><\/script>\n<![endif]-->\n<script src=\"shared/selectize/js/selectize.min.js\"><\/script>",
+          "attachment": null,
+          "package": null,
+          "all_files": true
+        },
+        {
+          "name": "jqueryui",
+          "version": "1.12.1",
+          "src": {
+            "href": "shared/jqueryui"
+          },
+          "meta": null,
+          "script": "jquery-ui.min.js",
+          "stylesheet": null,
+          "head": null,
+          "attachment": null,
+          "package": null,
+          "all_files": true
+        }
+      ]
+    },
     "excel_sheet_selector": null,
     "graph": {
       "src": "[image data sha1: 9b83ddc71a3eb8a63024d320053ae736f278cf87]",
@@ -88,8 +212,8 @@
             "top": 38.6
           },
           "mapping": {
-            "x": "hwy",
-            "y": "reorder(model, hwy)"
+            "x": "stored_data$data[[input$y]]",
+            "y": "stored_data$data[[input$x]]"
           },
           "range": {
             "left": 101.890410958904,
@@ -115,7 +239,7 @@
       ]
     },
     "plot_labels": {
-      "html": "<div data-display-if=\"input.chart_type != &#39;&#39; &amp; input.chart_type != &#39;pie&#39;\" data-ns-prefix=\"\">\n  <div class=\"well\">\n    <h4>plot labels<\/h4>\n    <div class=\"form-group shiny-input-container\">\n      <label for=\"x_label\">x-axis label<\/label>\n      <input id=\"x_label\" type=\"text\" class=\"form-control\" value=\"\"/>\n    <\/div>\n    <div class=\"form-group shiny-input-radiogroup shiny-input-container shiny-input-container-inline shinyjs-hide\" id=\"x_val_format\">\n      <label class=\"control-label\" for=\"x_val_format\">x value format<\/label>\n      <div class=\"shiny-options-group\">\n        <label class=\"radio-inline\">\n          <input type=\"radio\" name=\"x_val_format\" value=\"\" checked=\"checked\"/>\n          <span>none<\/span>\n        <\/label>\n        <label class=\"radio-inline\">\n          <input type=\"radio\" name=\"x_val_format\" value=\"dollar\"/>\n          <span>dollar<\/span>\n        <\/label>\n        <label class=\"radio-inline\">\n          <input type=\"radio\" name=\"x_val_format\" value=\"comma\"/>\n          <span>comma<\/span>\n        <\/label>\n        <label class=\"radio-inline\">\n          <input type=\"radio\" name=\"x_val_format\" value=\"percent\"/>\n          <span>percent<\/span>\n        <\/label>\n      <\/div>\n    <\/div>\n    <div class=\"form-group shiny-input-container\">\n      <label for=\"y_label\">y-axis label<\/label>\n      <input id=\"y_label\" type=\"text\" class=\"form-control\" value=\"\"/>\n    <\/div>\n    <div class=\"form-group shiny-input-radiogroup shiny-input-container shiny-input-container-inline shinyjs-hide\" id=\"y_val_format\">\n      <label class=\"control-label\" for=\"y_val_format\">y value format<\/label>\n      <div class=\"shiny-options-group\">\n        <label class=\"radio-inline\">\n          <input type=\"radio\" name=\"y_val_format\" value=\"\" checked=\"checked\"/>\n          <span>none<\/span>\n        <\/label>\n        <label class=\"radio-inline\">\n          <input type=\"radio\" name=\"y_val_format\" value=\"dollar\"/>\n          <span>dollar<\/span>\n        <\/label>\n        <label class=\"radio-inline\">\n          <input type=\"radio\" name=\"y_val_format\" value=\"comma\"/>\n          <span>comma<\/span>\n        <\/label>\n        <label class=\"radio-inline\">\n          <input type=\"radio\" name=\"y_val_format\" value=\"percent\"/>\n          <span>percent<\/span>\n        <\/label>\n      <\/div>\n    <\/div>\n    <div class=\"form-group shiny-input-container\">\n      <div class=\"checkbox\">\n        <label>\n          <input id=\"flip_axes\" type=\"checkbox\"/>\n          <span>reverse x and y axes<\/span>\n        <\/label>\n      <\/div>\n    <\/div>\n    <div data-display-if=\"input.z != &#39;&#39;\" data-ns-prefix=\"\">\n      <div class=\"form-group shiny-input-container\">\n        <label for=\"z_guide\">discrete variable name<\/label>\n        <input id=\"z_guide\" type=\"text\" class=\"form-control\" value=\"\"/>\n      <\/div>\n      <div class=\"form-group shiny-input-container\">\n        <label for=\"z_label\">discrete variable labels, separated by commas<\/label>\n        <input id=\"z_label\" type=\"text\" class=\"form-control\" value=\"\" placeholder=\"one, two, three, ...\"/>\n      <\/div>\n    <\/div>\n    <div data-display-if=\"input.chart_type == &#39;scatterplot&#39;\" data-ns-prefix=\"\">\n      <div class=\"form-group shiny-input-container\">\n        <label for=\"smoother_label\">overall smoother label<\/label>\n        <input id=\"smoother_label\" type=\"text\" class=\"form-control\" value=\"\" placeholder=\"smoothed y on x\"/>\n      <\/div>\n    <\/div>\n    <div data-display-if=\"(input.chart_type == &#39;heatmap&#39; | input.chart_type == &#39;scatterplot&#39;) &amp;&#10;        input.w != &#39;&#39;\" data-ns-prefix=\"\">\n      <div class=\"form-group shiny-input-container\">\n        <label for=\"w_guide\">continuous variable name<\/label>\n        <input id=\"w_guide\" type=\"text\" class=\"form-control\" value=\"\"/>\n      <\/div>\n      <div class=\"form-group shiny-input-container\">\n        <label for=\"w_label\">continuous variable labels, separated by commas<\/label>\n        <input id=\"w_label\" type=\"text\" class=\"form-control\" value=\"\" placeholder=\"low, high\"/>\n      <\/div>\n    <\/div>\n    <div class=\"form-group shiny-input-container\">\n      <label for=\"source_label\">source label<\/label>\n      <input id=\"source_label\" type=\"text\" class=\"form-control\" value=\"\" placeholder=\"GAO analysis...\"/>\n    <\/div>\n    <div class=\"form-group shiny-input-container\">\n      <label for=\"report_number\">report number<\/label>\n      <input id=\"report_number\" type=\"text\" class=\"form-control\" value=\"\" placeholder=\"GAO-XX-XXX\"/>\n    <\/div>\n    <h4>export:<\/h4>\n    <a id=\"bundle\" class=\"btn btn-default shiny-download-link \" href=\"\" target=\"_blank\" download inline=\"TRUE\">\n      <i class=\"fa fa-download\"><\/i>\n      results\n    <\/a>\n    <button id=\"._bookmark_\" type=\"button\" class=\"btn btn-default action-button\" title=\"Bookmark this application&#39;s state and get a URL for sharing.\" inline=\"TRUE\">\n      <i class=\"glyphicon glyphicon-link\"><\/i>\n      Bookmark...\n    <\/button>\n    <button id=\"fine_tuning\" type=\"button\" class=\"btn btn-default action-button\" inline=\"TRUE\">\n      <i class=\"fa fa-sliders\"><\/i>\n      fine tuning\n    <\/button>\n  <\/div>\n<\/div>",
+      "html": "<div data-display-if=\"input.chart_type != &#39;&#39; &amp; input.chart_type != &#39;pie&#39;\" data-ns-prefix=\"\">\n  <div class=\"well\">\n    <h4>plot labels<\/h4>\n    <div class=\"form-group shiny-input-container\">\n      <label for=\"x_label\">x-axis label<\/label>\n      <input id=\"x_label\" type=\"text\" class=\"form-control\" value=\"\"/>\n    <\/div>\n    <div class=\"form-group shiny-input-radiogroup shiny-input-container shiny-input-container-inline shinyjs-hide\" id=\"x_val_format\">\n      <label class=\"control-label\" for=\"x_val_format\">x value format<\/label>\n      <div class=\"shiny-options-group\">\n        <label class=\"radio-inline\">\n          <input type=\"radio\" name=\"x_val_format\" value=\"\" checked=\"checked\"/>\n          <span>none<\/span>\n        <\/label>\n        <label class=\"radio-inline\">\n          <input type=\"radio\" name=\"x_val_format\" value=\"dollar\"/>\n          <span>dollar<\/span>\n        <\/label>\n        <label class=\"radio-inline\">\n          <input type=\"radio\" name=\"x_val_format\" value=\"comma\"/>\n          <span>comma<\/span>\n        <\/label>\n        <label class=\"radio-inline\">\n          <input type=\"radio\" name=\"x_val_format\" value=\"percent\"/>\n          <span>percent<\/span>\n        <\/label>\n      <\/div>\n    <\/div>\n    <div id=\"type_variable\" class=\"form-group shiny-input-radiogroup shiny-input-container shiny-input-container-inline\">\n      <label class=\"control-label\" for=\"type_variable\">change the type of variable<\/label>\n      <div class=\"shiny-options-group\">\n        <label class=\"radio-inline\">\n          <input type=\"radio\" name=\"type_variable\" value=\"\" checked=\"checked\"/>\n          <span>keep as is<\/span>\n        <\/label>\n        <label class=\"radio-inline\">\n          <input type=\"radio\" name=\"type_variable\" value=\"factor\"/>\n          <span>factor<\/span>\n        <\/label>\n        <label class=\"radio-inline\">\n          <input type=\"radio\" name=\"type_variable\" value=\"numeric\"/>\n          <span>numeric<\/span>\n        <\/label>\n      <\/div>\n    <\/div>\n    <div class=\"form-group shiny-input-container shinyjs-hide\">\n      <label for=\"x_breaks\">break after every nth point<\/label>\n      <input id=\"x_breaks\" type=\"text\" class=\"form-control\" value=\"\"/>\n    <\/div>\n    <div id=\"drag_drop_x\" class=\"shiny-html-output\"><\/div>\n    <div class=\"form-group shiny-input-container\">\n      <label for=\"y_label\">y-axis label<\/label>\n      <input id=\"y_label\" type=\"text\" class=\"form-control\" value=\"\"/>\n    <\/div>\n    <div class=\"form-group shiny-input-radiogroup shiny-input-container shiny-input-container-inline shinyjs-hide\" id=\"y_val_format\">\n      <label class=\"control-label\" for=\"y_val_format\">y value format<\/label>\n      <div class=\"shiny-options-group\">\n        <label class=\"radio-inline\">\n          <input type=\"radio\" name=\"y_val_format\" value=\"\" checked=\"checked\"/>\n          <span>none<\/span>\n        <\/label>\n        <label class=\"radio-inline\">\n          <input type=\"radio\" name=\"y_val_format\" value=\"dollar\"/>\n          <span>dollar<\/span>\n        <\/label>\n        <label class=\"radio-inline\">\n          <input type=\"radio\" name=\"y_val_format\" value=\"comma\"/>\n          <span>comma<\/span>\n        <\/label>\n        <label class=\"radio-inline\">\n          <input type=\"radio\" name=\"y_val_format\" value=\"percent\"/>\n          <span>percent<\/span>\n        <\/label>\n      <\/div>\n    <\/div>\n    <div id=\"type_variable_y\" class=\"form-group shiny-input-radiogroup shiny-input-container shiny-input-container-inline\">\n      <label class=\"control-label\" for=\"type_variable_y\">change the type of variable<\/label>\n      <div class=\"shiny-options-group\">\n        <label class=\"radio-inline\">\n          <input type=\"radio\" name=\"type_variable_y\" value=\"\" checked=\"checked\"/>\n          <span>keep as is<\/span>\n        <\/label>\n        <label class=\"radio-inline\">\n          <input type=\"radio\" name=\"type_variable_y\" value=\"factor\"/>\n          <span>factor<\/span>\n        <\/label>\n        <label class=\"radio-inline\">\n          <input type=\"radio\" name=\"type_variable_y\" value=\"numeric\"/>\n          <span>numeric<\/span>\n        <\/label>\n      <\/div>\n    <\/div>\n    <div class=\"form-group shiny-input-container shinyjs-hide\">\n      <label for=\"y_breaks\">break after every nth point<\/label>\n      <input id=\"y_breaks\" type=\"text\" class=\"form-control\" value=\"\"/>\n    <\/div>\n    <div id=\"drag_drop_y\" class=\"shiny-html-output\"><\/div>\n    <div class=\"form-group shiny-input-container\">\n      <div class=\"checkbox\">\n        <label>\n          <input id=\"flip_axes\" type=\"checkbox\"/>\n          <span>reverse x and y axes<\/span>\n        <\/label>\n      <\/div>\n    <\/div>\n    <div data-display-if=\"input.z != &#39;&#39;\" data-ns-prefix=\"\">\n      <div class=\"form-group shiny-input-container\">\n        <label for=\"z_guide\">discrete variable name<\/label>\n        <input id=\"z_guide\" type=\"text\" class=\"form-control\" value=\"\"/>\n      <\/div>\n      <div class=\"form-group shiny-input-container\">\n        <label for=\"z_label\">discrete variable labels, separated by commas<\/label>\n        <input id=\"z_label\" type=\"text\" class=\"form-control\" value=\"\" placeholder=\"one, two, three, ...\"/>\n      <\/div>\n      <div id=\"drag_drop_z\" class=\"shiny-html-output\"><\/div>\n    <\/div>\n    <div data-display-if=\"input.chart_type == &#39;scatterplot&#39;\" data-ns-prefix=\"\">\n      <div class=\"form-group shiny-input-container\">\n        <label for=\"smoother_label\">overall smoother label<\/label>\n        <input id=\"smoother_label\" type=\"text\" class=\"form-control\" value=\"\" placeholder=\"smoothed y on x\"/>\n      <\/div>\n    <\/div>\n    <div data-display-if=\"(input.chart_type == &#39;heatmap&#39; | input.chart_type == &#39;scatterplot&#39;) &amp;&#10;        input.w != &#39;&#39;\" data-ns-prefix=\"\">\n      <div class=\"form-group shiny-input-container\">\n        <label for=\"w_guide\">continuous variable name<\/label>\n        <input id=\"w_guide\" type=\"text\" class=\"form-control\" value=\"\"/>\n      <\/div>\n      <div class=\"form-group shiny-input-container\">\n        <label for=\"w_label\">continuous variable labels, separated by commas<\/label>\n        <input id=\"w_label\" type=\"text\" class=\"form-control\" value=\"\" placeholder=\"low, high\"/>\n      <\/div>\n    <\/div>\n    <div class=\"form-group shiny-input-container\">\n      <label for=\"source_label\">source label<\/label>\n      <input id=\"source_label\" type=\"text\" class=\"form-control\" value=\"\" placeholder=\"GAO analysis...\"/>\n    <\/div>\n    <div class=\"form-group shiny-input-container\">\n      <label for=\"report_number\">report number<\/label>\n      <input id=\"report_number\" type=\"text\" class=\"form-control\" value=\"\" placeholder=\"GAO-XX-XXX\"/>\n    <\/div>\n    <h4>export:<\/h4>\n    <a id=\"bundle\" class=\"btn btn-default shiny-download-link \" href=\"\" target=\"_blank\" download inline=\"TRUE\">\n      <i class=\"fa fa-download\"><\/i>\n      results\n    <\/a>\n    <button id=\"._bookmark_\" type=\"button\" class=\"btn btn-default action-button\" title=\"Bookmark this application&#39;s state and get a URL for sharing.\" inline=\"TRUE\">\n      <i class=\"glyphicon glyphicon-link\"><\/i>\n      Bookmark...\n    <\/button>\n    <button id=\"fine_tuning\" type=\"button\" class=\"btn btn-default action-button\" inline=\"TRUE\">\n      <i class=\"fa fa-sliders\"><\/i>\n      fine tuning\n    <\/button>\n  <\/div>\n<\/div>",
       "deps": [
         {
           "name": "font-awesome",
@@ -192,7 +316,7 @@
       ]
     },
     "variable_selector": {
-      "html": "<div data-display-if=\"input.chart_type != &#39;&#39; &amp; input.chart_type != &#39;pie&#39;\" data-ns-prefix=\"\">\n  <div class=\"form-group shiny-input-container\">\n    <label class=\"control-label\" for=\"x\">select your x variable:<\/label>\n    <div>\n      <select id=\"x\"><option value=\"\" selected>x variable<\/option>\n<option value=\"manufacturer\">manufacturer<\/option>\n<option value=\"model\">model<\/option>\n<option value=\"displ\">displ<\/option>\n<option value=\"year\">year<\/option>\n<option value=\"cyl\">cyl<\/option>\n<option value=\"trans\">trans<\/option>\n<option value=\"drv\">drv<\/option>\n<option value=\"cty\">cty<\/option>\n<option value=\"hwy\">hwy<\/option>\n<option value=\"fl\">fl<\/option>\n<option value=\"class\">class<\/option><\/select>\n      <script type=\"application/json\" data-for=\"x\">{}<\/script>\n    <\/div>\n  <\/div>\n  <div data-display-if=\"input.chart_type != &#39;density&#39; &amp; input.chart_type != &#39;histogram&#39;\" data-ns-prefix=\"\">\n    <div class=\"form-group shiny-input-container\">\n      <label class=\"control-label\" for=\"y\">select your y variable:<\/label>\n      <div>\n        <select id=\"y\"><option value=\"\" selected>y variable<\/option>\n<option value=\"manufacturer\">manufacturer<\/option>\n<option value=\"model\">model<\/option>\n<option value=\"displ\">displ<\/option>\n<option value=\"year\">year<\/option>\n<option value=\"cyl\">cyl<\/option>\n<option value=\"trans\">trans<\/option>\n<option value=\"drv\">drv<\/option>\n<option value=\"cty\">cty<\/option>\n<option value=\"hwy\">hwy<\/option>\n<option value=\"fl\">fl<\/option>\n<option value=\"class\">class<\/option><\/select>\n        <script type=\"application/json\" data-for=\"y\">{}<\/script>\n      <\/div>\n    <\/div>\n  <\/div>\n  <div data-display-if=\"(input.z != &#39;&#39; | input.w != &#39;&#39; | input.y != &#39;&#39;) &amp;&#10;            !(input.chart_type == &#39;line&#39; | input.chart_type == &#39;density&#39; |&#10;            input.chart_type == &#39;histogram&#39; | input.chart_type == &#39;step&#39; |&#10;            input.chart_type == &#39;area&#39;) &amp;&#10;            input.x != &#39;&#39;\" data-ns-prefix=\"\">\n    <div class=\"form-group shiny-input-container\">\n      <label class=\"control-label\" for=\"reorder_x\">reorder your x axis<\/label>\n      <div>\n        <select id=\"reorder_x\"><option value=\"\" selected>order by<\/option>\n<option value=\"manufacturer\">manufacturer<\/option>\n<option value=\"model\">model<\/option>\n<option value=\"displ\">displ<\/option>\n<option value=\"year\">year<\/option>\n<option value=\"cyl\">cyl<\/option>\n<option value=\"trans\">trans<\/option>\n<option value=\"drv\">drv<\/option>\n<option value=\"cty\">cty<\/option>\n<option value=\"hwy\">hwy<\/option>\n<option value=\"fl\">fl<\/option>\n<option value=\"class\">class<\/option><\/select>\n        <script type=\"application/json\" data-for=\"reorder_x\">{}<\/script>\n      <\/div>\n    <\/div>\n  <\/div>\n  <div data-display-if=\"input.chart_type != &#39;heatmap&#39;\" data-ns-prefix=\"\">\n    <div class=\"form-group shiny-input-container\">\n      <label class=\"control-label\" for=\"z\">add an additional discrete variable:<\/label>\n      <div>\n        <select id=\"z\"><option value=\"\" selected>discrete variable<\/option>\n<option value=\"manufacturer\">manufacturer<\/option>\n<option value=\"model\">model<\/option>\n<option value=\"displ\">displ<\/option>\n<option value=\"year\">year<\/option>\n<option value=\"cyl\">cyl<\/option>\n<option value=\"trans\">trans<\/option>\n<option value=\"drv\">drv<\/option>\n<option value=\"cty\">cty<\/option>\n<option value=\"hwy\">hwy<\/option>\n<option value=\"fl\">fl<\/option>\n<option value=\"class\">class<\/option><\/select>\n        <script type=\"application/json\" data-for=\"z\">{}<\/script>\n      <\/div>\n    <\/div>\n  <\/div>\n  <div data-display-if=\"input.z != &#39;&#39;\" data-ns-prefix=\"\">\n    <div id=\"wrap\" class=\"form-group shiny-input-radiogroup shiny-input-container shiny-input-container-inline\">\n      <label class=\"control-label\" for=\"wrap\">group your variables by<\/label>\n      <div class=\"shiny-options-group\">\n        <label class=\"radio-inline\">\n          <input type=\"radio\" name=\"wrap\" value=\"color\" checked=\"checked\"/>\n          <span>color<\/span>\n        <\/label>\n        <label class=\"radio-inline\">\n          <input type=\"radio\" name=\"wrap\" value=\"grid\"/>\n          <span>grid<\/span>\n        <\/label>\n      <\/div>\n    <\/div>\n  <\/div>\n  <div data-display-if=\"input.wrap == &#39;grid&#39;\" data-ns-prefix=\"\">\n    <div id=\"free_facet\" class=\"form-group shiny-input-radiogroup shiny-input-container shiny-input-container-inline\">\n      <label class=\"control-label\" for=\"free_facet\">allow axes to vary<\/label>\n      <div class=\"shiny-options-group\">\n        <label class=\"radio-inline\">\n          <input type=\"radio\" name=\"free_facet\" value=\"fixed\" checked=\"checked\"/>\n          <span>no<\/span>\n        <\/label>\n        <label class=\"radio-inline\">\n          <input type=\"radio\" name=\"free_facet\" value=\"free_x\"/>\n          <span>by x<\/span>\n        <\/label>\n        <label class=\"radio-inline\">\n          <input type=\"radio\" name=\"free_facet\" value=\"free_y\"/>\n          <span>by y<\/span>\n        <\/label>\n        <label class=\"radio-inline\">\n          <input type=\"radio\" name=\"free_facet\" value=\"free\"/>\n          <span>both<\/span>\n        <\/label>\n      <\/div>\n    <\/div>\n  <\/div>\n  <div data-display-if=\"input.chart_type == &#39;heatmap&#39; | input.chart_type == &#39;scatterplot&#39;\" data-ns-prefix=\"\">\n    <div class=\"form-group shiny-input-container\">\n      <label class=\"control-label\" for=\"w\">add an additional continuous variable:<\/label>\n      <div>\n        <select id=\"w\"><option value=\"\" selected>continuous variable<\/option>\n<option value=\"manufacturer\">manufacturer<\/option>\n<option value=\"model\">model<\/option>\n<option value=\"displ\">displ<\/option>\n<option value=\"year\">year<\/option>\n<option value=\"cyl\">cyl<\/option>\n<option value=\"trans\">trans<\/option>\n<option value=\"drv\">drv<\/option>\n<option value=\"cty\">cty<\/option>\n<option value=\"hwy\">hwy<\/option>\n<option value=\"fl\">fl<\/option>\n<option value=\"class\">class<\/option><\/select>\n        <script type=\"application/json\" data-for=\"w\">{}<\/script>\n      <\/div>\n    <\/div>\n  <\/div>\n  <div data-display-if=\"input.z != &#39;&#39; | input.w != &#39;&#39;\" data-ns-prefix=\"\">\n    <div class=\"form-group shiny-input-container\">\n      <label class=\"control-label\" for=\"palette_selector\">select a color palette<\/label>\n      <div>\n        <select id=\"palette_selector\"><option value=\"classic\" selected>classic<\/option>\n<option value=\"qualitative\">qualitative<\/option>\n<option value=\"sequential\">sequential<\/option>\n<option value=\"diverging\">diverging<\/option><\/select>\n        <script type=\"application/json\" data-for=\"palette_selector\" data-nonempty=\"\">{}<\/script>\n      <\/div>\n    <\/div>\n  <\/div>\n  <button id=\"do_plot\" type=\"button\" class=\"btn btn-default action-button\">\n    <i class=\"fa fa-area-chart\"><\/i>\n    can i have your autoggraph?\n  <\/button>\n<\/div>",
+      "html": "<div data-display-if=\"input.chart_type != &#39;pie&#39;\" data-ns-prefix=\"\">\n  <div class=\"form-group shiny-input-container\">\n    <label class=\"control-label\" for=\"x\">select your x variable:<\/label>\n    <div>\n      <select id=\"x\"><option value=\"\" selected>x variable<\/option>\n<option value=\"manufacturer\">manufacturer<\/option>\n<option value=\"model\">model<\/option>\n<option value=\"displ\">displ<\/option>\n<option value=\"year\">year<\/option>\n<option value=\"cyl\">cyl<\/option>\n<option value=\"trans\">trans<\/option>\n<option value=\"drv\">drv<\/option>\n<option value=\"cty\">cty<\/option>\n<option value=\"hwy\">hwy<\/option>\n<option value=\"fl\">fl<\/option>\n<option value=\"class\">class<\/option><\/select>\n      <script type=\"application/json\" data-for=\"x\">{}<\/script>\n    <\/div>\n  <\/div>\n<\/div>\n<div data-display-if=\"input.chart_type != &#39;density&#39; &amp; input.chart_type != &#39;histogram&#39;\" data-ns-prefix=\"\">\n  <div class=\"form-group shiny-input-container\">\n    <label class=\"control-label\" for=\"y\">select your y variable:<\/label>\n    <div>\n      <select id=\"y\"><option value=\"\" selected>y variable<\/option>\n<option value=\"manufacturer\">manufacturer<\/option>\n<option value=\"model\">model<\/option>\n<option value=\"displ\">displ<\/option>\n<option value=\"year\">year<\/option>\n<option value=\"cyl\">cyl<\/option>\n<option value=\"trans\">trans<\/option>\n<option value=\"drv\">drv<\/option>\n<option value=\"cty\">cty<\/option>\n<option value=\"hwy\">hwy<\/option>\n<option value=\"fl\">fl<\/option>\n<option value=\"class\">class<\/option><\/select>\n      <script type=\"application/json\" data-for=\"y\">{}<\/script>\n    <\/div>\n  <\/div>\n<\/div>\n<div data-display-if=\"(input.z != &#39;&#39; | input.w != &#39;&#39; | input.y != &#39;&#39;) &amp;&#10;            !(input.chart_type == &#39;line&#39; | input.chart_type == &#39;density&#39; |&#10;            input.chart_type == &#39;histogram&#39; | input.chart_type == &#39;step&#39; |&#10;            input.chart_type == &#39;area&#39;) &amp;&#10;            input.x != &#39;&#39;\" data-ns-prefix=\"\">\n  <div class=\"form-group shiny-input-container\">\n    <label class=\"control-label\" for=\"reorder_x\">reorder your x axis<\/label>\n    <div>\n      <select id=\"reorder_x\"><option value=\"\" selected>order by<\/option>\n<option value=\"manufacturer\">manufacturer<\/option>\n<option value=\"model\">model<\/option>\n<option value=\"displ\">displ<\/option>\n<option value=\"year\">year<\/option>\n<option value=\"cyl\">cyl<\/option>\n<option value=\"trans\">trans<\/option>\n<option value=\"drv\">drv<\/option>\n<option value=\"cty\">cty<\/option>\n<option value=\"hwy\">hwy<\/option>\n<option value=\"fl\">fl<\/option>\n<option value=\"class\">class<\/option><\/select>\n      <script type=\"application/json\" data-for=\"reorder_x\">{}<\/script>\n    <\/div>\n  <\/div>\n<\/div>\n<div data-display-if=\"input.chart_type != &#39;heatmap&#39;\" data-ns-prefix=\"\">\n  <div class=\"form-group shiny-input-container\">\n    <label class=\"control-label\" for=\"z\">add an additional discrete variable:<\/label>\n    <div>\n      <select id=\"z\"><option value=\"\" selected>discrete variable<\/option>\n<option value=\"manufacturer\">manufacturer<\/option>\n<option value=\"model\">model<\/option>\n<option value=\"displ\">displ<\/option>\n<option value=\"year\">year<\/option>\n<option value=\"cyl\">cyl<\/option>\n<option value=\"trans\">trans<\/option>\n<option value=\"drv\">drv<\/option>\n<option value=\"cty\">cty<\/option>\n<option value=\"hwy\">hwy<\/option>\n<option value=\"fl\">fl<\/option>\n<option value=\"class\">class<\/option><\/select>\n      <script type=\"application/json\" data-for=\"z\">{}<\/script>\n    <\/div>\n  <\/div>\n<\/div>\n<div data-display-if=\"input.z != &#39;&#39;\" data-ns-prefix=\"\">\n  <div id=\"wrap\" class=\"form-group shiny-input-radiogroup shiny-input-container shiny-input-container-inline\">\n    <label class=\"control-label\" for=\"wrap\">group your variables by<\/label>\n    <div class=\"shiny-options-group\">\n      <label class=\"radio-inline\">\n        <input type=\"radio\" name=\"wrap\" value=\"color\" checked=\"checked\"/>\n        <span>color<\/span>\n      <\/label>\n      <label class=\"radio-inline\">\n        <input type=\"radio\" name=\"wrap\" value=\"grid\"/>\n        <span>grid<\/span>\n      <\/label>\n    <\/div>\n  <\/div>\n<\/div>\n<div data-display-if=\"input.wrap == &#39;grid&#39;\" data-ns-prefix=\"\">\n  <div id=\"free_facet\" class=\"form-group shiny-input-radiogroup shiny-input-container shiny-input-container-inline\">\n    <label class=\"control-label\" for=\"free_facet\">allow axes to vary<\/label>\n    <div class=\"shiny-options-group\">\n      <label class=\"radio-inline\">\n        <input type=\"radio\" name=\"free_facet\" value=\"fixed\" checked=\"checked\"/>\n        <span>no<\/span>\n      <\/label>\n      <label class=\"radio-inline\">\n        <input type=\"radio\" name=\"free_facet\" value=\"free_x\"/>\n        <span>by x<\/span>\n      <\/label>\n      <label class=\"radio-inline\">\n        <input type=\"radio\" name=\"free_facet\" value=\"free_y\"/>\n        <span>by y<\/span>\n      <\/label>\n      <label class=\"radio-inline\">\n        <input type=\"radio\" name=\"free_facet\" value=\"free\"/>\n        <span>both<\/span>\n      <\/label>\n    <\/div>\n  <\/div>\n<\/div>\n<div data-display-if=\"input.chart_type == &#39;heatmap&#39; | input.chart_type == &#39;scatterplot&#39;\" data-ns-prefix=\"\">\n  <div class=\"form-group shiny-input-container\">\n    <label class=\"control-label\" for=\"w\">add an additional continuous variable:<\/label>\n    <div>\n      <select id=\"w\"><option value=\"\" selected>continuous variable<\/option>\n<option value=\"manufacturer\">manufacturer<\/option>\n<option value=\"model\">model<\/option>\n<option value=\"displ\">displ<\/option>\n<option value=\"year\">year<\/option>\n<option value=\"cyl\">cyl<\/option>\n<option value=\"trans\">trans<\/option>\n<option value=\"drv\">drv<\/option>\n<option value=\"cty\">cty<\/option>\n<option value=\"hwy\">hwy<\/option>\n<option value=\"fl\">fl<\/option>\n<option value=\"class\">class<\/option><\/select>\n      <script type=\"application/json\" data-for=\"w\">{}<\/script>\n    <\/div>\n  <\/div>\n<\/div>\n<div data-display-if=\"input.z != &#39;&#39; | input.w != &#39;&#39;\" data-ns-prefix=\"\">\n  <div class=\"form-group shiny-input-container\">\n    <label class=\"control-label\" for=\"palette_selector\">select a color palette<\/label>\n    <div>\n      <select id=\"palette_selector\"><option value=\"classic\" selected>classic<\/option>\n<option value=\"qualitative\">qualitative<\/option>\n<option value=\"sequential\">sequential<\/option>\n<option value=\"diverging\">diverging<\/option><\/select>\n      <script type=\"application/json\" data-for=\"palette_selector\" data-nonempty=\"\">{}<\/script>\n    <\/div>\n  <\/div>\n<\/div>\n<button id=\"do_plot\" type=\"button\" class=\"btn btn-default action-button\">\n  <i class=\"fa fa-area-chart\"><\/i>\n  can i have your autoggraph?\n<\/button>",
       "deps": [
         {
           "name": "selectize",
