@@ -26,6 +26,19 @@ function(request) {
         ),
        uiOutput("landing_page")
        ),
+    # reshape UI ---------------------------------------------------------
+    # tabPanel("reshape",
+    #          tags$head(
+    #            tags$link(rel = "icon", type = "image/png", href = "favicon.png")
+    #          ),
+    #          h4("I want to"),
+    #          actionButton("add1", "+ 1"),
+    #          actionButton("sub1", "- 1"),
+    #          actionButton("reset", "set to 0"),
+    #          uiOutput('reshape_me'),
+    #          tableOutput('table'),
+    #          uiOutput('table_btn')
+    # ),
     # plot UI -----------------------------------------------------------------
       tabPanel("plots",
         includeCSS("www/simplex.css"),
