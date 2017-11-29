@@ -940,6 +940,7 @@ z_levels <- reactive({
 
   ## z and no w ---------------------------------------------------------------
   else if (input$z != "" & input$w == "") {
+    # todo(ajae): apply custom labels and grids with ifelses
     
     if (input$wrap == "grid") {
       if (input$z_label == "") { # unlabeled grid
