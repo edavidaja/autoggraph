@@ -701,7 +701,7 @@ which_geom_w_z <- reactive({
       aes(
         color = stored_data$data[[input$w]]
       ),
-      alpha = stored_data$data[[input[[paste0("scatter_option_alpha", plot_opts())]]]]
+      alpha = input[[paste0("scatter_option_alpha", plot_opts())]]
     )     
   } else {
     geom_point(
@@ -709,7 +709,7 @@ which_geom_w_z <- reactive({
         size = stored_data$data[[input$w]],
         colour = stored_data$data[[input$z]]
       ),
-      alpha = stored_data$data[[input[[paste0("scatter_option_alpha", plot_opts())]]]]    
+      alpha = input[[paste0("scatter_option_alpha", plot_opts())]]
     )    
   }
 

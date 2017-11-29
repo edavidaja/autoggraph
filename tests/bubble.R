@@ -1,0 +1,15 @@
+app <- ShinyDriver$new("../", seed = 7038)
+app$snapshotInit("bubble")
+
+app$setInputs(which_panel = "plots", chart_type = "scatterplot")
+app$uploadFile(infile = "mpg.csv")
+# Input '`shinyjs-resettable-y_label`' was set, but doesn't have an input binding.
+app$setInputs(x = "displ", y = "hwy", z = "cyl", w = "cty")
+app$setInputs(do_plot = "click")
+app$snapshot()
+app$setInputs(x_label = "Displacement", y_label = "Miles per gallon highway", do_plot = "click")
+app$snapshot()
+app$setInputs(z_guide = "Cylinders", do_plot = "click")
+app$snapshot()
+app$setInputs(w_guide = "Miles per gallon city", do_plot = "click")
+app$snapshot()
