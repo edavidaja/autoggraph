@@ -61,7 +61,7 @@
     "x_val_format": "",
     "y": "hwy",
     "y_breaks": "",
-    "y_label": "count",
+    "y_label": "",
     "y_val_format": "",
     "z": "",
     "z_guide": "",
@@ -94,7 +94,7 @@
     },
     "excel_sheet_selector": null,
     "graph": {
-      "src": "[image data sha1: fe1d7c1faeb6b22aef29362fb8659fecf7a2ed97]",
+      "src": "[image data sha1: 43bbafd26fb34ea8d38cb309907ac8bc5b67147a]",
       "width": 466,
       "height": 400,
       "coordmap": [
@@ -125,7 +125,7 @@
             "left": 31.8904109589041,
             "right": 460.520547945205,
             "bottom": 357.178082191781,
-            "top": 18.0547945205479
+            "top": 21.0547945205479
           }
         }
       ]
