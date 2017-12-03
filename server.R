@@ -962,20 +962,32 @@ z_levels <- reactive({
           p <- p + scale_color_manual(values = which_palette())
           p <- p + guides(color = guide_legend(title.position = "top", ncol = 1 ))
         } else if (input$chart_type == "scatterplot") {
-          p <- p + scale_color_manual(values = which_palette())
+          p <- p + scale_color_manual(
+            name = ifelse(input$z_guide == "", input$z, input$z_guide),
+            values = which_palette()
+            )
           p <- p + guides(
-            color = guide_legend(input$z, order = 1, title.position = "top", ncol = 1, override.aes = list(alpha = 1, size = 3) ),
-            shape = guide_legend(input$z, order = 1, title.position = "top", ncol = 1 ),
+            color = guide_legend(order = 1, title.position = "top", ncol = 1, override.aes = list(alpha = 1, size = 3)),
+            shape = guide_legend(order = 1, title.position = "top", ncol = 1 ),
             fill  = guide_legend(order = 2)
             )
         } else if (input$chart_type == "area") {
-          p <- p + scale_fill_manual(values = which_palette())    
-          p <- p + scale_linetype_manual(values = c(1, 2, 3, 4, 5, 6))
-          p <- p + scale_color_manual(values = which_palette())
+          p <- p + scale_fill_manual(
+            name   = ifelse(input$z_guide == "", input$z, input$z_guide),
+            values = which_palette()
+            )    
+          p <- p + scale_linetype_manual(
+            name   = ifelse(input$z_guide == "", input$z, input$z_guide),
+            values = c(1, 2, 3, 4, 5, 6)
+            )
+          p <- p + scale_color_manual(
+            name   = ifelse(input$z_guide == "", input$z, input$z_guide),
+            values = which_palette()
+            )
           p <- p + guides(
-            fill     = guide_legend(input$z, title.position = "top", ncol = 1),
-            color    = guide_legend(input$z, title.position = "top", ncol = 1),
-            linetype = guide_legend(input$z, title.position = "top", ncol = 1)
+            fill     = guide_legend(title.position = "top", ncol = 1),
+            color    = guide_legend(title.position = "top", ncol = 1),
+            linetype = guide_legend(title.position = "top", ncol = 1)
             )
         }
       } else { # apply custom labels
@@ -993,21 +1005,34 @@ z_levels <- reactive({
           p <- p + scale_linetype_manual(values = c(1, 2, 3, 4, 5, 6), labels = plot_labels)
           p <- p + guides(color = guide_legend(title.position = "top", ncol = 1))
         } else if (input$chart_type == "scatterplot") {
-          p <- p + scale_color_manual(values = which_palette(), labels = plot_labels)
-          p <- p + scale_shape_manual(values = c(15, 16, 17, 18, 3, 8, 7), labels = plot_labels)
+          p <- p + scale_color_manual(
+            name = ifelse(input$z_guide == "", input$z, input$z_guide), 
+            values = which_palette(), labels = plot_labels)
+          p <- p + scale_shape_manual(
+            name = ifelse(input$z_guide == "", input$z, input$z_guide),
+            values = c(15, 16, 17, 18, 3, 8, 7), labels = plot_labels)
           p <- p + guides(
             color = guide_legend(input$z, order = 1, title.position = "top", ncol = 1, override.aes = list(alpha = 1, size = 3)),
             shape = guide_legend(input$z, order = 1, title.position = "top", ncol = 1 ),
             fill  = guide_legend(order = 2)
             )
         } else if (input$chart_type == "area") {
-          p <- p + scale_fill_manual(values = which_palette(), labels = plot_labels)
-          p <- p + scale_linetype_manual(values = c(1, 2, 3, 4, 5, 6), labels = plot_labels)
-          p <- p + scale_color_manual(values = which_palette(), labels = plot_labels)
+          p <- p + scale_fill_manual(
+            name   = ifelse(input$z_guide == "", input$z, input$z_guide),
+            values = which_palette(), labels = plot_labels
+            )
+          p <- p + scale_linetype_manual(
+            name   = ifelse(input$z_guide == "", input$z, input$z_guide),
+            values = c(1, 2, 3, 4, 5, 6), labels = plot_labels
+            )
+          p <- p + scale_color_manual(
+            name   = ifelse(input$z_guide == "", input$z, input$z_guide),
+            values = which_palette(), labels = plot_labels
+            )
           p <- p + guides(
-            fill     = guide_legend(input$z, title.position = "top", ncol = 1),
-            color    = guide_legend(input$z, title.position = "top", ncol = 1),
-            linetype = guide_legend(input$z, title.position = "top", ncol = 1)
+            fill     = guide_legend(title.position = "top", ncol = 1),
+            color    = guide_legend(title.position = "top", ncol = 1),
+            linetype = guide_legend(title.position = "top", ncol = 1)
             )
         }
       }
