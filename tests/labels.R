@@ -49,7 +49,8 @@ app$setInputs(y_label = "count", do_plot = "click")
 app$snapshot()
 
 # scatterplots ----------------------------------------------------------------
-app$setInputs(chart_type = "scatterplot", x_label = "", z_guide = "", z = "", y = "hwy", do_plot = "click")
+app$setInputs(chart_type = "scatterplot", x_label = "", y_label = "", z_guide = "", z = "", y = "hwy")
+app$setInputs(do_plot = "click")
 app$snapshot()
 
 app$setInputs(x_label = "displacement", do_plot = "click")
@@ -58,7 +59,8 @@ app$snapshot()
 app$setInputs(y_label = "Miles per gallon (hwy)", do_plot = "click")
 app$snapshot()
 
-app$setInputs(z = "cyl", do_plot = "click")
+app$setInputs(z = "cyl")
+app$setInputs(do_plot = "click")
 app$snapshot()
 
 app$setInputs(z_guide = "cylinders", do_plot = "click")

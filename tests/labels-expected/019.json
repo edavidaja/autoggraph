@@ -119,9 +119,41 @@
     },
     "excel_sheet_selector": null,
     "graph": {
-      "message": "alpha level NA, not in [0,1]",
-      "call": "grDevices::rgb(col[1, ], col[2, ], col[3, ], alpha)",
-      "type": null
+      "src": "[image data sha1: a3846a4b7efd8dd0f20c944b8baf024b1750ba33]",
+      "width": 466,
+      "height": 400,
+      "coordmap": [
+        {
+          "panel": 1,
+          "row": 1,
+          "col": 1,
+          "panel_vars": {
+
+          },
+          "scale_x": 1,
+          "scale_y": 1,
+          "log": {
+            "x": null,
+            "y": null
+          },
+          "domain": {
+            "left": 1.33,
+            "right": 7.27,
+            "bottom": 10.4,
+            "top": 45.6
+          },
+          "mapping": {
+            "x": "stored_data$data[[input$x]]",
+            "y": "stored_data$data[[input$y]]"
+          },
+          "range": {
+            "left": 31.8904109589041,
+            "right": 460.520547945205,
+            "bottom": 289.62091683745,
+            "top": 21.0547945205479
+          }
+        }
+      ]
     },
     "landing_page": {
       "html": "<div class=\"container\">\r\n\t\r\n\t<div id=\"welcome-to-autoggraph\" class=\"section level1\">\r\n\t\t<h1>welcome to autoggraph<\/h1>\r\n\t\t<p>GAO’s grammar of graphics<\/p>\r\n\t\t<div id=\"hit-plots-above-to-get-started\" class=\"section level2\">\r\n\t\t\t<h2>hit 'plots' above to get started, or read the notes on usage below<\/h2>\r\n\t\t<\/div>\r\n\t\t\t\t<div id=\"example-plots\" class=\"section level2\">\r\n\t\t\t<h2>example plots:<\/h2>\r\n\t\t\t<div class=\"row\">\r\n\t\t\t\t<div class=\"col-md-3\">\r\n\t\t\t\t\t<p>bar chart<\/p>\r\n\t\t\t\t\t<a href=\"http://127.0.0.1:7038/?_state_id_=c3bdcf100b511619\">\t\r\n\t\t\t\t\t\t<img src=\"bar.png\" class=\"img-responsive\" alt=\"bar\">\r\n\t\t\t\t\t<\/a>\r\n\t\t\t\t<\/div>\r\n\t\t\t\t<div class=\"col-md-3\">\r\n\t\t\t\t\t<p>scatterplot<\/p>\r\n\t\t\t\t\t<a href=\"http://127.0.0.1:7038/?_state_id_=7f045384fc80699f\">\r\n\t\t\t\t\t\t<img src=\"scatterplot.png\" class=\"img-responsive\" alt=\"scatterplot\">\r\n\t\t\t\t\t<\/a>\r\n\t\t\t\t<\/div>\r\n\t\t\t\t<div class=\"col-md-3\">\r\n\t\t\t\t\t<p>line graph<\/p>\r\n\t\t\t\t\t<a href=\"http://127.0.0.1:7038/?_state_id_=d46ee1b511686610\">\t\r\n\t\t\t\t\t\t<img src=\"line.png\" class=\"img-responsive\" alt=\"line graph\">\r\n\t\t\t\t\t<\/a>\r\n\t\t\t\t<\/div>\r\n\t\t\t\t<div class=\"col-md-3\">\r\n\t\t\t\t\t<p>area chart<\/p>\r\n\t\t\t\t\t<a href=\"http://127.0.0.1:7038/?_state_id_=8d4faec0d8e2ce46\">\t\r\n\t\t\t\t\t\t<img src=\"area.png\" class=\"img-responsive\" alt=\"area\">\r\n\t\t\t\t\t<\/a>\r\n\t\t\t\t<\/div>\r\n\t\t\t<\/div>\r\n\t\t\t<div class=\"row\">\r\n\t\t\t\t<div class=\"col-md-4\">\r\n\t\t\t\t\t<p>density plot<\/p>\r\n\t\t\t\t\t<a href=\"http://127.0.0.1:7038/?_state_id_=4531778c5d52c85e\">\t\r\n\t\t\t\t\t\t<img src=\"density.png\" class=\"img-responsive\" alt=\"density\">\r\n\t\t\t\t\t<\/a>\r\n\t\t\t\t<\/div>\r\n\t\t\t\t<div class=\"col-md-4\">\r\n\t\t\t\t\t<p>heat map<\/p>\r\n\t\t\t\t\t<a href=\"http://127.0.0.1:7038/?_state_id_=491a5e9b29240553\">\t\r\n\t\t\t\t\t\t<img src=\"heatmap.png\" class=\"img-responsive\" alt=\"heatmap\">\r\n\t\t\t\t\t<\/a>\r\n\t\t\t\t<\/div>\r\n\t\t\t\t<div class=\"col-md-4\">\r\n\t\t\t\t\t<p>boxplot<\/p>\r\n\t\t\t\t\t<a href=\"http://127.0.0.1:7038/?_state_id_=8420dead1c4ec719\">\r\n\t\t\t\t\t\t<img src=\"boxplot.png\" class=\"img-responsive\" alt=\"boxplot\">\r\n\t\t\t\t\t<\/a>\r\n\t\t\t\t<\/div>\r\n\t\t\t<\/div>\r\n\t\t<\/div>\r\n\t\t<div id=\"data-standards\" class=\"section level3\">\r\n\t\t\t<h3>data standards<\/h3>\r\n\t\t\t<p>data uploaded to autoggraph should have:<\/p>\r\n\t\t\t<ul>\r\n\t\t\t\t<li>a header row,<\/li>\r\n\t\t\t\t<ul>\r\n\t\t\t\t\t<li>Excel users: put your graph data in a dedicated worksheet where the header row starts on cell A1.<\/li>\r\n\t\t\t\t\t<li>avoid using special characters (e.g. !$*) in the column or worksheet names.<\/li>\r\n\t\t\t\t<\/ul>\r\n\t\t\t\t<li>minimal missing data, and<\/li>\r\n\t\t\t\t<li>one row for each unit of analysis (i.e. they should be long, rather than wide, as in the example below).<\/li>\r\n\t\t\t<\/ul>\r\n\t\t\t<div class=\"row\">\r\n\t\t\t\t<h3 id=\"wide-vs.long-data\">wide vs. long data<\/h3>\r\n\t\t\t\t<div class=\"col-md-6\">\r\n\t\t\t\t\t<p>these data are wide:<\/p>\r\n\t\t\t\t\t<table class=\"table table-condensed table-hover\">\r\n\t\t\t\t\t\t<thead>\r\n\t\t\t\t\t\t\t<tr class=\"header\">\r\n\t\t\t\t\t\t\t\t<th align=\"center\">time<\/th>\r\n\t\t\t\t\t\t\t\t<th align=\"center\">X<\/th>\r\n\t\t\t\t\t\t\t\t<th align=\"center\">Y<\/th>\r\n\t\t\t\t\t\t\t\t<th align=\"center\">Z<\/th>\r\n\t\t\t\t\t\t\t<\/tr>\r\n\t\t\t\t\t\t<\/thead>\r\n\t\t\t\t\t\t<tbody>\r\n\t\t\t\t\t\t\t<tr class=\"odd\">\r\n\t\t\t\t\t\t\t\t<td align=\"center\">2009-01-01<\/td>\r\n\t\t\t\t\t\t\t\t<td align=\"center\">-0.56<\/td>\r\n\t\t\t\t\t\t\t\t<td align=\"center\">2.45<\/td>\r\n\t\t\t\t\t\t\t\t<td align=\"center\">-4.27<\/td>\r\n\t\t\t\t\t\t\t<\/tr>\r\n\t\t\t\t\t\t\t<tr class=\"even\">\r\n\t\t\t\t\t\t\t\t<td align=\"center\">2009-01-02<\/td>\r\n\t\t\t\t\t\t\t\t<td align=\"center\">-0.23<\/td>\r\n\t\t\t\t\t\t\t\t<td align=\"center\">0.72<\/td>\r\n\t\t\t\t\t\t\t\t<td align=\"center\">-0.87<\/td>\r\n\t\t\t\t\t\t\t<\/tr>\r\n\t\t\t\t\t\t\t<tr class=\"odd\">\r\n\t\t\t\t\t\t\t\t<td align=\"center\">2009-01-03<\/td>\r\n\t\t\t\t\t\t\t\t<td align=\"center\">1.56<\/td>\r\n\t\t\t\t\t\t\t\t<td align=\"center\">0.80<\/td>\r\n\t\t\t\t\t\t\t\t<td align=\"center\">-4.10<\/td>\r\n\t\t\t\t\t\t\t<\/tr>\r\n\t\t\t\t\t\t<\/tbody>\r\n\t\t\t\t\t<\/table>\r\n\t\t\t\t<\/div>\r\n\t\t\t\t<div class=\"col-md-6\">\r\n\t\t\t\t\t<p>these are the same data in long form:<\/p>\r\n\t\t\t\t\t<table class=\"table table-condensed table-hover\">\r\n\t\t\t\t\t\t<thead>\r\n\t\t\t\t\t\t\t<tr class=\"header\">\r\n\t\t\t\t\t\t\t\t<th align=\"center\">time<\/th>\r\n\t\t\t\t\t\t\t\t<th align=\"center\">stock<\/th>\r\n\t\t\t\t\t\t\t\t<th align=\"center\">price<\/th>\r\n\t\t\t\t\t\t\t<\/tr>\r\n\t\t\t\t\t\t<\/thead>\r\n\t\t\t\t\t\t<tbody>\r\n\t\t\t\t\t\t\t<tr class=\"odd\">\r\n\t\t\t\t\t\t\t\t<td align=\"center\">2009-01-01<\/td>\r\n\t\t\t\t\t\t\t\t<td align=\"center\">X<\/td>\r\n\t\t\t\t\t\t\t\t<td align=\"center\">-0.56<\/td>\r\n\t\t\t\t\t\t\t<\/tr>\r\n\t\t\t\t\t\t\t<tr class=\"even\">\r\n\t\t\t\t\t\t\t\t<td align=\"center\">2009-01-02<\/td>\r\n\t\t\t\t\t\t\t\t<td align=\"center\">X<\/td>\r\n\t\t\t\t\t\t\t\t<td align=\"center\">-0.23<\/td>\r\n\t\t\t\t\t\t\t<\/tr>\r\n\t\t\t\t\t\t\t<tr class=\"odd\">\r\n\t\t\t\t\t\t\t\t<td align=\"center\">2009-01-03<\/td>\r\n\t\t\t\t\t\t\t\t<td align=\"center\">X<\/td>\r\n\t\t\t\t\t\t\t\t<td align=\"center\">1.56<\/td>\r\n\t\t\t\t\t\t\t<\/tr>\r\n\t\t\t\t\t\t\t<tr class=\"even\">\r\n\t\t\t\t\t\t\t\t<td align=\"center\">2009-01-01<\/td>\r\n\t\t\t\t\t\t\t\t<td align=\"center\">Y<\/td>\r\n\t\t\t\t\t\t\t\t<td align=\"center\">2.45<\/td>\r\n\t\t\t\t\t\t\t<\/tr>\r\n\t\t\t\t\t\t\t<tr class=\"odd\">\r\n\t\t\t\t\t\t\t\t<td align=\"center\">2009-01-02<\/td>\r\n\t\t\t\t\t\t\t\t<td align=\"center\">Y<\/td>\r\n\t\t\t\t\t\t\t\t<td align=\"center\">0.72<\/td>\r\n\t\t\t\t\t\t\t<\/tr>\r\n\t\t\t\t\t\t\t<tr class=\"even\">\r\n\t\t\t\t\t\t\t\t<td align=\"center\">2009-01-03<\/td>\r\n\t\t\t\t\t\t\t\t<td align=\"center\">Y<\/td>\r\n\t\t\t\t\t\t\t\t<td align=\"center\">0.80<\/td>\r\n\t\t\t\t\t\t\t<\/tr>\r\n\t\t\t\t\t\t\t<tr class=\"odd\">\r\n\t\t\t\t\t\t\t\t<td align=\"center\">2009-01-01<\/td>\r\n\t\t\t\t\t\t\t\t<td align=\"center\">Z<\/td>\r\n\t\t\t\t\t\t\t\t<td align=\"center\">-4.27<\/td>\r\n\t\t\t\t\t\t\t<\/tr>\r\n\t\t\t\t\t\t\t<tr class=\"even\">\r\n\t\t\t\t\t\t\t\t<td align=\"center\">2009-01-02<\/td>\r\n\t\t\t\t\t\t\t\t<td align=\"center\">Z<\/td>\r\n\t\t\t\t\t\t\t\t<td align=\"center\">-0.87<\/td>\r\n\t\t\t\t\t\t\t<\/tr>\r\n\t\t\t\t\t\t\t<tr class=\"odd\">\r\n\t\t\t\t\t\t\t\t<td align=\"center\">2009-01-03<\/td>\r\n\t\t\t\t\t\t\t\t<td align=\"center\">Z<\/td>\r\n\t\t\t\t\t\t\t\t<td align=\"center\">-4.10<\/td>\r\n\t\t\t\t\t\t\t<\/tr>\r\n\t\t\t\t\t\t<\/tbody>\r\n\t\t\t\t\t<\/table>\r\n\t\t\t\t<\/div>\r\n\t\t\t<\/div>\r\n\t\t<\/div>\r\n\t\t<div id=\"questions\" class=\"section level2\">\r\n\t\t\t<h2>questions? feedback?<\/h2>\r\n\t\t\t<p><a href=\"mailto:shiny@gao.gov&amp;subject=autoggraph\">send an email<\/a><\/p>\r\n\r\n\t\t<\/div>\r\n\t<\/div>\r\n<\/div>",
