@@ -223,13 +223,11 @@ shinyServer(function(input, output, session) {
             inputId = paste0("scatter_option_grid", plot_opts()),
             "show gridlines?"
             ),
-          selectInput(
+          checkboxInput(
             inputId = paste0("scatter_option_smooth", plot_opts()),
-            "add a smoother:", 
-            choices = c("smoother" = "", "loess", "linear")
-          ),
-          uiOutput("smoother_options"),
-          uiOutput("loess_options")
+            "add a smoother?"
+            ),
+          uiOutput("smoother_options")
           )
         ),
       "pointrange" = 
@@ -299,8 +297,6 @@ shinyServer(function(input, output, session) {
 })
 
 # options that should be available if any smoother is added to a scatterplot
-# TODO(ajae): passing the option to remove the confidence interval to
-# method "lm" causes the smoother not to render at all
 output$smoother_options <- renderUI({
   
   req(input[[paste0("scatter_option_smooth", plot_opts())]])
@@ -318,24 +314,14 @@ output$smoother_options <- renderUI({
       "confidence interval?",
       choices = c("yes" = TRUE, "no" = FALSE),
       inline = TRUE
+      ),
+    sliderInput(
+      inputId = paste0("scatter_options_smooth_span", plot_opts()),
+      "wiggle", min = 0, max = 1, value = .7, step = .1,
+      ticks = FALSE
       )
     )
 })
-
-# ideally this span parameter would be a conditional panel hidden in overall
-# smoother options, but mapping conditions to dynamically determined id
-# names is difficult
-
-output$loess_options <- renderUI({
-
-  req(input[[paste0("scatter_option_smooth", plot_opts())]] == "loess")
-
-  sliderInput(
-    inputId = paste0("scatter_option_loess_span", plot_opts()),
-    "wiggle", min = 0, max = 1, value = .7, step = .1,
-    ticks = FALSE
-    )
-  })
 
 which_palette <- reactive({
 
@@ -1106,48 +1092,27 @@ z_levels <- reactive({
 
   ## apply smoother to scatter plot -------------------------------------------
   if (!is.null(input[[paste0("scatter_option_smooth", plot_opts())]])) {
-    switch(input[[paste0("scatter_option_smooth", plot_opts())]],
-      "loess" = {
-        if (input[[paste0("scatter_option_smooth_group", plot_opts())]] == "groups") {
-          p <- p + geom_smooth(
-            method = "loess",
-            aes(color =  stored_data$data[[input$z]]),
-            se   = input[[paste0("scatter_option_smooth_se", plot_opts())]],
-            span = input[[paste0("scatter_option_loess_span", plot_opts())]], 
-            linetype = "dashed"
-          )
-        } else {
-          p <- p + geom_smooth(
-            method = "loess", 
-            aes_string(fill = quote(input$smoother_label)),
-            span = input[[paste0("scatter_option_loess_span", plot_opts())]], 
-            se = input[[paste0("scatter_option_smooth_se", plot_opts())]],
-            color = "black",
-            linetype = "dashed"
-            ) + 
-            scale_fill_manual(values = "grey50")
-        }
-        },
-      "linear" = {
-        if (input[[paste0("scatter_option_smooth_group", plot_opts())]] == "groups") {
-          p <- p + geom_smooth(
-            method = lm,
-            aes(color =  stored_data$data[[input$z]]),
-            se = input[[paste0("scatter_option_smooth_se", plot_opts())]],
-            linetype = "dashed"
-          )
-        } else {
-          p <- p + geom_smooth(
-            method = lm, 
-            aes_string(fill = quote(input$smoother_label)),
-            se = input[[paste0("scatter_option_smooth_se", plot_opts())]],
-            color = "black",
-            linetype = "dashed"
-            ) + 
-            scale_fill_manual(values = "grey50")
-        }
+    if (input[[paste0("scatter_option_smooth", plot_opts())]] == TRUE){
+      if (input[[paste0("scatter_option_smooth_group", plot_opts())]] == "groups") {
+        p <- p + geom_smooth(
+          method = "loess",
+          aes(color =  stored_data$data[[input$z]]),
+          se   = input[[paste0("scatter_option_smooth_se", plot_opts())]],
+          span = input[[paste0("scatter_options_smooth_span", plot_opts())]], 
+          linetype = "dashed"
+        )
+      } else {
+        p <- p + geom_smooth(
+          method = "loess", 
+          aes_string(fill = quote(input$smoother_label)),
+          span = input[[paste0("scatter_options_smooth_span", plot_opts())]], 
+          se = input[[paste0("scatter_option_smooth_se", plot_opts())]],
+          color = "black",
+          linetype = "dashed"
+          ) + 
+          scale_fill_manual(values = "grey50")
       }
-    )
+    }
   }
 
   ## custom axis and series labels --------------------------------------------
