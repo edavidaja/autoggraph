@@ -215,8 +215,8 @@ shinyServer(function(input, output, session) {
           h4("plot specifics"),
           sliderInput(
             inputId = paste0("scatter_option_alpha", plot_opts()), 
-            "point transparency", 
-            min = 0, max = 1, value = 1, step = .01,
+            "point opacity", 
+            min = 0, max = 100, value = 100, step = 1, post = "%",
             ticks = FALSE
             ),
           checkboxInput(
@@ -533,7 +533,7 @@ observeEvent({c(input$w, input$z)}, {
    "line" = geom_line(color = "#0039A6", size = 1.1),
    "step" = geom_step(color = "#0039A6"),
    "scatterplot" = geom_point(
-      alpha = input[[paste0("scatter_option_alpha", plot_opts())]],
+      alpha = input[[paste0("scatter_option_alpha", plot_opts())]] / 100,
       color = "#0039A6"
       ),
    "bar" = {
@@ -609,7 +609,7 @@ observeEvent({c(input$w, input$z)}, {
            shape = stored_data$data[[input$z]]
          ),
          size = 2,
-         alpha = input[[paste0("scatter_option_alpha", plot_opts())]]
+         alpha = input[[paste0("scatter_option_alpha", plot_opts())]] / 100
        ),
        "bar" = {
          if (input$y == "") {  
@@ -666,7 +666,7 @@ which_geom_w <- reactive({
     "scatterplot" =
     geom_point(
       aes_string(color = input$w),
-      alpha = input[[paste0("scatter_option_alpha", plot_opts())]]
+      alpha = input[[paste0("scatter_option_alpha", plot_opts())]] / 100
       ),
     "heatmap" = geom_tile(
       aes_string(fill = stored_data$data[[input$w]])
@@ -679,7 +679,7 @@ which_geom_w_z <- reactive({
   if (input$wrap == "facets") {
     geom_point(
       aes(color = stored_data$data[[input$w]]),
-      alpha = input[[paste0("scatter_option_alpha", plot_opts())]]
+      alpha = input[[paste0("scatter_option_alpha", plot_opts())]] / 100
     )     
   } else {
     geom_point(
@@ -687,7 +687,7 @@ which_geom_w_z <- reactive({
         size = stored_data$data[[input$w]],
         colour = stored_data$data[[input$z]]
       ),
-      alpha = input[[paste0("scatter_option_alpha", plot_opts())]]
+      alpha = input[[paste0("scatter_option_alpha", plot_opts())]] / 100
     )    
   }
   })  
@@ -1106,12 +1106,14 @@ z_levels <- reactive({
 
   ## apply smoother to scatter plot -------------------------------------------
   if (!is.null(input[[paste0("scatter_option_smooth", plot_opts())]])) {
-    # TO DO YOU CAN JUST CHANGE THIS BACK
     switch(input[[paste0("scatter_option_smooth", plot_opts())]],
       "loess" = {
         if (input[[paste0("scatter_option_smooth_group", plot_opts())]] == "groups") {
           p <- p + geom_smooth(
             method = "loess",
+            aes(color =  stored_data$data[[input$z]]),
+            se   = input[[paste0("scatter_option_smooth_se", plot_opts())]],
+            span = input[[paste0("scatter_option_loess_span", plot_opts())]], 
             linetype = "dashed"
           )
         } else {
@@ -1127,16 +1129,18 @@ z_levels <- reactive({
         }
         },
       "linear" = {
-        if (input[[paste0("scatter_option_smooth_group", plot_opts())]] == 'groups') {
+        if (input[[paste0("scatter_option_smooth_group", plot_opts())]] == "groups") {
           p <- p + geom_smooth(
-            method = "lm",
+            method = lm,
             aes(color =  stored_data$data[[input$z]]),
+            se = input[[paste0("scatter_option_smooth_se", plot_opts())]],
             linetype = "dashed"
-            )
+          )
         } else {
           p <- p + geom_smooth(
-            method = "lm",
+            method = lm, 
             aes_string(fill = quote(input$smoother_label)),
+            se = input[[paste0("scatter_option_smooth_se", plot_opts())]],
             color = "black",
             linetype = "dashed"
             ) + 
