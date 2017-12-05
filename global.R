@@ -1,4 +1,4 @@
 enableBookmarking(store = "server")
 
 # version number
-app_version <- numeric_version("0.0.2")
+app_version <- numeric_version("0.0.3")
