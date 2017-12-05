@@ -1266,7 +1266,7 @@ output$bundle <- downloadHandler(
   },
   content = function(file) {
 
-    tif_out <- tempfile(pattern = "tif_", fileext = ".tiff")
+    # tif_out <- tempfile(pattern = "tif_", fileext = ".tiff")
     svg_out <- tempfile(pattern = "svg_", fileext = ".svg")
     png_out <- tempfile(pattern = "png_", fileext = ".png")
     rds_out <- tempfile(pattern = "plot_object_", fileext = ".rds")
@@ -1274,9 +1274,9 @@ output$bundle <- downloadHandler(
 
     ggsave(svg_out, width = input$export_width, height = input$export_height,
       system_fonts = list(sans = "Liberation Sans"))
-    ggsave(tif_out, width = input$export_width, height = input$export_height,
-      units = "in", dpi = 300
-      )
+    # ggsave(tif_out, width = input$export_width, height = input$export_height,
+    #   units = "in", dpi = 300
+    #   )
     ggsave(png_out, width = input$export_width, height = input$export_height,
       units = "in", dpi = 300
       )
@@ -1297,7 +1297,7 @@ output$bundle <- downloadHandler(
 
     zip(
       zipfile = file,
-      files = c(rds_out, log_out, png_out, svg_out, tif_out)
+      files = c(rds_out, log_out, png_out, svg_out) #, tif_out)
       ) 
   })
 
