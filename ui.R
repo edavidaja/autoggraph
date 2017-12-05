@@ -26,19 +26,6 @@ function(request) {
         ),
        uiOutput("landing_page")
        ),
-    # reshape UI ---------------------------------------------------------
-    # tabPanel("reshape",
-    #          tags$head(
-    #            tags$link(rel = "icon", type = "image/png", href = "favicon.png")
-    #          ),
-    #          h4("I want to"),
-    #          actionButton("add1", "+ 1"),
-    #          actionButton("sub1", "- 1"),
-    #          actionButton("reset", "set to 0"),
-    #          uiOutput('reshape_me'),
-    #          tableOutput('table'),
-    #          uiOutput('table_btn')
-    # ),
     # plot UI -----------------------------------------------------------------
       tabPanel("plots",
         includeCSS("www/simplex.css"),
@@ -46,13 +33,11 @@ function(request) {
           column(3,
            wellPanel(
             h4("plot type | data:"),
-            selectInput("chart_type", "which chart would you like to use?",
+            selectInput("chart_type", label = NULL,
               choices = list(
                 `select a chart type` = "",
-                `univariate` = c("histogram", "density", "pie"),
-                `multivariate` = c("bar", "line", "step", "area",
-                  "scatterplot", "boxplot", "heatmap"),
-                `statistical` = c("pointrange", "error bar")
+                `general` = c("area", "bar", "boxplot", "density", "heatmap", "histogram", "line", "pie", "scatterplot", "step"),
+                `confidence intervals` = c("pointrange", "error bar")
                 )
               ),
             fileInput("infile", label = "upload your data (in excel or csv format)"),

@@ -7,8 +7,6 @@ library(shiny)
 library(shinyjs)
 library(magrittr)
 
-
-
 # gao theme -------------------------------------------------------------------
 theme_gao <- list(
   theme_minimal(),
@@ -46,8 +44,6 @@ shinyServer(function(input, output, session) {
     js$showFileModified()
   })
 
-
-
   # bookmarking state ----------------------------------------------------------
   # since the plot_opts id is randomly generated, onBookmark must be used in
   # order to save its state 
@@ -64,10 +60,8 @@ shinyServer(function(input, output, session) {
   # filer commands
   filters <- reactiveValues(ids = NULL, vars = NULL, ops = NULL, condition = NULL)
   
-  
   # here is the data that we are going to work with
   stored_data <- reactiveValues(data = NULL, orig_data = NULL, plotted = FALSE)
-  
   
   onRestore(function(state) {
     original_ops$id     <- state$values$id
@@ -110,21 +104,13 @@ shinyServer(function(input, output, session) {
       temp <- read_csv(input$infile$datapath)
       names(temp) %<>% make.names(., unique = TRUE)
     }
-    
-    
     stored_data$orig_data <- temp
     stored_data$data <- temp
-  
-    
   })
   
   basePlot <- reactive({
-      
-      ggplot(data = stored_data$data)
-    
-    
+    ggplot(data = stored_data$data)
   })
-  
   
   # Variable selectors ----------------------------------------------------------
   # variable selectors are rendered once graph data is uploaded
@@ -138,9 +124,9 @@ shinyServer(function(input, output, session) {
       conditionalPanel(
         condition = "input.chart_type != 'pie'",
         selectInput("x",
-         "select your x variable:",
-         choices =  c("x variable" = "", names(stored_data$orig_data))
-         )
+          "select your x variable:",
+          choices = c("x variable" = "", names(stored_data$orig_data))
+          )
         ),
         conditionalPanel(
           condition = "input.chart_type != 'density' & input.chart_type != 'histogram'", 
@@ -156,28 +142,28 @@ shinyServer(function(input, output, session) {
             input.chart_type == 'histogram' | input.chart_type == 'step' |
             input.chart_type == 'area') &
             input.x != ''",
-          selectInput("reorder_x", label = "reorder your x axis", 
-            choices = c("order by" = "", names(stored_data$orig_data))
+          selectInput("reorder_x", label = "sort the x-axis by:", 
+            choices = c("sort by" = "", names(stored_data$orig_data))
           )
         ),
         conditionalPanel(
           condition = "input.chart_type != 'heatmap'",
           selectInput("z",
-            "add an additional discrete variable:",
-            choices =  c("discrete variable" = "", names(stored_data$orig_data))
+            "add a grouping variable:",
+            choices =  c("grouping variable" = "", names(stored_data$orig_data))
             )
           ),
         conditionalPanel(
           condition = "input.z != ''",
-          radioButtons("wrap", label = "group your variables by", 
-            choices = c("color", "grid"),
-            selected = "color",
+          radioButtons("wrap", label = "display grouping with:", 
+            choices = c("colors", "facets"),
+            selected = "colors",
             inline = TRUE
           )
         ),
         conditionalPanel(
-          condition = "input.wrap == 'grid'",
-          radioButtons("free_facet", label = "allow axes to vary",
+          condition = "input.wrap == 'facets'",
+          radioButtons("free_facet", label = "allow facet axes to vary?",
             choices = c("no" = "fixed", "by x" = "free_x", "by y" = "free_y", "both" = "free"),
             selected = "fixed",
             inline = TRUE
@@ -192,7 +178,7 @@ shinyServer(function(input, output, session) {
           ),
         conditionalPanel(
           condition = "input.z != '' | input.w != ''",
-          selectInput("palette_selector", label = "select a color palette", 
+          selectInput("palette_selector", label = "select a color palette:", 
             choices = c("classic", "qualitative", "sequential", "diverging"),
             selected = "classic"
             )
@@ -207,7 +193,6 @@ shinyServer(function(input, output, session) {
   # the name of the option. This randomly generated number changes whenever
   # the selected plot type is changes, and ensures that options specific
   # to one plot do not persist across plot types (smoothers in particular)
-
 
   plot_opts <- eventReactive(input$chart_type, {
     
@@ -230,21 +215,19 @@ shinyServer(function(input, output, session) {
           h4("plot specifics"),
           sliderInput(
             inputId = paste0("scatter_option_alpha", plot_opts()), 
-            "point transparency", 
-            min = 0, max = 1, value = 1, step = .01,
+            "point opacity", 
+            min = 0, max = 100, value = 100, step = 1, post = "%",
             ticks = FALSE
             ),
           checkboxInput(
             inputId = paste0("scatter_option_grid", plot_opts()),
-            "show gridlines (useful for cleveland dot plots)"
+            "show gridlines?"
             ),
-          selectInput(
+          checkboxInput(
             inputId = paste0("scatter_option_smooth", plot_opts()),
-            "add a smoother:", 
-            choices = c("smoother" = "", "loess", "linear")
-          ),
-          uiOutput("smoother_options"),
-          uiOutput("loess_options")
+            "add a smoother?"
+            ),
+          uiOutput("smoother_options")
           )
         ),
       "pointrange" = 
@@ -314,8 +297,6 @@ shinyServer(function(input, output, session) {
 })
 
 # options that should be available if any smoother is added to a scatterplot
-# TODO(ajae): passing the option to remove the confidence interval to
-# method "lm" causes the smoother not to render at all
 output$smoother_options <- renderUI({
   
   req(input[[paste0("scatter_option_smooth", plot_opts())]])
@@ -333,24 +314,14 @@ output$smoother_options <- renderUI({
       "confidence interval?",
       choices = c("yes" = TRUE, "no" = FALSE),
       inline = TRUE
+      ),
+    sliderInput(
+      inputId = paste0("scatter_options_smooth_span", plot_opts()),
+      "wiggle", min = 0, max = 1, value = .7, step = .1,
+      ticks = FALSE
       )
     )
 })
-
-# ideally this span parameter would be a conditional panel hidden in overall
-# smoother options, but mapping conditions to dynamically determined id
-# names is difficult
-
-output$loess_options <- renderUI({
-
-  req(input[[paste0("scatter_option_smooth")]] == "loess", plot_opts())
-
-  sliderInput(
-    inputId = paste0("scatter_option_loess_span", plot_opts()),
-    "wiggle", min = 0, max = 1, value = .7, step = .1,
-    ticks = FALSE
-    )
-  })
 
 which_palette <- reactive({
 
@@ -428,21 +399,20 @@ observeEvent({c(input$w, input$z)}, {
   set_var_types <- reactive({
     # TODO(portnows): can you leave a comment here explaining what this does? It's not obvious from looking
     req(input$x %in% names(stored_data$data) | input$y %in% names(stored_data$data) | input$z %in% names(stored_data$data))
-    
   
-    if (input$type_variable != ""){
+    if (input$type_variable_x != "") {
       
-      if (input$type_variable == "factor") {
+      if (input$type_variable_x == "categorical") {
         stored_data$data[[input$x]] <- as.factor(as.character(stored_data$data[[input$x]]))
       }
-      else if (input$type_variable == "numeric") {
+      else if (input$type_variable_x == "numeric") {
         stored_data$data[[input$x]] <- as.numeric(as.character(stored_data$data[[input$x]]))
       }
     }
     
-    if (input$type_variable_y != ""){
+    if (input$type_variable_y != "") {
       
-      if (input$type_variable_y == "factor") {
+      if (input$type_variable_y == "categorical") {
         stored_data$data[[input$y]] <- as.factor(as.character(stored_data$data[[input$y]]))
       }
       else if (input$type_variable_y == "numeric"){
@@ -527,17 +497,13 @@ observeEvent({c(input$w, input$z)}, {
   })
   
   # aesthetics ----------------------------------------------------------------
-  
-  
-  
+
   # geometries ----------------------------------------------------------------
   
   which_geom_xy <- reactive({
     
-    # select geom based on selected chart type for the univariate or
-    # two-variable case.   
-
-    
+  # select geom based on selected chart type for the univariate or
+  # two-variable case.   
   switch(input$chart_type,
    "histogram" = {
      if (sapply(stored_data$data[,input$x], class) %in% c("character", "factor")) {
@@ -553,7 +519,7 @@ observeEvent({c(input$w, input$z)}, {
    "line" = geom_line(color = "#0039A6", size = 1.1),
    "step" = geom_step(color = "#0039A6"),
    "scatterplot" = geom_point(
-      alpha = input[[paste0("scatter_option_alpha", plot_opts())]],
+      alpha = input[[paste0("scatter_option_alpha", plot_opts())]] / 100,
       color = "#0039A6"
       ),
    "bar" = {
@@ -629,7 +595,7 @@ observeEvent({c(input$w, input$z)}, {
            shape = stored_data$data[[input$z]]
          ),
          size = 2,
-         alpha = input[[paste0("scatter_option_alpha", plot_opts())]]
+         alpha = input[[paste0("scatter_option_alpha", plot_opts())]] / 100
        ),
        "bar" = {
          if (input$y == "") {  
@@ -686,7 +652,7 @@ which_geom_w <- reactive({
     "scatterplot" =
     geom_point(
       aes_string(color = input$w),
-      alpha = input[[paste0("scatter_option_alpha", plot_opts())]]
+      alpha = input[[paste0("scatter_option_alpha", plot_opts())]] / 100
       ),
     "heatmap" = geom_tile(
       aes_string(fill = stored_data$data[[input$w]])
@@ -696,12 +662,10 @@ which_geom_w <- reactive({
 
 which_geom_w_z <- reactive({
   
-  if (input$wrap == "grid") {
+  if (input$wrap == "facets") {
     geom_point(
-      aes(
-        color = stored_data$data[[input$w]]
-      ),
-      alpha = input[[paste0("scatter_option_alpha", plot_opts())]]
+      aes(color = stored_data$data[[input$w]]),
+      alpha = input[[paste0("scatter_option_alpha", plot_opts())]] / 100
     )     
   } else {
     geom_point(
@@ -709,57 +673,56 @@ which_geom_w_z <- reactive({
         size = stored_data$data[[input$w]],
         colour = stored_data$data[[input$z]]
       ),
-      alpha = input[[paste0("scatter_option_alpha", plot_opts())]]
+      alpha = input[[paste0("scatter_option_alpha", plot_opts())]] / 100
     )    
   }
-
-})  
-
-
+  })  
 
 # plot labels ----------------------------------------------------------------- 
 output$plot_labels <- renderUI({
   
-
   req(input$infile)
 
   conditionalPanel(
     condition = "input.chart_type != '' & input.chart_type != 'pie'",
     wellPanel(
       h4("plot labels"),
+      hr(),
+      checkboxInput("flip_axes", "invert x and y axes"),
       textInput("x_label", "x-axis label"),
       hidden(
-        radioButtons("x_val_format", label = "x value format",
+        radioButtons("x_val_format", label = "x-axis value format",
           choices = c("none" = "", "dollar", "comma", "percent"), inline = TRUE)
         ),
-        radioButtons("type_variable", label = "change the type of variable",
-                     choices = c(
-                       "keep as is" = "", "factor", "numeric"
-                     ), inline = TRUE),
+        radioButtons("type_variable_x", label = "set the x variable type:",
+          choices = c("keep as is" = "", "categorical", "numeric"),
+          inline = TRUE
+          ),
       hidden(
-        textInput("x_breaks", "break after every nth point", "")
+        textInput("x_breaks", "x-axis breaks", placeholder = "min, max, interval")
       ),
       uiOutput("drag_drop_x"),
+      hr(),
       textInput("y_label", "y-axis label"),
       hidden(
-        radioButtons("y_val_format", label = "y value format",
-          choices = c("none" = "", "dollar", "comma", "percent"), inline = TRUE)
+        radioButtons("y_val_format", label = "y-axis value format",
+          choices = c("none" = "", "dollar", "comma", "percent"),
+          inline = TRUE
+          )
         ),
-      radioButtons("type_variable_y", label = "change the type of variable",
-                   choices = c(
-                     "keep as is" = "", "factor", "numeric"
-                   ), inline = TRUE),
+      radioButtons("type_variable_y", label = "set the y variable type:",
+        choices = c("keep as is" = "", "categorical", "numeric"),
+        inline = TRUE
+        ),
       hidden(
-        textInput("y_breaks", "break after every nth point", "")
+        textInput("y_breaks", "y-axis breaks", placeholder = "min, max, interval")
       ),
       uiOutput("drag_drop_y"),
-      # TODO(ajae): consider whether it is worth restricting the conditions under
-      # which the option to flip axes appears
-      checkboxInput("flip_axes", "reverse x and y axes"),
+      hr(),
       conditionalPanel(condition = "input.z != ''",
-        textInput("z_guide", "discrete variable name"),
-        textInput("z_label", "discrete variable labels, separated by commas",
-          placeholder = "one, two, three, ..."),
+        textInput("z_guide", "grouping variable name"),
+        textInput("z_label", "grouping variable labels, separated by commas",
+          placeholder = "group one, group two, group three, ..."),
         uiOutput("drag_drop_z")
         ),
       conditionalPanel(
@@ -768,15 +731,17 @@ output$plot_labels <- renderUI({
           placeholder = "smoothed y on x")
         ),
       conditionalPanel(
+        hr(),
         condition = "(input.chart_type == 'heatmap' | input.chart_type == 'scatterplot') &
         input.w != ''",
         textInput("w_guide", "continuous variable name"),
         textInput("w_label", "continuous variable labels, separated by commas",
           placeholder = "low, high")
         ),
-      textInput("source_label", "source label",
-        placeholder = "GAO analysis..."),
-      textInput("report_number", "report number",
+      hr(),
+      textInput("source_label", "source label:",
+        placeholder = "GAO analysis of..."),
+      textInput("report_number", "report number:",
         placeholder = "GAO-XX-XXX"),
       h4("export:"),
       downloadButton(outputId = "bundle", label = "results", inline = TRUE),
@@ -786,16 +751,12 @@ output$plot_labels <- renderUI({
     )
 })
 
-
-
-
 output$drag_drop_x <- renderUI({
   
   req(input$x)
   req(input$x %in% names(stored_data$data))
   req(sapply(stored_data$data[,input$x], class) %in% c("character", "factor"))
   
-
   choices <-  levels(unique(as.factor(stored_data$data[[input$x]])))
 
     selectizeInput("factor_order_x", "click and drag to reorder your x variable",
@@ -803,7 +764,6 @@ output$drag_drop_x <- renderUI({
       selected =  choices,
       multiple = TRUE, 
       options = list(plugins = list("drag_drop"))
-      
       )
 })
 
@@ -822,8 +782,6 @@ output$drag_drop_y <- renderUI({
       multiple = TRUE, 
       options = list(plugins = list("drag_drop"))            
   )
-  
-  
 })
 
 z_levels <- reactive({
@@ -893,7 +851,7 @@ z_levels <- reactive({
     req(input$z %in% names(stored_data$data))
 
     selectizeInput("factor_order_z",
-      "click and drag to reorder your discrete variable:",
+      "click and drag to reorder your grouping variable:",
         choices  = z_levels(),
         selected = z_levels(),
         multiple = TRUE, 
@@ -940,9 +898,8 @@ z_levels <- reactive({
 
   ## z and no w ---------------------------------------------------------------
   else if (input$z != "" & input$w == "") {
-    # todo(ajae): apply custom labels and grids with ifelses
     
-    if (input$wrap == "grid") {
+    if (input$wrap == "facets") {
       if (input$z_label == "") { # unlabeled grid
         p <- p + which_geom_xy() + facet_wrap(as.formula(paste("~", input$z)), scales = input$free_facet)
       } else { # grid with custom labels
@@ -1091,7 +1048,7 @@ z_levels <- reactive({
 
   ## z and w ------------------------------------------------------------------
   else if (input$z!= "" & input$w != "") {
-    if (input$wrap == "grid") {
+    if (input$wrap == "facets") {
       if (input$z_label == "") { # grid, default labels
         p <- p + scale_color_gradientn(colors = which_palette())
         p <- p + facet_wrap(as.formula(paste("~", input$z)), scales = input$free_facet)
@@ -1135,44 +1092,27 @@ z_levels <- reactive({
 
   ## apply smoother to scatter plot -------------------------------------------
   if (!is.null(input[[paste0("scatter_option_smooth", plot_opts())]])) {
-    # TO DO YOU CAN JUST CHANGE THIS BACK
-    switch(input[[paste0("scatter_option_smooth", plot_opts())]],
-      "loess" = {
-        if (input[[paste0("scatter_option_smooth_group", plot_opts())]] == 'groups') {
-          p <- p + geom_smooth(
-            method = "loess",
-            linetype = "dashed"
-          )
-        } else {
-          p <- p + geom_smooth(
-            method = "loess", 
-            aes_string(fill = quote(input$smoother_label)),
-            span = input[[paste0("scatter_option_loess_span", plot_opts())]], 
-            se = input[[paste0("scatter_option_smooth_se", plot_opts())]],
-            color = "black",
-            linetype = "dashed"
-            ) + 
-            scale_fill_manual(values = "grey50")
-        }
-        },
-      "linear" = {
-        if (input[[paste0("scatter_option_smooth_group", plot_opts())]] == 'groups') {
-          p <- p + geom_smooth(
-            method = "lm",
-            aes(color =  stored_data$data[[input$z]]),
-            linetype = "dashed"
-            )
-        } else {
-          p <- p + geom_smooth(
-            method = "lm",
-            aes_string(fill = quote(input$smoother_label)),
-            color = "black",
-            linetype = "dashed"
-            ) + 
-            scale_fill_manual(values = "grey50")
-        }
+    if (input[[paste0("scatter_option_smooth", plot_opts())]] == TRUE){
+      if (input[[paste0("scatter_option_smooth_group", plot_opts())]] == "groups") {
+        p <- p + geom_smooth(
+          method = "loess",
+          aes(color =  stored_data$data[[input$z]]),
+          se   = input[[paste0("scatter_option_smooth_se", plot_opts())]],
+          span = input[[paste0("scatter_options_smooth_span", plot_opts())]], 
+          linetype = "dashed"
+        )
+      } else {
+        p <- p + geom_smooth(
+          method = "loess", 
+          aes_string(fill = quote(input$smoother_label)),
+          span = input[[paste0("scatter_options_smooth_span", plot_opts())]], 
+          se = input[[paste0("scatter_option_smooth_se", plot_opts())]],
+          color = "black",
+          linetype = "dashed"
+          ) + 
+          scale_fill_manual(values = "grey50")
       }
-    )
+    }
   }
 
   ## custom axis and series labels --------------------------------------------
@@ -1221,7 +1161,7 @@ z_levels <- reactive({
     
     p <- p + scale_x_continuous(
       breaks = seq(from = seq[1], to = seq[2], by = seq[3])
-      )      
+      )
   }
   
   if (input$y_breaks != "") {
@@ -1232,7 +1172,6 @@ z_levels <- reactive({
       )
   }
 
-  
   if (input$x_val_format != "") {
     switch(input$x_val_format,
       "dollar"  = p <- p + scale_x_continuous(labels = scales::dollar),
@@ -1281,6 +1220,10 @@ observeEvent(input$z, {
 
 observeEvent(input$w, {
   updateTextInput(session, "w_guide", value = input$w) 
+  })
+
+observeEvent(input$x, {
+  updateTextInput(session, "x_label", value = input$x) 
   })
 
 observeEvent(c(input$reorder_x, input$flip_axes), {
