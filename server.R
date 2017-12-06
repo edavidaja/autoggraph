@@ -24,7 +24,7 @@ theme_gao <- list(
 
 # server ----------------------------------------------------------------------
 shinyServer(function(input, output, session) {
-
+  runcodeServer()
   output$landing_page <- renderUI({
     if(session$clientData$url_hostname == "shiny.eseclab.gov") {
       # set location of zip for export
@@ -61,7 +61,7 @@ shinyServer(function(input, output, session) {
   filters <- reactiveValues(ids = NULL, vars = NULL, ops = NULL, condition = NULL)
   
   # here is the data that we are going to work with
-  stored_data <- reactiveValues(data = NULL, orig_data = NULL, plotted = FALSE)
+  stored_data <- reactiveValues(data = NULL, plotted = FALSE)
   
   onRestore(function(state) {
     original_ops$id     <- state$values$id
@@ -69,17 +69,11 @@ shinyServer(function(input, output, session) {
   })
   
   # Ingest file -----------------------------------------------------------------
-  # a bug in readxl makes it unable to read files directly from the fileInput()
-  # so all calls to readxl functions require the use of paste() to append
-  # the proper extension to them
   output$excel_sheet_selector <- renderUI({
     
-    req(input$infile)
-    
     ext <- tools::file_ext(input$infile$name)
-    if (ext %in% c("xls", "xlsx")) {
-      selectInput("which_sheet", "select a worksheet:", choices = excel_sheets(input$infile$datapath))
-      }
+    req(ext %in% c("xls", "xlsx"))
+    selectInput("which_sheet", "select a worksheet:", choices = excel_sheets(input$infile$datapath))
   })
 
   # make.names() is used to coerce all column names to valid R names after using
@@ -104,7 +98,6 @@ shinyServer(function(input, output, session) {
       temp <- read_csv(input$infile$datapath)
       names(temp) %<>% make.names(., unique = TRUE)
     }
-    stored_data$orig_data <- temp
     stored_data$data <- temp
   })
   
@@ -125,14 +118,14 @@ shinyServer(function(input, output, session) {
         condition = "input.chart_type != 'pie'",
         selectInput("x",
           "select your x variable:",
-          choices = c("x variable" = "", names(stored_data$orig_data))
+          choices = c("x variable" = "", names(stored_data$data))
           )
         ),
         conditionalPanel(
           condition = "input.chart_type != 'density' & input.chart_type != 'histogram'", 
           selectInput("y",
             "select your y variable:",
-            choices =  c("y variable" = "", names(stored_data$orig_data))
+            choices =  c("y variable" = "", names(stored_data$data))
             )
           ),
        conditionalPanel(
@@ -143,14 +136,14 @@ shinyServer(function(input, output, session) {
             input.chart_type == 'area') &
             input.x != ''",
           selectInput("reorder_x", label = "sort the x-axis by:", 
-            choices = c("sort by" = "", names(stored_data$orig_data))
+            choices = c("sort by" = "", names(stored_data$data))
           )
         ),
         conditionalPanel(
           condition = "input.chart_type != 'heatmap'",
           selectInput("z",
             "add a grouping variable:",
-            choices =  c("grouping variable" = "", names(stored_data$orig_data))
+            choices =  c("grouping variable" = "", names(stored_data$data))
             )
           ),
         conditionalPanel(
@@ -173,7 +166,7 @@ shinyServer(function(input, output, session) {
           condition = "input.chart_type == 'heatmap' | input.chart_type == 'scatterplot'",
           selectInput("w",
             "add an additional continuous variable:",
-            choices =  c("continuous variable" = "", names(stored_data$orig_data))
+            choices =  c("continuous variable" = "", names(stored_data$data))
             )
           ),
         conditionalPanel(
