@@ -78,19 +78,16 @@ shinyServer(function(input, output, session) {
 
   # make.names() is used to coerce all column names to valid R names after using
   # read_csv() or read_excel()
-  observeEvent(c(input$infile, priority = 3), {
+  observeEvent(input$infile, {
 
     req(input$infile)
   
     ext <- tools::file_ext(input$infile$name)
-  
     if (ext == "xls") {
-      req(input$which_sheet)
       temp <- read_xls(input$infile$datapath, sheet = input$which_sheet)
       names(temp) %<>% make.names(., unique = TRUE)
       temp
     } else if (ext == "xlsx") {
-      req(input$which_sheet)
       temp <- read_xlsx(input$infile$datapath, sheet = input$which_sheet)
       names(temp) %<>% make.names(., unique = TRUE)
       temp
