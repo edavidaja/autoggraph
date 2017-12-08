@@ -412,27 +412,27 @@ observeEvent({c(input$w, input$z)}, {
     
     if (! is.null(input$factor_order_x) & input$x != "") {
 
-      if (sapply(stored_data$data[,input$x], class) %in% c("character", "factor")) {
+      if (class(stored_data$data[[input$x]]) %in% c("character", "factor")) {
         stored_data$data[[input$x]] <- factor(stored_data$data[[input$x]], levels = input$factor_order_x)
       }
     }
     
     if (!is.null(input$factor_order_y) & input$y != "") {
       
-      if (sapply(stored_data$data[,input$y], class) %in% c("character", "factor")) {
+      if (class(stored_data$data[[input$y]]) %in% c("character", "factor")) {
         stored_data$data[[input$y]] <- factor(stored_data$data[[input$y]], levels = input$factor_order_y)
       }
     }
     
     if (!is.null(input$factor_order_z) & input$z != "") {
       
-      if (sapply(stored_data$data[,input$z], class) %in% c("character", "factor")) {
+      if (class(stored_data$data[[input$z]]) %in% c("character", "factor")) {
         stored_data$data[[input$z]] <- factor(stored_data$data[[input$z]], levels = input$factor_order_z)
       }
     }
     # TODO check if factor
     if (input$reorder_x != "") {
-      if (sapply(stored_data$data[,input$x], class) %in% c("character", "factor")) {
+      if (class(stored_data$data[[input$x]]) %in% c("character", "factor")) {
         stored_data$data[[input$x]] <- (reorder(stored_data$data[[input$x]], stored_data$data[[input$reorder_x]]))
       } else {
         stored_data$data[[input$x]] <- as.numeric(reorder(stored_data$data[[input$x]], stored_data$data[[input$reorder_x]]))
@@ -496,7 +496,7 @@ observeEvent({c(input$w, input$z)}, {
   # two-variable case.   
   switch(input$chart_type,
    "histogram" = {
-     if (sapply(stored_data$data[,input$x], class) %in% c("character", "factor")) {
+     if (class(stored_data$data[[input$x]]) %in% c("character", "factor")) {
        stat_count(fill = "#0039A6")
      } else {
        geom_histogram(
@@ -541,7 +541,7 @@ observeEvent({c(input$w, input$z)}, {
     
     switch(input$chart_type,
        "histogram" = {
-         if (sapply(stored_data$data[,input$z], class) %in% c("character", "factor")) {
+         if (class(stored_data$data[[input$z]]) %in% c("character", "factor")) {
            stat_count(
              aes(fill = stored_data$data[[input$z]])
            )
@@ -742,12 +742,10 @@ output$plot_labels <- renderUI({
 })
 
 output$drag_drop_x <- renderUI({
+
+  req(class(stored_data$data[[input$x]]) %in% c("character", "factor"))
   
-  req(input$x)
-  req(input$x %in% names(stored_data$data))
-  req(sapply(stored_data$data[,input$x], class) %in% c("character", "factor"))
-  
-  choices <-  levels(unique(as.factor(stored_data$data[[input$x]])))
+  choices <-  levels(factor(stored_data$data[[input$x]]))
 
     selectizeInput("factor_order_x", "click and drag to reorder your x variable",
       choices =  choices,
@@ -759,11 +757,9 @@ output$drag_drop_x <- renderUI({
 
 output$drag_drop_y <- renderUI({
   
-  req(input$y)
-  req(input$y %in% names(stored_data$data))
-  req(sapply(stored_data$data[,input$y], class) %in% c("character", "factor"))
+  req(class(stored_data$data[[input$y]]) %in% c("character", "factor"))
   
-  choices <-  levels(unique(as.factor(stored_data$data[[input$y]])))
+  choices <-  levels(factor(stored_data$data[[input$y]]))
   
   selectizeInput(
     "factor_order_y", "click and drag to reorder your y variable",
@@ -781,9 +777,9 @@ z_levels <- reactive({
     levels(stored_data$data[[input$z]]) <- choices
     } 
   else if (input$z != "") {
-    choices <- levels(unique(as.factor(stored_data$data[[input$z]])))
+    choices <- levels(factor(stored_data$data[[input$z]]))
   } else {
-    choices <- NULL  
+    choices <- NULL
   }
   
   choices
@@ -808,14 +804,10 @@ z_levels <- reactive({
   
   # z is alawys a factor!
   observeEvent(input$z, {
-    
-    req(input$z)
-    
+    req(input$z)    
     stored_data$data[[input$z]] <- factor(stored_data$data[[input$z]])
-    
   })
   
-
   # attempting to use the obvious test for numericness does not work here
   # only show the value formatters for x and y if the variables are numeric
   observeEvent(input$x, {
@@ -1316,13 +1308,11 @@ output$bundle <- downloadHandler(
 
 observeEvent(input$do_plot, {
   
-  req(input$do_plot)
-  
   # Update plot generating label and icon after initial plot is rendered
   updateActionButton(session, "do_plot",
     label = "update plot",
     icon = icon("refresh")
     )
-  })
+  }, ignoreInit = TRUE)
 
 })
