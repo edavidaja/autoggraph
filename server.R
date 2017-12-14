@@ -399,7 +399,7 @@ observeEvent({c(input$w, input$z)}, {
 
   set_var_types <- reactive({
     # TODO(portnows): can you leave a comment here explaining what this does? It's not obvious from looking
-    req(input$x %in% names(stored_data$data) | input$y %in% names(stored_data$data) | input$z %in% names(stored_data$data))
+    req(input$x %in% names(stored_data$data) ) #| input$y %in% names(stored_data$data) | input$z %in% names(stored_data$data))
   
     if (input$type_variable_x != "") {
       
@@ -421,7 +421,7 @@ observeEvent({c(input$w, input$z)}, {
       }
     }
     
-    if (! is.null(input$factor_order_x) & input$x != "") {
+    if (!is.null(input$factor_order_x) & input$x != "") {
 
       if (class(stored_data$data[[input$x]]) %in% c("character", "factor")) {
         stored_data$data[[input$x]] <- factor(stored_data$data[[input$x]], levels = input$factor_order_x)
@@ -435,12 +435,12 @@ observeEvent({c(input$w, input$z)}, {
       }
     }
     
-    if (!is.null(input$factor_order_z) & input$z != "") {
+    # if (!is.null(input$factor_order_z) & input$z != "") {
       
-      if (class(stored_data$data[[input$z]]) %in% c("character", "factor")) {
-        stored_data$data[[input$z]] <- factor(stored_data$data[[input$z]], levels = input$factor_order_z)
-      }
-    }
+    #   if (class(stored_data$data[[input$z]]) %in% c("character", "factor")) {
+    #     stored_data$data[[input$z]] <- factor(stored_data$data[[input$z]], levels = input$factor_order_z)
+    #   }
+    # }
     # TODO check if factor
     if (input$reorder_x != "") {
       if (class(stored_data$data[[input$x]]) %in% c("character", "factor")) {
@@ -552,49 +552,49 @@ observeEvent({c(input$w, input$z)}, {
     
     switch(input$chart_type,
        "histogram" = {
-         if (class(stored_data$data[[input$z]]) %in% c("character", "factor")) {
+         if (class(stored_data$data[[input$x]]) %in% c("character", "factor")) {
            stat_count(
-             aes(fill = stored_data$data[[input$z]])
+             aes(fill = factor(stored_data$data[[input$z]]))
            )
          } else { 
            geom_histogram(
             aes(
-            fill = stored_data$data[[input$z]]),
+            fill = factor(stored_data$data[[input$z]])),
             bins = input[[paste0("hist_bins", plot_opts())]]
            )
          }
        },
        "density" = geom_density(
          aes(
-           color    = stored_data$data[[input$z]],
-           linetype = stored_data$data[[input$z]]
+           color    = factor(stored_data$data[[input$z]]),
+           linetype = factor(stored_data$data[[input$z]])
          ),
          size = 1.1
        ),
        "line" = geom_line(
          aes(
-           color    = stored_data$data[[input$z]],
-           linetype = stored_data$data[[input$z]]
+           color    = factor(stored_data$data[[input$z]]),
+           linetype = factor(stored_data$data[[input$z]])
          ),
          size = 1.1
        ),
        "step" = geom_step(
          aes(
-           color    = stored_data$data[[input$z]],
-           linetype = stored_data$data[[input$z]]
+           color    = factor(stored_data$data[[input$z]]),
+           linetype = factor(stored_data$data[[input$z]])
          ),
          size = 1.1
        ),
        "boxplot" = geom_boxplot(
          aes(
-           fill = stored_data$data[[input$z]]
+           fill = factor(stored_data$data[[input$z]])
          ),
          color = "black"
        ),
        "scatterplot" = geom_point(
          aes(
-           color = stored_data$data[[input$z]],
-           shape = stored_data$data[[input$z]]
+           color = factor(stored_data$data[[input$z]]),
+           shape = factor(stored_data$data[[input$z]])
          ),
          size = 2,
          alpha = input[[paste0("scatter_option_alpha", plot_opts())]] / 100
@@ -602,16 +602,18 @@ observeEvent({c(input$w, input$z)}, {
        "bar" = {
          if (input$y == "") {  
           geom_bar(
-            aes(fill = stored_data$data[[input$z]]),
+            aes(
+              fill     = factor(stored_data$data[[input$z]])),
               position =  input[[paste0("bar_type", plot_opts())]],
-              color = "black"
+              color    = "black"
            )
          } else {
            geom_bar(
-              aes(fill = stored_data$data[[input$z]]),
-                position =  input[[paste0("bar_type", plot_opts())]],
-                stat = "identity",
-                color = "black"
+              aes(
+                fill     = factor(stored_data$data[[input$z]])),
+                position = input[[paste0("bar_type", plot_opts())]],
+                stat     = "identity",
+                color    = "black"
             )
          }
        },
@@ -619,27 +621,27 @@ observeEvent({c(input$w, input$z)}, {
          aes_string(
            ymin  = stored_data$data[[input[[paste0("pointrange_lower", plot_opts())]]]],
            ymax  = stored_data$data[[input[[paste0("pointrange_upper", plot_opts())]]]],
-           color = stored_data$data[[input$z]]
+           color = factor(stored_data$data[[input$z]])
          )
        ),
        "error bar" = geom_errorbar(
          aes_string(
            ymin  = stored_data$data[[input[[paste0("pointrange_lower", plot_opts())]]]],
            ymax  = stored_data$data[[input[[paste0("pointrange_upper", plot_opts())]]]],
-           color = stored_data$data[[input$z]]
+           color = factor(stored_data$data[[input$z]])
          )
        ),
        "area" = list(
          geom_area(
            aes(
-             fill = stored_data$data[[input$z]]
+             fill = factor(stored_data$data[[input$z]])
            ),
            alpha = .1
          ), 
          geom_line(
-           aes_string(
-             color    = stored_data$data[[input$z]],
-             linetype = stored_data$data[[input$z]]
+           aes(
+             color    = factor(stored_data$data[[input$z]]),
+             linetype = factor(stored_data$data[[input$z]])
            ),
            size = 1.1,
            position = "stack"
@@ -672,8 +674,8 @@ which_geom_w_z <- reactive({
   } else {
     geom_point(
       aes_string(
-        size = stored_data$data[[input$w]],
-        colour = stored_data$data[[input$z]]
+        size   = stored_data$data[[input$w]],
+        colour = factor(stored_data$data[[input$z]])
       ),
       alpha = input[[paste0("scatter_option_alpha", plot_opts())]] / 100
     )    
@@ -696,10 +698,6 @@ output$plot_labels <- renderUI({
         radioButtons("x_val_format", label = "x-axis value format",
           choices = c("none" = "", "dollar", "comma", "percent"), inline = TRUE)
         ),
-        # radioButtons("type_variable_x", label = "set the x variable type:",
-        #   choices = c("keep as is" = "", "categorical", "numeric"),
-        #   inline = TRUE
-        #   ),
       hidden(
         textInput("x_breaks", "x-axis breaks", placeholder = "min, max, interval")
       ),
@@ -712,16 +710,12 @@ output$plot_labels <- renderUI({
           inline = TRUE
           )
         ),
-      # radioButtons("type_variable_y", label = "set the y variable type:",
-      #   choices = c("keep as is" = "", "categorical", "numeric"),
-      #   inline = TRUE
-      #   ),
       hidden(
         textInput("y_breaks", "y-axis breaks", placeholder = "min, max, interval")
       ),
       uiOutput("drag_drop_y"),
-      hr(),
       conditionalPanel(condition = "input.z != ''",
+      hr(),
         textInput("z_guide", "grouping variable name"),
         textInput("z_label", "grouping variable labels, separated by commas",
           placeholder = "group one, group two, group three, ..."),
@@ -810,10 +804,10 @@ output$drag_drop_y <- renderUI({
       condition = (
         class(stored_data$data[[input$x]]) %in% c("double", "integer", "numeric", "Date"))
     )
-    # toggle("x_val_format",
-    # condition = (
-    #   class(stored_data$data[[input$x]]) %in% c("double", "integer", "numeric"))
-    #   )
+    toggle("x_val_format",
+    condition = (
+      class(stored_data$data[[input$x]]) %in% c("double", "integer", "numeric"))
+      )
     updateTextInput(session, "x_label", value = input$x)
   })
 
@@ -823,10 +817,10 @@ output$drag_drop_y <- renderUI({
       condition = (
         class(stored_data$data[[input$y]]) %in% c("double", "integer", "numeric"))
       )
-    # toggle("y_val_format",
-    #   condition = (
-    #   class(stored_data$data[[input$y]]) %in% c("double", "integer", "numeric"))
-    #   )
+    toggle("y_val_format",
+      condition = (
+      class(stored_data$data[[input$y]]) %in% c("double", "integer", "numeric"))
+      )
   })
   
   # z is alawys a factor!
@@ -864,8 +858,7 @@ output$drag_drop_y <- renderUI({
     set_var_types()
     # make sure this is updated! 
     # generate base plot:
-    p <- basePlot() + 
-      base_aes() + 
+    p <- basePlot() + base_aes() + 
     labs(y = "", title = input$y,
       caption = paste("Source: ", input$source_label, " | ", input$report_number, sep=""))
 
