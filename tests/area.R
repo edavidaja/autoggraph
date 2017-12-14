@@ -6,5 +6,6 @@ app$setInputs(chart_type = "area")
 app$uploadFile(infile = "economics_long.csv")
 # Input '`shinyjs-resettable-y_label`' was set, but doesn't have an input binding.
 app$setInputs(x = "date", y = "value", z = "variable", palette_selector = "qualitative")
+app$setInputs(x = "date", y = "value", z = "variable", palette_selector = "qualitative")
 app$setInputs(do_plot = "click")
 app$snapshot()

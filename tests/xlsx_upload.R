@@ -8,6 +8,5 @@ app$setInputs(
 app$uploadFile(infile = "mpg.xlsx")
 # for some reason inputs have to be set twice
 app$setInputs(x = "displ", y = "hwy", z = "cyl")
-app$setInputs(x = "displ", y = "hwy", z = "cyl")
 app$setInputs(do_plot = "click")
 app$snapshot()
