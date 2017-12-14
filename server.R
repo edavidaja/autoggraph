@@ -116,6 +116,10 @@ shinyServer(function(input, output, session) {
         selectInput("x",
           "select your x variable:",
           choices = c("x variable" = "", names(stored_data$data))
+          ),
+        radioButtons("type_variable_x", label = "set the x variable type:",
+          choices = c("keep as is" = "", "categorical", "numeric"),
+          inline = TRUE
           )
         ),
         conditionalPanel(
@@ -123,6 +127,10 @@ shinyServer(function(input, output, session) {
           selectInput("y",
             "select your y variable:",
             choices =  c("y variable" = "", names(stored_data$data))
+            ),
+          radioButtons("type_variable_y", label = "set the y variable type:",
+            choices = c("keep as is" = "", "categorical", "numeric"),
+            inline = TRUE
             )
           ),
        conditionalPanel(
@@ -384,6 +392,9 @@ observeEvent({c(input$w, input$z)}, {
     },
     "heatmap" = updateSelectInput(session, "palette_selector", selected = "diverging")
     )
+    
+    updateTextInput(session, "w_guide", value = input$w) 
+
   })
 
   set_var_types <- reactive({
@@ -535,7 +546,7 @@ observeEvent({c(input$w, input$z)}, {
     color = "#0039A6"
     )
   )
-})
+  })
 
   which_geom_z <- reactive({
     
@@ -547,7 +558,8 @@ observeEvent({c(input$w, input$z)}, {
            )
          } else { 
            geom_histogram(
-            aes(fill = stored_data$data[[input$z]]),
+            aes(
+            fill = stored_data$data[[input$z]]),
             bins = input[[paste0("hist_bins", plot_opts())]]
            )
          }
@@ -684,10 +696,10 @@ output$plot_labels <- renderUI({
         radioButtons("x_val_format", label = "x-axis value format",
           choices = c("none" = "", "dollar", "comma", "percent"), inline = TRUE)
         ),
-        radioButtons("type_variable_x", label = "set the x variable type:",
-          choices = c("keep as is" = "", "categorical", "numeric"),
-          inline = TRUE
-          ),
+        # radioButtons("type_variable_x", label = "set the x variable type:",
+        #   choices = c("keep as is" = "", "categorical", "numeric"),
+        #   inline = TRUE
+        #   ),
       hidden(
         textInput("x_breaks", "x-axis breaks", placeholder = "min, max, interval")
       ),
@@ -700,10 +712,10 @@ output$plot_labels <- renderUI({
           inline = TRUE
           )
         ),
-      radioButtons("type_variable_y", label = "set the y variable type:",
-        choices = c("keep as is" = "", "categorical", "numeric"),
-        inline = TRUE
-        ),
+      # radioButtons("type_variable_y", label = "set the y variable type:",
+      #   choices = c("keep as is" = "", "categorical", "numeric"),
+      #   inline = TRUE
+      #   ),
       hidden(
         textInput("y_breaks", "y-axis breaks", placeholder = "min, max, interval")
       ),
@@ -745,7 +757,7 @@ output$drag_drop_x <- renderUI({
 
   req(class(stored_data$data[[input$x]]) %in% c("character", "factor"))
   
-  choices <-  levels(factor(stored_data$data[[input$x]]))
+  choices <- levels(factor(stored_data$data[[input$x]]))
 
     selectizeInput("factor_order_x", "click and drag to reorder your x variable",
       choices =  choices,
@@ -770,28 +782,39 @@ output$drag_drop_y <- renderUI({
   )
 })
 
-z_levels <- reactive({
+  output$drag_drop_z <- renderUI({
+
+  req(input$z)
   
   if (input$z_label != "") {
     choices <-  unlist(strsplit(input$z_label, ",", fixed = TRUE))
     levels(stored_data$data[[input$z]]) <- choices
-    } 
-  else if (input$z != "") {
+  } else if (input$z != "") {
     choices <- levels(factor(stored_data$data[[input$z]]))
   } else {
     choices <- NULL
   }
   
-  choices
-  
-})
+    selectizeInput("factor_order_z",
+      "click and drag to reorder your grouping variable:",
+        choices  = choices,
+        selected = choices,
+        multiple = TRUE, 
+        options  = list(plugins = list("drag_drop"))
+    )
+  })
 
   observeEvent(input$x, {
     
     toggle("x_breaks",
       condition = (
         class(stored_data$data[[input$x]]) %in% c("double", "integer", "numeric", "Date"))
-    ) 
+    )
+    # toggle("x_val_format",
+    # condition = (
+    #   class(stored_data$data[[input$x]]) %in% c("double", "integer", "numeric"))
+    #   )
+    updateTextInput(session, "x_label", value = input$x)
   })
 
   observeEvent(input$y, {
@@ -799,47 +822,21 @@ z_levels <- reactive({
     toggle("y_breaks",
       condition = (
         class(stored_data$data[[input$y]]) %in% c("double", "integer", "numeric"))
-    ) 
+      )
+    # toggle("y_val_format",
+    #   condition = (
+    #   class(stored_data$data[[input$y]]) %in% c("double", "integer", "numeric"))
+    #   )
   })
   
   # z is alawys a factor!
   observeEvent(input$z, {
-    req(input$z)    
-    stored_data$data[[input$z]] <- factor(stored_data$data[[input$z]])
+    # req(input$z)
+    updateTextInput(session, "z_guide", value = input$z) 
+    # stored_data$data[[input$z]] <- factor(stored_data$data[[input$z]])
   })
-  
-  # attempting to use the obvious test for numericness does not work here
-  # only show the value formatters for x and y if the variables are numeric
-  observeEvent(input$x, {
-
-  toggle("x_val_format",
-      condition = (
-        class(stored_data$data[[input$x]]) %in% c("double", "integer", "numeric"))
-        ) 
-    })
-
-  observeEvent(input$y, {
-    toggle("y_val_format",
-      condition = (
-        class(stored_data$data[[input$y]]) %in% c("double", "integer", "numeric"))
-        )
-    })
 
   observeEvent(input$fine_tuning, toggle("fine_tuning_well"))
-  
-  output$drag_drop_z <- renderUI({
-    
-    req(input$z)
-    req(input$z %in% names(stored_data$data))
-
-    selectizeInput("factor_order_z",
-      "click and drag to reorder your grouping variable:",
-        choices  = z_levels(),
-        selected = z_levels(),
-        multiple = TRUE, 
-        options  = list(plugins = list("drag_drop"))
-    )
-  })
 
   output$preview <- downloadHandler(
   filename = function() {
@@ -1193,21 +1190,6 @@ z_levels <- reactive({
   p
   })
 
-# since several function calls are constructed with paste(), observers are used
-# to set the label field to the name of the selected variable, which obscures
-# the call to "factor()" or the like in the plot assembly
-observeEvent(input$z, {
-  updateTextInput(session, "z_guide", value = input$z) 
-  })
-
-observeEvent(input$w, {
-  updateTextInput(session, "w_guide", value = input$w) 
-  })
-
-observeEvent(input$x, {
-  updateTextInput(session, "x_label", value = input$x) 
-  })
-
 observeEvent(c(input$reorder_x, input$flip_axes), {
   if (input$flip_axes == FALSE) {
     updateTextInput(session, "x_label", value = input$x)
@@ -1216,9 +1198,7 @@ observeEvent(c(input$reorder_x, input$flip_axes), {
     updateTextInput(session, "y_label", value = input$x)
     reset("x_label")
   }
-  })
 
-observeEvent(input$flip_axes, {
   if (input$flip_axes == TRUE) {
     updateTextInput(session, "y_val_format", label = "x value format")
     updateTextInput(session, "x_val_format", label = "y value format")
