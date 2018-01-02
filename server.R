@@ -65,7 +65,7 @@ shinyServer(function(input, output, session) {
   
   
   # here is the data that we are going to work with
-  stored_data <- reactiveValues(data = NULL, plotted = FALSE, orig_data = NULL)
+  stored_data <- reactiveValues(data = NULL, orig_data = NULL, plotted = FALSE)
   
   onRestore(function(state) {
     original_ops$id     <- state$values$id
@@ -122,7 +122,7 @@ shinyServer(function(input, output, session) {
         condition = "input.chart_type != 'pie'",
         selectInput("x",
           "select your x variable:",
-          choices = c("x variable" = "", names(stored_data$data))
+          choices = c("x variable" = "", names(stored_data$orig_data))
           ),
         radioButtons("type_variable_x", label = "set the x variable type:",
           choices = c("keep as is" = "", "categorical", "numeric"),
@@ -133,7 +133,7 @@ shinyServer(function(input, output, session) {
           condition = "input.chart_type != 'density' & input.chart_type != 'histogram'", 
           selectInput("y",
             "select your y variable:",
-            choices =  c("y variable" = "", names(stored_data$data))
+            choices =  c("y variable" = "", names(stored_data$orig_data))
             ),
           radioButtons("type_variable_y", label = "set the y variable type:",
             choices = c("keep as is" = "", "categorical", "numeric"),
@@ -148,14 +148,14 @@ shinyServer(function(input, output, session) {
             input.chart_type == 'area') &
             input.x != ''",
           selectInput("reorder_x", label = "sort the x-axis by:", 
-            choices = c("sort by" = "", names(stored_data$data))
+            choices = c("sort by" = "", names(stored_data$orig_data))
           )
         ),
         conditionalPanel(
           condition = "input.chart_type != 'heatmap'",
           selectInput("z",
             "add a grouping variable:",
-            choices =  c("grouping variable" = "", names(stored_data$data))
+            choices =  c("grouping variable" = "", names(stored_data$orig_data))
             )
           ),
         conditionalPanel(
@@ -178,7 +178,7 @@ shinyServer(function(input, output, session) {
           condition = "input.chart_type == 'heatmap' | input.chart_type == 'scatterplot'",
           selectInput("w",
             "add an additional continuous variable:",
-            choices =  c("continuous variable" = "", names(stored_data$data))
+            choices =  c("continuous variable" = "", names(stored_data$orig_data))
             )
           ),
         conditionalPanel(
@@ -866,7 +866,10 @@ output$drag_drop_y <- renderUI({
   graph_it <- reactive({
     
     # rendering a plot    
-    req(input$chart_type, input$infile)       
+    req(input$chart_type, input$infile)
+    
+    # first make sure to change vars
+    set_var_types()  
 
     # make sure this is updated!     
     # generate base plot:   
@@ -1216,19 +1219,12 @@ observeEvent(c(input$reorder_x, input$flip_axes), {
 
 # change the var types ----------------------------------------------------
 
-observeEvent(input$do_plot, priority = 0, {
-  
-  set_var_types()
-  
-}
-)
 ## render the plot ------------------------------------------------------------
 output$graph <- renderPlot({
   
-  req(input$infile)    
-  # when you render the plot, kill it first  
-  #kill_graph()  
-  # then graph it  
+  # when you render the plot, kill it first
+  kill_graph()
+  # then graph it
   graph_it()
 
   
