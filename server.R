@@ -60,8 +60,12 @@ shinyServer(function(input, output, session) {
   # filer commands
   filters <- reactiveValues(ids = NULL, vars = NULL, ops = NULL, condition = NULL)
   
+  # stored the plot
+  plot <- reactiveValues(p = NULL, changed_vars = FALSE)
+  
+  
   # here is the data that we are going to work with
-  stored_data <- reactiveValues(data = NULL, plotted = FALSE)
+  stored_data <- reactiveValues(data = NULL, plotted = FALSE, orig_data = NULL)
   
   onRestore(function(state) {
     original_ops$id     <- state$values$id
@@ -83,6 +87,7 @@ shinyServer(function(input, output, session) {
     req(input$infile)
   
     ext <- tools::file_ext(input$infile$name)
+    
     if (ext == "xls") {
       temp <- read_xls(input$infile$datapath, sheet = input$which_sheet)
       names(temp) %<>% make.names(., unique = TRUE)
@@ -95,13 +100,13 @@ shinyServer(function(input, output, session) {
       temp <- read_csv(input$infile$datapath)
       names(temp) %<>% make.names(., unique = TRUE)
     }
-    stored_data$data <- temp
-  })
+    stored_data$orig_data <- temp    
+    stored_data$data <- temp        
+  })    
   
-  basePlot <- reactive({
-    ggplot(data = stored_data$data)
+  basePlot <- reactive({            
+    ggplot(data = stored_data$data)          
   })
-  
   # Variable selectors ----------------------------------------------------------
   # variable selectors are rendered once graph data is uploaded
   # conditional panels are used to display only the relevant input variables
@@ -111,6 +116,7 @@ shinyServer(function(input, output, session) {
     
     req(input$infile)
     
+
     list(
       conditionalPanel(
         condition = "input.chart_type != 'pie'",
@@ -399,9 +405,13 @@ observeEvent({c(input$w, input$z)}, {
   })
 
   set_var_types <- reactive({
-    # TODO(portnows): can you leave a comment here explaining what this does? It's not obvious from looking
-    req(input$x %in% names(stored_data$data) ) #| input$y %in% names(stored_data$data) | input$z %in% names(stored_data$data))
-  
+    
+    # TODO(portnows): can you leave a comment here explaining what this does? It's not obvious from looking    
+    
+    req(input$x %in% names(stored_data$data) | input$y %in% names(stored_data$data) | input$z %in% names(stored_data$data))
+    
+    print ('beginning of the function')
+    
     if (input$type_variable_x != "") {
       
       if (input$type_variable_x == "categorical") {
@@ -436,12 +446,12 @@ observeEvent({c(input$w, input$z)}, {
       }
     }
     
-    # if (!is.null(input$factor_order_z) & input$z != "") {
+     if (!is.null(input$factor_order_z) & input$z != "") {
       
-    #   if (class(stored_data$data[[input$z]]) %in% c("character", "factor")) {
-    #     stored_data$data[[input$z]] <- factor(stored_data$data[[input$z]], levels = input$factor_order_z)
-    #   }
-    # }
+       if (class(stored_data$data[[input$z]]) %in% c("character", "factor")) {
+         stored_data$data[[input$z]] <- factor(stored_data$data[[input$z]], levels = input$factor_order_z)
+       }
+     }
     # TODO check if factor
     if (input$reorder_x != "") {
       if (class(stored_data$data[[input$x]]) %in% c("character", "factor")) {
@@ -450,6 +460,8 @@ observeEvent({c(input$w, input$z)}, {
         stored_data$data[[input$x]] <- as.numeric(reorder(stored_data$data[[input$x]], stored_data$data[[input$reorder_x]]))
       }
     }
+    
+    print ('end of the function;')
   })
   
 
@@ -797,6 +809,8 @@ output$drag_drop_y <- renderUI({
         multiple = TRUE, 
         options  = list(plugins = list("drag_drop"))
     )
+    
+    
   })
 
   observeEvent(input$x, {
@@ -842,32 +856,28 @@ output$drag_drop_y <- renderUI({
       width = input$export_width, height = input$export_height)
   })
   
-  kill_graph <- reactive({
-    p <- basePlot() + aes()
-    p
+
+  kill_graph <- reactive({    
+    p <- basePlot() +aes()    
+    p  
   })
-  
 
   # plot builder --------------------------------------------------------------
-  graph_it <- eventReactive({c(input$do_plot, input$infile)}, {
-    # require chart type, data to be loaded, 
-    # and an x variable to be selected before
-    # rendering a plot
-    req(input$chart_type, input$infile)
+  graph_it <- reactive({
+    
+    # rendering a plot    
+    req(input$chart_type, input$infile)       
 
-    # first make sure to change vars
-    set_var_types()
-    # make sure this is updated! 
-    # generate base plot:
+    # make sure this is updated!     
+    # generate base plot:   
     p <- basePlot() + base_aes() + 
-    labs(y = "", title = input$y,
-      caption = paste("Source: ", input$source_label, " | ", input$report_number, sep=""))
-
+      labs(y = "", title = input$y,
+           caption = paste("Source: ", input$source_label, " | ", input$report_number, sep=""))
     # add geom function depending on selected variables
     # only x or x & y
-  if (input$z == "" & input$w == "") {
-    p <- p + which_geom_xy()
-  }
+    if (input$z == "" & input$w == "") {
+      p <- p + which_geom_xy()
+    }
 
   ## z and no w ---------------------------------------------------------------
   else if (input$z != "" & input$w == "") {
@@ -1181,7 +1191,7 @@ output$drag_drop_y <- renderUI({
   if (input$offset_source != "") {
     p <- p + theme(plot.caption = element_text(hjust = input$offset_source)) 
   }
-  p
+    p
   })
 
 observeEvent(c(input$reorder_x, input$flip_axes), {
@@ -1202,15 +1212,25 @@ observeEvent(c(input$reorder_x, input$flip_axes), {
   }
   })
 
+
+
+# change the var types ----------------------------------------------------
+
+observeEvent(input$do_plot, priority = 0, {
+  
+  set_var_types()
+  
+}
+)
 ## render the plot ------------------------------------------------------------
 output$graph <- renderPlot({
   
-  req(input$infile)
-  
-  # when you render the plot, kill it first
-  kill_graph()
-  # then graph it
+  req(input$infile)    
+  # when you render the plot, kill it first  
+  #kill_graph()  
+  # then graph it  
   graph_it()
+
   
   })
 
