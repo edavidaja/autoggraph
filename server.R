@@ -67,6 +67,7 @@ shinyServer(function(input, output, session) {
   # here is the data that we are going to work with
   stored_data <- reactiveValues(data = NULL, orig_data = NULL, plotted = FALSE)
   
+  
   onRestore(function(state) {
     original_ops$id     <- state$values$id
     original_ops$infile <- state$values$infile
@@ -76,23 +77,33 @@ shinyServer(function(input, output, session) {
   output$excel_sheet_selector <- renderUI({
     
     ext <- tools::file_ext(input$infile$name)
+    
     req(ext %in% c("xls", "xlsx"))
-    selectInput("which_sheet", "select a worksheet:", choices = excel_sheets(input$infile$datapath))
+    
+    selectInput("which_sheet", "select a worksheet:", choices = c(excel_sheets(input$infile$datapath)))
   })
 
   # make.names() is used to coerce all column names to valid R names after using
   # read_csv() or read_excel()
-  observeEvent(input$infile, {
+  observeEvent({c(input$infile, input$which_sheet)}, {
 
     req(input$infile)
+    
+    print ('file ingested')
   
     ext <- tools::file_ext(input$infile$name)
     
     if (ext == "xls") {
+      
+      req(input$which_sheet %in% c(excel_sheets(input$infile$datapath)))
+      
       temp <- read_xls(input$infile$datapath, sheet = input$which_sheet)
       names(temp) %<>% make.names(., unique = TRUE)
       temp
     } else if (ext == "xlsx") {
+      
+      req(input$which_sheet %in% c(excel_sheets(input$infile$datapath)))
+      
       temp <- read_xlsx(input$infile$datapath, sheet = input$which_sheet)
       names(temp) %<>% make.names(., unique = TRUE)
       temp
@@ -101,7 +112,9 @@ shinyServer(function(input, output, session) {
       names(temp) %<>% make.names(., unique = TRUE)
     }
     stored_data$orig_data <- temp    
-    stored_data$data <- temp        
+    stored_data$data <- temp 
+    print (stored_data$orig_data)
+    
   })    
   
   basePlot <- reactive({            
@@ -765,6 +778,8 @@ output$drag_drop_x <- renderUI({
   req(class(stored_data$data[[input$x]]) %in% c("character", "factor"))
   
   choices <- levels(factor(stored_data$data[[input$x]]))
+  
+  print (choices)
 
     selectizeInput("factor_order_x", "click and drag to reorder your x variable",
       choices =  choices,
