@@ -89,8 +89,6 @@ shinyServer(function(input, output, session) {
 
     req(input$infile)
     
-    print ('file ingested')
-  
     ext <- tools::file_ext(input$infile$name)
     
     if (ext == "xls") {
@@ -113,8 +111,6 @@ shinyServer(function(input, output, session) {
     }
     stored_data$orig_data <- temp    
     stored_data$data <- temp 
-    print (stored_data$orig_data)
-    
   })    
   
   basePlot <- reactive({            
@@ -417,7 +413,7 @@ observeEvent({c(input$w, input$z)}, {
 
   })
 
-  set_var_types <- reactive({
+  observeEvent(input$do_plot, {
     
     # TODO(portnows): can you leave a comment here explaining what this does? It's not obvious from looking    
     
@@ -446,7 +442,6 @@ observeEvent({c(input$w, input$z)}, {
     }
     
     if (!is.null(input$factor_order_x) & input$x != "") {
-
       if (class(stored_data$data[[input$x]]) %in% c("character", "factor")) {
         stored_data$data[[input$x]] <- factor(stored_data$data[[input$x]], levels = input$factor_order_x)
       }
@@ -476,6 +471,7 @@ observeEvent({c(input$w, input$z)}, {
     
     print ('end of the function;')
   })
+
   
 
   base_aes <- reactive({
@@ -773,17 +769,18 @@ output$plot_labels <- renderUI({
     )
 })
 
+drag_choices <- reactive({
+  
+  levels(factor(stored_data$data[[input$x]]))
+
+})
+
 output$drag_drop_x <- renderUI({
 
   req(class(stored_data$data[[input$x]]) %in% c("character", "factor"))
-  
-  choices <- levels(factor(stored_data$data[[input$x]]))
-  
-  print (choices)
-
-    selectizeInput("factor_order_x", "click and drag to reorder your x variable",
-      choices =  choices,
-      selected =  choices,
+  selectizeInput("factor_order_x", "click and drag to reorder your x variable",
+      choices =  drag_choices(),
+      selected = drag_choices(),
       multiple = TRUE, 
       options = list(plugins = list("drag_drop"))
       )
@@ -881,7 +878,7 @@ output$drag_drop_y <- renderUI({
   graph_it <- reactive({
     
     # rendering a plot    
-    req(input$chart_type, input$infile)
+    req(input$do_plot)
     
     # first make sure to change vars
     set_var_types()  
