@@ -1,8 +1,7 @@
 app <- ShinyDriver$new("../", seed = 7038)
 app$snapshotInit("bar")
 
-app$setInputs(which_panel = "plots")
-app$setInputs(chart_type = "bar")
+app$setInputs(which_panel = "plots", chart_type = "bar")
 app$uploadFile(infile = "mpg.csv")
 # Input '`shinyjs-resettable-y_label`' was set, but doesn't have an input binding.
 app$setInputs(x = "manufacturer")
