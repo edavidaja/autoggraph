@@ -76,7 +76,7 @@ shinyServer(function(input, output, session) {
   # Ingest file -----------------------------------------------------------------
   output$excel_sheet_selector <- renderUI({
 
-    ext <- tools::file_ext(input$infile$name)
+    ext <- tolower(tools::file_ext(input$infile$name))
 
     req(ext %in% c("xls", "xlsx"))
 
@@ -85,30 +85,39 @@ shinyServer(function(input, output, session) {
 
   # make.names() is used to coerce all column names to valid R names after using
   # read_csv() or read_excel()
+  # stata names will be valid R names
+  # labelled SAS files may require extra UI for a sas7bcat file
   observeEvent({c(input$infile, input$which_sheet)}, {
 
     req(input$infile)
 
-    ext <- tools::file_ext(input$infile$name)
+    ext <- tolower(tools::file_ext(input$infile$name))
 
-    if (ext == "xls") {
-
-      req(input$which_sheet %in% c(excel_sheets(input$infile$datapath)))
-
-      temp <- read_xls(input$infile$datapath, sheet = input$which_sheet)
-      names(temp) %<>% make.names(., unique = TRUE)
-      temp
-    } else if (ext == "xlsx") {
-
-      req(input$which_sheet %in% c(excel_sheets(input$infile$datapath)))
-
-      temp <- read_xlsx(input$infile$datapath, sheet = input$which_sheet)
-      names(temp) %<>% make.names(., unique = TRUE)
-      temp
-    } else if (ext == "csv") {
-      temp <- read_csv(input$infile$datapath)
-      names(temp) %<>% make.names(., unique = TRUE)
-    }
+    switch(ext,
+      "xls" = {
+        req(input$which_sheet %in% c(excel_sheets(input$infile$datapath)))
+        temp <- read_xls(input$infile$datapath, sheet = input$which_sheet)
+        names(temp) %<>% make.names(., unique = TRUE)
+        temp
+        },
+      "xlsx" = {
+        req(input$which_sheet %in% c(excel_sheets(input$infile$datapath)))
+        temp <- read_xlsx(input$infile$datapath, sheet = input$which_sheet)
+        names(temp) %<>% make.names(., unique = TRUE)
+        temp
+        },
+      "csv" = {
+        temp <- read_csv(input$infile$datapath)
+        names(temp) %<>% make.names(., unique = TRUE)
+        }
+      # "dta" = {
+      #   temp <- haven::read_dta(input$infile$datapath) %>%
+      #   as_factor()
+      #   },
+      # "sas7bdat" = {
+      #   temp <- haven::read_sas(input$infile$datapath)
+      # }
+    )
     stored_data$orig_data <- temp
     stored_data$data <- temp
   })
@@ -880,9 +889,6 @@ output$drag_drop_y <- renderUI({
     # rendering a plot
     req(input$do_plot)
 
-    # first make sure to change vars
-    set_var_types()
-
     # make sure this is updated!
     # generate base plot:
     p <- basePlot() + base_aes() +
@@ -927,6 +933,7 @@ output$drag_drop_y <- renderUI({
             fill  = guide_legend(order = 2)
             )
         } else if (input$chart_type == "area") {
+          # todo(ajae): why is this a triple assignment?
           p <- p + scale_fill_manual(
             name   = ifelse(input$z_guide == "", input$z, input$z_guide),
             values = which_palette()
