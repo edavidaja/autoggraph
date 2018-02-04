@@ -550,6 +550,7 @@ observeEvent({c(input$w, input$z)}, {
    "density" = geom_density(fill = "#0039A6"),
    "line" = geom_line(color = "#0039A6", size = 1.1),
    "step" = geom_step(color = "#0039A6"),
+   "violin" = geom_violin(color = "#0039A6"),
    "scatterplot" = geom_point(
       alpha = input[[paste0("scatter_option_alpha", plot_opts())]] / 100,
       color = "#0039A6"
@@ -622,6 +623,11 @@ observeEvent({c(input$w, input$z)}, {
          ),
          color = "black"
        ),
+       "violin" = geom_violin(
+         aes(
+           color = factor(stored_data$data[[input$z]])
+         )
+        ),
        "scatterplot" = geom_point(
          aes(
            color = factor(stored_data$data[[input$z]]),
