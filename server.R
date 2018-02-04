@@ -85,6 +85,8 @@ shinyServer(function(input, output, session) {
 
   # make.names() is used to coerce all column names to valid R names after using
   # read_csv() or read_excel()
+  # stata names will be valid R names
+  # labelled SAS files may require extra UI for a sas7bcat file
   observeEvent({c(input$infile, input$which_sheet)}, {
 
     req(input$infile)
@@ -94,47 +96,28 @@ shinyServer(function(input, output, session) {
     switch(ext,
       "xls" = {
         req(input$which_sheet %in% c(excel_sheets(input$infile$datapath)))
-
         temp <- read_xls(input$infile$datapath, sheet = input$which_sheet)
         names(temp) %<>% make.names(., unique = TRUE)
         temp
         },
-      "xlsx"     = {
+      "xlsx" = {
         req(input$which_sheet %in% c(excel_sheets(input$infile$datapath)))
         temp <- read_xlsx(input$infile$datapath, sheet = input$which_sheet)
         names(temp) %<>% make.names(., unique = TRUE)
         temp
         },
-      "csv"      = {
+      "csv" = {
         temp <- read_csv(input$infile$datapath)
         names(temp) %<>% make.names(., unique = TRUE)
-        },
-      "dta"      = {
-        print("stata input")
-        },
-      "sas7bdat" = {
-        print("sas input")
-      }
-      )
-    # if (ext == "xls") {
-
-    #   req(input$which_sheet %in% c(excel_sheets(input$infile$datapath)))
-
-    #   temp <- read_xls(input$infile$datapath, sheet = input$which_sheet)
-    #   names(temp) %<>% make.names(., unique = TRUE)
-    #   temp
-    # } else if (ext == "xlsx") {
-
-    #   req(input$which_sheet %in% c(excel_sheets(input$infile$datapath)))
-
-    #   temp <- read_xlsx(input$infile$datapath, sheet = input$which_sheet)
-    #   names(temp) %<>% make.names(., unique = TRUE)
-    #   temp
-    # } else if (ext == "csv") {
-    #   temp <- read_csv(input$infile$datapath)
-    #   names(temp) %<>% make.names(., unique = TRUE)
-    # }
-
+        }
+      # "dta" = {
+      #   temp <- haven::read_dta(input$infile$datapath) %>%
+      #   as_factor()
+      #   },
+      # "sas7bdat" = {
+      #   temp <- haven::read_sas(input$infile$datapath)
+      # }
+    )
     stored_data$orig_data <- temp
     stored_data$data <- temp
   })

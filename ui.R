@@ -29,7 +29,7 @@ function(request) {
     # plot UI -----------------------------------------------------------------
       tabPanel("plots",
         includeCSS("www/simplex.css"),
-        fluidRow(  
+        fluidRow(
           column(3,
            wellPanel(
             h4("plot type | data:"),
