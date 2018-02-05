@@ -309,12 +309,36 @@ shinyServer(function(input, output, session) {
       "histogram" =
       list(
         wellPanel(
-        h4("plot specifics"),
-        numericInput(
-          inputId = paste0("hist_bins", plot_opts()),
-          "number of bins", value = 30
+          h4("plot specifics"),
+          numericInput(
+            inputId = paste0("hist_bins", plot_opts()),
+            "number of bins", value = 30
+            )
           )
-        )
+        ),
+      "violin" =
+      list(
+        wellPanel(
+          h4("plot specifics"),
+          sliderInput(
+            inputId = paste0("violin_bandwidth", plot_opts()),
+            "wiggle:",
+            min = .1, max = 1, value = 1, ticks = FALSE
+            ),
+          checkboxInput(
+            inputId = paste0("violin_quartiles", plot_opts()),
+            "show quartiles?"
+            ),
+          selectInput(
+            inputId = paste0("violin_scale", plot_opts()),
+            "scale:",
+            choices = c(
+              "equal area" = "area",
+              "equal width" = "width",
+              "proportional" = "count"
+              )
+            )
+          )
         )
       )
 })
