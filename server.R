@@ -37,7 +37,97 @@ shinyServer(function(input, output, session) {
       includeHTML("www/ins.html")
     }
   })
- 
+
+  # set up a counter for dynamic reshaping ----------------------------------
+  counter <- reactiveValues(countervalue = 0) 
+  
+  observeEvent(input$add1, {
+    counter$countervalue <- counter$countervalue + 1     # if the add button is clicked, increment the value by 1 and update it
+  })
+  observeEvent(input$sub1, {
+    counter$countervalue <- counter$countervalue - 1  # if the sub button is clicked, decrement the value by 1 and update it
+  })
+  observeEvent(input$reset, {
+    stored_data$data <- stored_data$orig_data
+    print (stored_data$data)
+    counter$countervalue <- 0                     # if the reset button is clicked, set the counter value to zero
+  })
+
+  output$reshape_page <- renderUI({
+    textOutput('I want to...')
+  })
+  
+  # set up reshaping --------------------------------------------------------
+  
+  
+  output$reshape_me <- renderUI({
+    
+    req(input$infile)
+    
+    req(counter$countervalue > 0)
+    
+    lapply(1:counter$countervalue, function(i) {
+      list(selectInput(paste0('reshape_variables', i), "",
+                       choices = list(
+                         `select a what you want to do` = "",
+                         'make my data longer',
+                         'make my data wider',
+                         'select columns',
+                         'drop columns',
+                         'separate columns',
+                         'unite columns',
+                         'summarise',
+                         'transform',
+                         'recode a numeric variable',
+                         'recode a character/factor variable'
+                       )
+      ),
+      selectizeInput(paste0('group_variables', i), 
+                     label = 'do you want to group by another variable', 
+                     choices = names(stored_data$data), selected = '', multiple = TRUE),
+      selectizeInput(paste0('select_variables', i), 
+                     label = 'select which variables you want to do it to', 
+                     choices = names(stored_data$data), selected = '', multiple = TRUE)
+      )
+    })
+  })
+  
+  
+  output$table_btn <- renderUI({
+    actionButton("do_table", "can you reshape me?", icon = icon("area-chart"))
+  })
+  
+  do_reshaping <- eventReactive({c(input$do_table)}, {
+      
+    if (counter$countervalue > 0){
+      for (i in counter$countervalue){
+        
+        stored_data$data <- stored_data$data %>%
+          when(
+            (input[[paste0('reshape_variables', i)]] == 'select columns') ~ 
+              stored_data$data %>% select(input[[paste0('select_variables', i)]]),
+            (input[[paste0('reshape_variables', i)]] == 'select columns') ~ 
+              stored_data$data %>% select(quo(-(!!input[[paste0('select_variables', i)]]))),
+            (input[[paste0('reshape_variables', i)]] == 'make my data longer') ~ 
+              stored_data$data %>% gather_('key', 'value', input[[paste0('select_variables', i)]]),
+            (input[[paste0('reshape_variables', i)]] == 'make my data wider') ~ 
+              stored_data$data %>% spread_(input[[paste0('select_variables', i)]][[1]],
+                                           input[[paste0('select_variables', i)]][[2]])
+            
+          )
+      }      
+    } 
+
+    print (stored_data$data)
+    stored_data$data %>% head()
+    
+  })
+  
+  
+  
+  output$table <- renderTable(
+    do_reshaping()
+  ) 
   # the custom javascript function for recovering the modification time of the
   # uploaded file is executed whenever a file is uploaded
   observeEvent(input$infile, {
@@ -61,7 +151,7 @@ shinyServer(function(input, output, session) {
   filters <- reactiveValues(ids = NULL, vars = NULL, ops = NULL, condition = NULL)
   
   # here is the data that we are going to work with
-  stored_data <- reactiveValues(data = NULL, plotted = FALSE)
+  stored_data <- reactiveValues(data = NULL, orig_data = NULL, plotted = FALSE)
   
   onRestore(function(state) {
     original_ops$id     <- state$values$id
@@ -95,6 +185,7 @@ shinyServer(function(input, output, session) {
       temp <- read_csv(input$infile$datapath)
       names(temp) %<>% make.names(., unique = TRUE)
     }
+    stored_data$orig_data <- temp
     stored_data$data <- temp
   })
   

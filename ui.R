@@ -26,6 +26,24 @@ function(request) {
         ),
        uiOutput("landing_page")
        ),
+    # reshape UI ---------------------------------------------------------
+    tabPanel("reshape",
+             tags$head(
+               tags$link(rel = "icon", type = "image/png", href = "favicon.png")
+             ),
+             fileInput("infile", label = "upload your data (in excel or csv format)"),
+             uiOutput("excel_sheet_selector"),
+             h4("I want to"),
+             actionButton("add1", "+ 1"),
+             actionButton("sub1", "- 1"),
+             actionButton("reset", "set to 0"),
+             br(),
+             br(),
+             uiOutput('reshape_me'),
+             tableOutput('table'),
+             uiOutput('table_btn')
+    ),
+    # plot UI -----------------------------------------------------------------
     # plot UI -----------------------------------------------------------------
       tabPanel("plots",
         includeCSS("www/simplex.css"),
@@ -40,8 +58,6 @@ function(request) {
                 `confidence intervals` = c("pointrange", "error bar")
                 )
               ),
-            fileInput("infile", label = "upload your data (in excel or csv format)"),
-            uiOutput("excel_sheet_selector"),
             uiOutput("variable_selector")
             ),
            uiOutput("plot_options")
