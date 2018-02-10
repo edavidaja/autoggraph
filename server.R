@@ -448,7 +448,7 @@ observeEvent({c(input$w, input$z)}, {
 
     req(input$x %in% names(stored_data$data) | input$y %in% names(stored_data$data) | input$z %in% names(stored_data$data))
 
-    print ('beginning of the function')
+
 
     if (input$type_variable_x != "") {
 
@@ -498,7 +498,7 @@ observeEvent({c(input$w, input$z)}, {
       }
     }
 
-    print ('end of the function;')
+
   })
 
 
@@ -509,7 +509,7 @@ observeEvent({c(input$w, input$z)}, {
     # x only
 
     if (is.null(input$x) & is.null(input$z) & is.null(input$w) & is.null(input$z)){
-      print ('empty return')
+
       aes()
     }
 
@@ -1032,7 +1032,7 @@ output$drag_drop_y <- renderUI({
       }
       p <- p + which_geom_z()
     }
-    print ("z fired")
+
   }
   ## w and no z ---------------------------------------------------------------
   else if (input$z == "" & input$w != "") {
@@ -1080,7 +1080,7 @@ output$drag_drop_y <- renderUI({
       }
     }
     p <- p + which_geom_w()
-    print ("w fired")
+
   }
 
   ## z and w ------------------------------------------------------------------
@@ -1124,7 +1124,7 @@ output$drag_drop_y <- renderUI({
       }
     }
     p <- p + which_geom_w_z()
-    print ("w & z fired")
+
     }
 
   ## apply smoother to scatter plot -------------------------------------------
