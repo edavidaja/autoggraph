@@ -36,7 +36,7 @@ function(request) {
             selectInput("chart_type", label = NULL,
               choices = list(
                 `select a chart type` = "",
-                `general` = c("area", "bar", "boxplot", "density", "heatmap", "histogram", "line", "pie", "scatterplot", "step"),
+                `general` = c("area", "bar", "boxplot", "density", "heatmap", "histogram", "line", "pie", "scatterplot", "step", "violin"),
                 `confidence intervals` = c("pointrange", "error bar")
                 )
               ),
