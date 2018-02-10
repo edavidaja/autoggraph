@@ -325,10 +325,6 @@ shinyServer(function(input, output, session) {
             "wiggle:",
             min = .1, max = 1, value = 1, ticks = FALSE
             ),
-          checkboxInput(
-            inputId = paste0("violin_quartiles", plot_opts()),
-            "show quartiles?"
-            ),
           selectInput(
             inputId = paste0("violin_scale", plot_opts()),
             "scale:",
@@ -574,7 +570,11 @@ observeEvent({c(input$w, input$z)}, {
    "density" = geom_density(fill = "#0039A6"),
    "line" = geom_line(color = "#0039A6", size = 1.1),
    "step" = geom_step(color = "#0039A6"),
-   "violin" = geom_violin(color = "#0039A6"),
+   "violin" = geom_violin(
+      adjust = input[[paste0("violin_bandwidth", plot_opts())]],
+      scale = input[[paste0("violin_scale", plot_opts())]],
+      color = "#0039A6"
+    ),
    "scatterplot" = geom_point(
       alpha = input[[paste0("scatter_option_alpha", plot_opts())]] / 100,
       color = "#0039A6"
@@ -649,8 +649,10 @@ observeEvent({c(input$w, input$z)}, {
        ),
        "violin" = geom_violin(
          aes(
-           color = factor(stored_data$data[[input$z]])
-         )
+          color = factor(stored_data$data[[input$z]])
+         ),
+        adjust = input[[paste0("violin_bandwidth", plot_opts())]],
+        scale = input[[paste0("violin_scale", plot_opts())]],
         ),
        "scatterplot" = geom_point(
          aes(
