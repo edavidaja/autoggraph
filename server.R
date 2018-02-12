@@ -135,9 +135,7 @@ shinyServer(function(input, output, session) {
   # for the selected plot type
   output$variable_selector <- renderUI({
 
-
     req(input$infile)
-
 
     list(
       conditionalPanel(
@@ -448,10 +446,6 @@ observeEvent({c(input$w, input$z)}, {
 
   observeEvent(input$do_plot, {
 
-    # TODO(portnows): can you leave a comment here explaining what this does? It's not obvious from looking
-
-    # req(input$x %in% names(stored_data$data) | input$y %in% names(stored_data$data) | input$z %in% names(stored_data$data))
-
     if (input$type_variable_x != "") {
 
       if (input$type_variable_x == "categorical") {
@@ -499,8 +493,6 @@ observeEvent({c(input$w, input$z)}, {
         stored_data$data[[input$x]] <- as.numeric(reorder(stored_data$data[[input$x]], stored_data$data[[input$reorder_x]]))
       }
     }
-
-
   })
 
   # aesthetics ----------------------------------------------------------------
@@ -538,7 +530,6 @@ observeEvent({c(input$w, input$z)}, {
     else if (input$x != "" & input$y != "" & input$z != "" & input$w != "") {
       aes(x = stored_data$data[[input$x]], y = stored_data$data[[input$y]])
     }
-
   })
 
 
@@ -831,9 +822,7 @@ output$plot_labels <- renderUI({
 })
 
 drag_choices <- reactive({
-
   levels(factor(stored_data$data[[input$x]]))
-
 })
 
 output$drag_drop_x <- renderUI({
@@ -924,11 +913,6 @@ output$drag_drop_y <- renderUI({
     ggsave(file, plot = graph_it(), device = "png",
       width = input$export_width, height = input$export_height)
   })
-
-  # kill_graph <- reactive({
-  #   p <- base_plot() +aes()
-  #   p
-  # })
 
   # plot builder --------------------------------------------------------------
   graph_it <- reactive({
@@ -1051,7 +1035,6 @@ output$drag_drop_y <- renderUI({
       }
       p <- p + which_geom_z()
     }
-
   }
   ## w and no z ---------------------------------------------------------------
   else if (input$z == "" & input$w != "") {
@@ -1099,7 +1082,6 @@ output$drag_drop_y <- renderUI({
       }
     }
     p <- p + which_geom_w()
-
   }
 
   ## z and w ------------------------------------------------------------------
@@ -1288,10 +1270,6 @@ observeEvent(c(input$reorder_x, input$flip_axes), {
 
 ## render the plot ------------------------------------------------------------
 output$graph <- renderPlot({
-
-  # when you render the plot, kill it first
-  # kill_graph()
-  # then graph it
   graph_it()
   })
 
