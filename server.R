@@ -452,8 +452,6 @@ observeEvent({c(input$w, input$z)}, {
 
     # req(input$x %in% names(stored_data$data) | input$y %in% names(stored_data$data) | input$z %in% names(stored_data$data))
 
-
-
     if (input$type_variable_x != "") {
 
       if (input$type_variable_x == "categorical") {
@@ -513,41 +511,32 @@ observeEvent({c(input$w, input$z)}, {
     # x only
 
     if (is.null(input$x) & is.null(input$z) & is.null(input$w) & is.null(input$z)){
-
       aes()
     }
 
     else if (input$x != "" & input$y == "" & input$z == "" & input$w == "") {
-
       aes(x = stored_data$data[[input$x]])
     }
 
     # x and y
     else if (input$x != "" & input$y != "" & input$z == "" & input$w == "") {
-
       aes(x = stored_data$data[[input$x]], y = stored_data$data[[input$y]])
-
     }
     # x and z
     else if (input$x != "" & input$y == "" & input$z != "" & input$w == "") {
-
       aes(x = stored_data$data[[input$x]])
-
     }
     #  x, y and, z
     else if (input$x != "" & input$y != "" & input$z != "" & input$w == "") {
-
       aes(x = stored_data$data[[input$x]], y = stored_data$data[[input$y]])
     }
     # x, y, and w
     else if (input$x != "" & input$y != "" & input$z == "" & input$w != "") {
-
       aes(x = stored_data$data[[input$x]], y = stored_data$data[[input$y]])
     }
     # x, y, z, and w
     else if (input$x != "" & input$y != "" & input$z != "" & input$w != "") {
-      #
-       aes(x = stored_data$data[[input$x]], y = stored_data$data[[input$y]])
+      aes(x = stored_data$data[[input$x]], y = stored_data$data[[input$y]])
     }
 
   })
@@ -592,9 +581,8 @@ observeEvent({c(input$w, input$z)}, {
   "boxplot" = geom_boxplot(color = "#0039A6"),
   "pointrange" = {
    validate(
-    need(
-      input[[paste0("pointrange_lower", plot_opts())]] != "", "select a lower bound variable to continue"),
-      input[[paste0("pointrange_lower", plot_opts())]] != "", "select an upper bound variable to continue")
+    need(input[[paste0("pointrange_lower", plot_opts())]] != "", "select a lower bound variable to continue"),
+    need(input[[paste0("pointrange_upper", plot_opts())]] != "", "select an upper bound variable to continue")
       )
     geom_pointrange(
       aes_string(
@@ -604,10 +592,10 @@ observeEvent({c(input$w, input$z)}, {
       color = "#0039A6"
       )},
   "error bar" = {
-    need(
-      input[[paste0("errorbar_lower", plot_opts())]] != "", "select a lower bound variable to continue"),
-      input[[paste0("errorbar_upper", plot_opts())]] != "", "select an upper bound variable to continue")
-      )
+    validate(
+      need(input[[paste0("errorbar_lower", plot_opts())]] != "", "select a lower bound variable to continue"),
+      need(input[[paste0("errorbar_upper", plot_opts())]] != "", "select an upper bound variable to continue")
+        )
     geom_errorbar(
       aes_string(
         ymin = input[[paste0("errorbar_lower", plot_opts())]],
@@ -695,21 +683,37 @@ observeEvent({c(input$w, input$z)}, {
             )
          }
        },
-       "pointrange" = geom_pointrange(
+       "pointrange" = {
+         validate(
+          need(input[[paste0("pointrange_lower", plot_opts())]] != "", "select a lower bound variable to continue"),
+          need(input[[paste0("pointrange_upper", plot_opts())]] != "", "select an upper bound variable to continue")
+            )
+         geom_pointrange(
+           aes_string(
+             ymin  = stored_data$data[[input[[paste0("pointrange_lower", plot_opts())]]]],
+             ymax  = stored_data$data[[input[[paste0("pointrange_upper", plot_opts())]]]],
+             color = factor(stored_data$data[[input$z]])
+           )
+         )
+       },
+       "error bar" = {
+         validate(
+           need(input[[paste0("errorbar_lower", plot_opts())]] != "", "select a lower bound variable to continue"),
+           need(input[[paste0("errorbar_upper", plot_opts())]] != "", "select an upper bound variable to continue")
+         )
+        geom_errorbar(
          aes_string(
            ymin  = stored_data$data[[input[[paste0("pointrange_lower", plot_opts())]]]],
            ymax  = stored_data$data[[input[[paste0("pointrange_upper", plot_opts())]]]],
            color = factor(stored_data$data[[input$z]])
          )
-       ),
-       "error bar" = geom_errorbar(
-         aes_string(
-           ymin  = stored_data$data[[input[[paste0("pointrange_lower", plot_opts())]]]],
-           ymax  = stored_data$data[[input[[paste0("pointrange_upper", plot_opts())]]]],
-           color = factor(stored_data$data[[input$z]])
-         )
-       ),
-       "area" = list(
+       )
+      },
+       "area" = {
+        validate(
+          need(input$z != "", "area charts require a grouping variable")
+          )
+        list(
          geom_area(
            aes(
              fill = factor(stored_data$data[[input$z]])
@@ -725,6 +729,7 @@ observeEvent({c(input$w, input$z)}, {
            position = "stack"
          )
        )
+      }
     )
   })
 
@@ -877,8 +882,6 @@ output$drag_drop_y <- renderUI({
         multiple = TRUE,
         options  = list(plugins = list("drag_drop"))
     )
-
-
   })
 
   observeEvent(input$x, {
@@ -908,9 +911,7 @@ output$drag_drop_y <- renderUI({
 
   # z is alawys a factor!
   observeEvent(input$z, {
-    # req(input$z)
     updateTextInput(session, "z_guide", value = input$z)
-    # stored_data$data[[input$z]] <- factor(stored_data$data[[input$z]])
   })
 
   observeEvent(input$fine_tuning, toggle("fine_tuning_well"))
@@ -923,7 +924,6 @@ output$drag_drop_y <- renderUI({
     ggsave(file, plot = graph_it(), device = "png",
       width = input$export_width, height = input$export_height)
   })
-
 
   # kill_graph <- reactive({
   #   p <- base_plot() +aes()
@@ -1293,8 +1293,6 @@ output$graph <- renderPlot({
   # kill_graph()
   # then graph it
   graph_it()
-
-
   })
 
 # Download zip file ------------------------------------------------------------
@@ -1313,9 +1311,7 @@ output$bundle <- downloadHandler(
 
     ggsave(svg_out, width = input$export_width, height = input$export_height,
       system_fonts = list(sans = "Liberation Sans"))
-    # ggsave(tif_out, width = input$export_width, height = input$export_height,
-    #   units = "in", dpi = 300
-    #   )
+
     ggsave(png_out, width = input$export_width, height = input$export_height,
       units = "in", dpi = 300
       )
@@ -1336,7 +1332,7 @@ output$bundle <- downloadHandler(
 
     zip(
       zipfile = file,
-      files = c(rds_out, log_out, png_out, svg_out) #, tif_out)
+      files = c(rds_out, log_out, png_out, svg_out)
       )
   })
 
