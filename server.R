@@ -80,7 +80,11 @@ shinyServer(function(input, output, session) {
 
     req(ext %in% c("xls", "xlsx"))
 
-    selectInput("which_sheet", "select a worksheet:", choices = c(excel_sheets(input$infile$datapath)))
+    selectInput(
+      "which_sheet",
+      "select a worksheet:",
+      choices = excel_sheets(input$infile$datapath)
+      )
   })
 
   # make.names() is used to coerce all column names to valid R names after using
@@ -122,7 +126,7 @@ shinyServer(function(input, output, session) {
     stored_data$data <- temp
   })
 
-  basePlot <- reactive({
+  base_plot <- reactive({
     ggplot(data = stored_data$data)
   })
   # Variable selectors ----------------------------------------------------------
@@ -229,7 +233,7 @@ shinyServer(function(input, output, session) {
 
   output$plot_options <- renderUI({
 
-    req(input$chart_type)
+    req(input$chart_type, input$infile)
 
     switch(input$chart_type,
       "scatterplot" =
@@ -446,7 +450,7 @@ observeEvent({c(input$w, input$z)}, {
 
     # TODO(portnows): can you leave a comment here explaining what this does? It's not obvious from looking
 
-    req(input$x %in% names(stored_data$data) | input$y %in% names(stored_data$data) | input$z %in% names(stored_data$data))
+    # req(input$x %in% names(stored_data$data) | input$y %in% names(stored_data$data) | input$z %in% names(stored_data$data))
 
 
 
@@ -489,7 +493,7 @@ observeEvent({c(input$w, input$z)}, {
          stored_data$data[[input$z]] <- factor(stored_data$data[[input$z]], levels = input$factor_order_z)
        }
      }
-    # TODO check if factor
+
     if (input$reorder_x != "") {
       if (class(stored_data$data[[input$x]]) %in% c("character", "factor")) {
         stored_data$data[[input$x]] <- (reorder(stored_data$data[[input$x]], stored_data$data[[input$reorder_x]]))
@@ -501,7 +505,7 @@ observeEvent({c(input$w, input$z)}, {
 
   })
 
-
+  # aesthetics ----------------------------------------------------------------
 
   base_aes <- reactive({
     # return aesthetics based on which combinations of
@@ -548,7 +552,6 @@ observeEvent({c(input$w, input$z)}, {
 
   })
 
-  # aesthetics ----------------------------------------------------------------
 
   # geometries ----------------------------------------------------------------
 
@@ -587,20 +590,32 @@ observeEvent({c(input$w, input$z)}, {
     }
   },
   "boxplot" = geom_boxplot(color = "#0039A6"),
-  "pointrange" = geom_pointrange(
-    aes_string(
-      ymin = input[[paste0("pointrange_lower", plot_opts())]],
-      ymax = input[[paste0("pointrange_upper", plot_opts())]]
-      ),
-    color = "#0039A6"
-    ),
-  "error bar" = geom_errorbar(
-    aes_string(
-      ymin = input[[paste0("errorbar_lower", plot_opts())]],
-      ymax = input[[paste0("errorbar_upper", plot_opts())]]
-      ),
-    color = "#0039A6"
-    )
+  "pointrange" = {
+   validate(
+    need(
+      input[[paste0("pointrange_lower", plot_opts())]] != "", "select a lower bound variable to continue"),
+      input[[paste0("pointrange_lower", plot_opts())]] != "", "select an upper bound variable to continue")
+      )
+    geom_pointrange(
+      aes_string(
+        ymin = input[[paste0("pointrange_lower", plot_opts())]],
+        ymax = input[[paste0("pointrange_upper", plot_opts())]]
+        ),
+      color = "#0039A6"
+      )},
+  "error bar" = {
+    need(
+      input[[paste0("errorbar_lower", plot_opts())]] != "", "select a lower bound variable to continue"),
+      input[[paste0("errorbar_upper", plot_opts())]] != "", "select an upper bound variable to continue")
+      )
+    geom_errorbar(
+      aes_string(
+        ymin = input[[paste0("errorbar_lower", plot_opts())]],
+        ymax = input[[paste0("errorbar_upper", plot_opts())]]
+        ),
+      color = "#0039A6"
+      )
+    }
   )
   })
 
@@ -910,20 +925,24 @@ output$drag_drop_y <- renderUI({
   })
 
 
-  kill_graph <- reactive({
-    p <- basePlot() +aes()
-    p
-  })
+  # kill_graph <- reactive({
+  #   p <- base_plot() +aes()
+  #   p
+  # })
 
   # plot builder --------------------------------------------------------------
   graph_it <- reactive({
+
+    validate(
+      need(input$chart_type != "", "please select a chart type")
+      )
 
     # rendering a plot
     req(input$do_plot)
 
     # make sure this is updated!
     # generate base plot:
-    p <- basePlot() + base_aes() +
+    p <- base_plot() + base_aes() +
       labs(y = "", title = input$y,
            caption = paste("Source: ", input$source_label, " | ", input$report_number, sep=""))
     # add geom function depending on selected variables
@@ -1235,7 +1254,7 @@ output$drag_drop_y <- renderUI({
     p <- p + theme_gao + theme(panel.grid = element_blank())
   }
 
-  # titile position adjustments -----------------------------------------------
+  # title position adjustments -----------------------------------------------
   if (input$offset_x != "") {
     p <- p + theme(axis.title.x = element_text(hjust = input$offset_x))
   }
@@ -1248,6 +1267,7 @@ output$drag_drop_y <- renderUI({
     p
   })
 
+# observer assumes presence of label block on file upload
 observeEvent(c(input$reorder_x, input$flip_axes), {
   if (input$flip_axes == FALSE) {
     updateTextInput(session, "x_label", value = input$x)
@@ -1266,15 +1286,11 @@ observeEvent(c(input$reorder_x, input$flip_axes), {
   }
   })
 
-
-
-# change the var types ----------------------------------------------------
-
 ## render the plot ------------------------------------------------------------
 output$graph <- renderPlot({
 
   # when you render the plot, kill it first
-  kill_graph()
+  # kill_graph()
   # then graph it
   graph_it()
 
