@@ -1281,7 +1281,6 @@ output$bundle <- downloadHandler(
   },
   content = function(file) {
 
-    # tif_out <- tempfile(pattern = "tif_", fileext = ".tiff")
     svg_out <- tempfile(pattern = "svg_", fileext = ".svg")
     png_out <- tempfile(pattern = "png_", fileext = ".png")
     rds_out <- tempfile(pattern = "plot_object_", fileext = ".rds")
