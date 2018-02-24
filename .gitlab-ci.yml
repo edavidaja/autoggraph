@@ -1,0 +1,5 @@
+image: edavidaja/autoggraph:latest
+
+shiny_tests:
+  script:
+    - R -f run_tests.R
