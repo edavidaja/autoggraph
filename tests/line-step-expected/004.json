@@ -2,19 +2,19 @@
   "input": {
     "._bookmark_": 0,
     "chart_type": "line",
-    "do_plot": 3,
+    "do_plot": 1,
     "export_height": 6.83,
     "export_width": 7,
     "factor_order_z": [
-      "one",
-      " two",
-      " three",
-      " four",
-      " five"
+      "pce",
+      "pop",
+      "psavert",
+      "uempmed",
+      "unemploy"
     ],
     "fine_tuning": 0,
     "flip_axes": false,
-    "free_facet": "free_y",
+    "free_facet": "fixed",
     "infile": {
       "name": [
         "economics_long.csv"
@@ -61,7 +61,7 @@
     "y_val_format": "",
     "z": "variable",
     "z_guide": "variable",
-    "z_label": "one, two, three, four, five"
+    "z_label": ""
   },
   "output": {
     "drag_drop_x": {
@@ -81,7 +81,7 @@
       ]
     },
     "drag_drop_z": {
-      "html": "<div class=\"form-group shiny-input-container\">\n  <label class=\"control-label\" for=\"factor_order_z\">click and drag to reorder your grouping variable:<\/label>\n  <div>\n    <select id=\"factor_order_z\" class=\"form-control\" multiple=\"multiple\"><option value=\"one\" selected>one<\/option>\n<option value=\" two\" selected> two<\/option>\n<option value=\" three\" selected> three<\/option>\n<option value=\" four\" selected> four<\/option>\n<option value=\" five\" selected> five<\/option><\/select>\n    <script type=\"application/json\" data-for=\"factor_order_z\">{\"plugins\":[\"drag_drop\"]}<\/script>\n  <\/div>\n<\/div>",
+      "html": "<div class=\"form-group shiny-input-container\">\n  <label class=\"control-label\" for=\"factor_order_z\">click and drag to reorder your grouping variable:<\/label>\n  <div>\n    <select id=\"factor_order_z\" class=\"form-control\" multiple=\"multiple\"><option value=\"pce\" selected>pce<\/option>\n<option value=\"pop\" selected>pop<\/option>\n<option value=\"psavert\" selected>psavert<\/option>\n<option value=\"uempmed\" selected>uempmed<\/option>\n<option value=\"unemploy\" selected>unemploy<\/option><\/select>\n    <script type=\"application/json\" data-for=\"factor_order_z\">{\"plugins\":[\"drag_drop\"]}<\/script>\n  <\/div>\n<\/div>",
       "deps": [
         {
           "name": "selectize",
@@ -122,7 +122,7 @@
       ]
     },
     "graph": {
-      "src": "[image data sha1: d4639c31bb2a92bb497c080ecb68dc6f2cd59456]",
+      "src": "[image data sha1: a629a29fced42af51ae2f5314cff7801639746f0]",
       "width": 466,
       "height": 400,
       "coordmap": [

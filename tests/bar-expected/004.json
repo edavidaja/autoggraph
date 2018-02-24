@@ -1,14 +1,33 @@
 {
   "input": {
     "._bookmark_": 0,
-    "chart_type": "violin",
-    "do_plot": 2,
+    "bar_type_3": "stack",
+    "chart_type": "bar",
+    "do_plot": 4,
     "export_height": 6.83,
     "export_width": 7,
     "factor_order_x": [
+      "audi",
+      "chevrolet",
+      "dodge",
+      "ford",
+      "honda",
+      "hyundai",
+      "jeep",
+      "land rover",
+      "lincoln",
+      "mercury",
+      "nissan",
+      "pontiac",
+      "subaru",
+      "toyota",
+      "volkswagen"
+    ],
+    "factor_order_z": [
       "4",
-      "f",
-      "r"
+      "5",
+      "6",
+      "8"
     ],
     "fine_tuning": 0,
     "flip_axes": false,
@@ -44,28 +63,26 @@
     "source_label": "",
     "type_variable_x": "",
     "type_variable_y": "",
-    "violin_bandwidth_3": 1,
-    "violin_scale_3": "area",
     "w": "",
     "w_guide": "",
     "w_label": "",
     "which_panel": "plots",
     "wrap": "colors",
-    "x": "drv",
+    "x": "manufacturer",
     "x_breaks": "",
-    "x_label": "Drive",
+    "x_label": "displacement",
     "x_val_format": "",
     "y": "displ",
     "y_breaks": "",
     "y_label": "",
     "y_val_format": "",
-    "z": "",
-    "z_guide": "",
+    "z": "cyl",
+    "z_guide": "cyl",
     "z_label": ""
   },
   "output": {
     "drag_drop_x": {
-      "html": "<div class=\"form-group shiny-input-container\">\n  <label class=\"control-label\" for=\"factor_order_x\">click and drag to reorder your x variable<\/label>\n  <div>\n    <select id=\"factor_order_x\" class=\"form-control\" multiple=\"multiple\"><option value=\"4\" selected>4<\/option>\n<option value=\"f\" selected>f<\/option>\n<option value=\"r\" selected>r<\/option><\/select>\n    <script type=\"application/json\" data-for=\"factor_order_x\">{\"plugins\":[\"drag_drop\"]}<\/script>\n  <\/div>\n<\/div>",
+      "html": "<div class=\"form-group shiny-input-container\">\n  <label class=\"control-label\" for=\"factor_order_x\">click and drag to reorder your x variable<\/label>\n  <div>\n    <select id=\"factor_order_x\" class=\"form-control\" multiple=\"multiple\"><option value=\"audi\" selected>audi<\/option>\n<option value=\"chevrolet\" selected>chevrolet<\/option>\n<option value=\"dodge\" selected>dodge<\/option>\n<option value=\"ford\" selected>ford<\/option>\n<option value=\"honda\" selected>honda<\/option>\n<option value=\"hyundai\" selected>hyundai<\/option>\n<option value=\"jeep\" selected>jeep<\/option>\n<option value=\"land rover\" selected>land rover<\/option>\n<option value=\"lincoln\" selected>lincoln<\/option>\n<option value=\"mercury\" selected>mercury<\/option>\n<option value=\"nissan\" selected>nissan<\/option>\n<option value=\"pontiac\" selected>pontiac<\/option>\n<option value=\"subaru\" selected>subaru<\/option>\n<option value=\"toyota\" selected>toyota<\/option>\n<option value=\"volkswagen\" selected>volkswagen<\/option><\/select>\n    <script type=\"application/json\" data-for=\"factor_order_x\">{\"plugins\":[\"drag_drop\"]}<\/script>\n  <\/div>\n<\/div>",
       "deps": [
         {
           "name": "selectize",
@@ -106,11 +123,36 @@
       ]
     },
     "drag_drop_z": {
-      "message": "",
-      "call": "NULL",
-      "type": [
-        "shiny.silent.error",
-        "validation"
+      "html": "<div class=\"form-group shiny-input-container\">\n  <label class=\"control-label\" for=\"factor_order_z\">click and drag to reorder your grouping variable:<\/label>\n  <div>\n    <select id=\"factor_order_z\" class=\"form-control\" multiple=\"multiple\"><option value=\"4\" selected>4<\/option>\n<option value=\"5\" selected>5<\/option>\n<option value=\"6\" selected>6<\/option>\n<option value=\"8\" selected>8<\/option><\/select>\n    <script type=\"application/json\" data-for=\"factor_order_z\">{\"plugins\":[\"drag_drop\"]}<\/script>\n  <\/div>\n<\/div>",
+      "deps": [
+        {
+          "name": "selectize",
+          "version": "0.11.2",
+          "src": {
+            "href": "shared/selectize"
+          },
+          "meta": null,
+          "script": null,
+          "stylesheet": "css/selectize.bootstrap3.css",
+          "head": "<!--[if lt IE 9]>\n<script src=\"shared/selectize/js/es5-shim.min.js\"><\/script>\n<![endif]-->\n<script src=\"shared/selectize/js/selectize.min.js\"><\/script>",
+          "attachment": null,
+          "package": null,
+          "all_files": true
+        },
+        {
+          "name": "jqueryui",
+          "version": "1.12.1",
+          "src": {
+            "href": "shared/jqueryui"
+          },
+          "meta": null,
+          "script": "jquery-ui.min.js",
+          "stylesheet": null,
+          "head": null,
+          "attachment": null,
+          "package": null,
+          "all_files": true
+        }
       ]
     },
     "excel_sheet_selector": {
@@ -122,7 +164,7 @@
       ]
     },
     "graph": {
-      "src": "[image data sha1: 6d0612e90b1a3daeccf581efee18b47d39b74a8b]",
+      "src": "[image data sha1: e9760dc02020c044a17e23dd1a754076f741bb00]",
       "width": 466,
       "height": 400,
       "coordmap": [
@@ -141,18 +183,18 @@
           },
           "domain": {
             "left": 0.4,
-            "right": 3.6,
-            "bottom": 1.33,
-            "top": 7.27
+            "right": 15.6,
+            "bottom": -8.1,
+            "top": 170.1
           },
           "mapping": {
             "x": "stored_data$data[[input$x]]",
             "y": "stored_data$data[[input$y]]"
           },
           "range": {
-            "left": 27.8904109589041,
+            "left": 35.8904109589041,
             "right": 460.520547945205,
-            "bottom": 359.178082191781,
+            "bottom": 255.06091683745,
             "top": 20.0547945205479
           }
         }
@@ -184,39 +226,8 @@
       ]
     },
     "plot_options": {
-      "html": "<div class=\"well\">\n  <h4>plot specifics<\/h4>\n  <div class=\"form-group shiny-input-container\">\n    <label class=\"control-label\" for=\"violin_bandwidth_3\">wiggle:<\/label>\n    <input class=\"js-range-slider\" id=\"violin_bandwidth_3\" data-min=\"0.1\" data-max=\"1\" data-from=\"1\" data-step=\"0.01\" data-grid=\"false\" data-grid-snap=\"false\" data-prettify-separator=\",\" data-prettify-enabled=\"true\" data-keyboard=\"true\" data-keyboard-step=\"1.11111111111111\" data-data-type=\"number\"/>\n  <\/div>\n  <div class=\"form-group shiny-input-container\">\n    <label class=\"control-label\" for=\"violin_scale_3\">scale:<\/label>\n    <div>\n      <select id=\"violin_scale_3\"><option value=\"area\" selected>equal area<\/option>\n<option value=\"width\">equal width<\/option>\n<option value=\"count\">proportional<\/option><\/select>\n      <script type=\"application/json\" data-for=\"violin_scale_3\" data-nonempty=\"\">{}<\/script>\n    <\/div>\n  <\/div>\n<\/div>",
+      "html": "<div class=\"well\">\n  <h4>plot specifics<\/h4>\n  <div class=\"form-group shiny-input-container\">\n    <label class=\"control-label\" for=\"bar_type_3\">select a bar type<\/label>\n    <div>\n      <select id=\"bar_type_3\"><option value=\"stack\" selected>stacked<\/option>\n<option value=\"dodge\">clustered<\/option>\n<option value=\"fill\">filled<\/option><\/select>\n      <script type=\"application/json\" data-for=\"bar_type_3\" data-nonempty=\"\">{}<\/script>\n    <\/div>\n  <\/div>\n<\/div>",
       "deps": [
-        {
-          "name": "ionrangeslider",
-          "version": "2.1.6",
-          "src": {
-            "href": "shared/ionrangeslider"
-          },
-          "meta": null,
-          "script": "js/ion.rangeSlider.min.js",
-          "stylesheet": [
-            "css/ion.rangeSlider.css",
-            "css/ion.rangeSlider.skinShiny.css"
-          ],
-          "head": null,
-          "attachment": null,
-          "package": null,
-          "all_files": true
-        },
-        {
-          "name": "strftime",
-          "version": "0.9.2",
-          "src": {
-            "href": "shared/strftime"
-          },
-          "meta": null,
-          "script": "strftime-min.js",
-          "stylesheet": null,
-          "head": null,
-          "attachment": null,
-          "package": null,
-          "all_files": true
-        },
         {
           "name": "selectize",
           "version": "0.11.2",

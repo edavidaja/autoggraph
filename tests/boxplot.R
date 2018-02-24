@@ -20,3 +20,9 @@ app$snapshot()
 app$setInputs(wrap = "grid")
 app$setInputs(do_plot = "click")
 app$snapshot()
+
+app$setInputs(x_label = "Company", do_plot = "click")
+app$snapshot()
+
+app$setInputs(z_guide = "cylinders", do_plot = "click")
+app$snapshot()

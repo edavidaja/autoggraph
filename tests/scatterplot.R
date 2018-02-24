@@ -24,3 +24,12 @@ app$snapshot()
 app$setInputs(reorder_x = "hwy", z = "cyl")
 app$setInputs(do_plot = "click")
 app$snapshot()
+
+app$setInputs(x_label = "displacement", do_plot = "click")
+app$snapshot()
+
+app$setInputs(y_label = "Miles per gallon (hwy)", do_plot = "click")
+app$snapshot()
+
+app$setInputs(z_guide = "cylinders", do_plot = "click")
+app$snapshot()
