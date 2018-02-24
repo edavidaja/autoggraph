@@ -1,5 +1,4 @@
-image: edavidaja/autoggraph:latest
-
-shiny_tests:
+tests:
   script:
-    - R -f run_tests.R
+    - docker build -t autoggraph .
+    - docker run autoggraph R -f run_tests.R
