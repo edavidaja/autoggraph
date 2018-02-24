@@ -1,4 +1,5 @@
-tests:
+image: registry.gitlab.com/usgao/autoggraph
+
+shiny_tests:
   script:
-    - docker build -t autoggraph .
-    - docker run autoggraph R -f run_tests.R
+    - R -f run_tests.R
