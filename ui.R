@@ -64,7 +64,8 @@ function(request) {
            ),
           column(6,
             h4("plot preview:"),
-            plotOutput("graph")
+            plotOutput("graph"),
+            runcodeUI()
             ),
           column(3,
             uiOutput("plot_labels"),
