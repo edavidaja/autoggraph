@@ -76,8 +76,8 @@ shinyServer(function(input, output, session) {
                        'drop columns',
                        # 'separate columns',
                        # 'unite columns',
-                       'summarise'
-                       # 'transform',
+                       'summarise',
+                       'transform'
                        # 'recode to a numeric variable',
                        # 'recode to a character/factor variable'
                      )
@@ -105,6 +105,17 @@ shinyServer(function(input, output, session) {
                             label = 'choose summary functions', 
                             choices = c('mean', 'median', 'min', 'max', 'sd'), selected = '', multiple = TRUE)
         )
+    }else if (input$reshape_variables == 'transform'){
+      add_it <- list(selectizeInput('group_variables', 
+                          label = 'do you want to group by another variable', 
+                          choices = names(stored_data$data), selected = '', multiple = TRUE),
+           selectizeInput('select_variables', 
+                          label = 'select which variables you want to do it to', 
+                          choices = names(stored_data$data), selected = '', multiple = TRUE),
+           selectizeInput('choose_transformation',  
+                          label = 'choose a transformation functions', 
+                          choices = c('scale', 'log', 'sqrt'), selected = '', multiple = TRUE)
+      )
     }
     else{
       add_it <-  list(
@@ -147,6 +158,9 @@ shinyServer(function(input, output, session) {
           stored_data$data %>% mutate_at(input$select_variables, as.numeric),
         (input$reshape_variables == 'recode a character/factor variable') ~ 
           stored_data$data %>% mutate_at(input$select_variables, as.factor(as.character)),
+        (input$reshape_variables == 'transform') ~ 
+          stored_data$data %>% mutate_at(input$select_variables, 
+                                            input$choose_transformation),
         (input$reshape_variables == 'summarise') ~ 
           stored_data$data %>% summarise_at(input$select_variables, 
                                             input$choose_summary) %>% gather(key, value,  -one_of(input$group_variables)) %>% 
