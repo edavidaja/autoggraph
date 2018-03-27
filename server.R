@@ -8,6 +8,8 @@ library(shinyjs)
 library(magrittr)
 library(purrr)
 library(dplyr)
+library(openxlsx)
+library(tidyr)
 
 # gao theme -------------------------------------------------------------------
 theme_gao <- list(
@@ -41,18 +43,16 @@ shinyServer(function(input, output, session) {
   })
 
   # set up a counter for dynamic reshaping ----------------------------------
-  counter <- reactiveValues(countervalue = 0) 
   
-  observeEvent(input$add1, {
-    counter$countervalue <- counter$countervalue + 1     # if the add button is clicked, increment the value by 1 and update it
-  })
-  observeEvent(input$sub1, {
-    counter$countervalue <- counter$countervalue - 1  # if the sub button is clicked, decrement the value by 1 and update it
-  })
+  counter <- reactiveValues(count = 0)
+
   observeEvent(input$reset, {
+    counter$count <- 0
     stored_data$data <- stored_data$orig_data
-    print (stored_data$data)
-    counter$countervalue <- 0                     # if the reset button is clicked, set the counter value to zero
+  })
+  
+  observeEvent(input$start, {
+    counter$count <- 1
   })
 
   output$reshape_page <- renderUI({
@@ -65,81 +65,131 @@ shinyServer(function(input, output, session) {
   output$reshape_me <- renderUI({
     
     req(input$infile)
+    req(counter$count > 0)
     
-    req(counter$countervalue > 0)
-  
-    list(selectInput('reshape_variables', "",
+    to_display <- list(selectInput('reshape_variables', "", 
                      choices = list(
                        `select a what you want to do` = "",
                        'make my data longer',
                        'make my data wider',
                        'select columns',
                        'drop columns',
-                       'separate columns',
-                       'unite columns',
-                       'summarise',
-                       'transform',
-                       'recode to a numeric variable',
-                       'recode to a character/factor variable'
+                       # 'separate columns',
+                       # 'unite columns',
+                       'summarise'
+                       # 'transform',
+                       # 'recode to a numeric variable',
+                       # 'recode to a character/factor variable'
                      )
-    ),
-    selectizeInput('group_variables', 
-                   label = 'do you want to group by another variable', 
-                   choices = names(stored_data$data), selected = '', multiple = TRUE),
-    selectizeInput('select_variables', 
-                   label = 'select which variables you want to do it to', 
-                   choices = names(stored_data$data), selected = '', multiple = TRUE),
-    selectizeInput('choose_summary',  
-                   label = 'choose summary functions', 
-                   choices = c('mean', 'median', 'min', 'max', 'sd'), selected = '', multiple = TRUE)
-      )
+    ))
+    
+    to_display
+    
   })
   
+  
+  output$reshape_options <- renderUI({
+    
+    req(input$reshape_variables)
+    req(counter$count > 0)
+    
+    if (input$reshape_variables == 'summarise'){
+      add_it <- 
+        list(selectizeInput('group_variables', 
+                            label = 'do you want to group by another variable', 
+                            choices = names(stored_data$data), selected = '', multiple = TRUE),
+             selectizeInput('select_variables', 
+                            label = 'select which variables you want to do it to', 
+                            choices = names(stored_data$data), selected = '', multiple = TRUE),
+             selectizeInput('choose_summary',  
+                            label = 'choose summary functions', 
+                            choices = c('mean', 'median', 'min', 'max', 'sd'), selected = '', multiple = TRUE)
+        )
+    }
+    else{
+      add_it <-  list(
+        selectizeInput('select_variables', 
+                       label = 'select which variables you want to do it to', 
+                       choices = names(stored_data$data), selected = '', multiple = TRUE)
+      )
+    }
+    
+    add_it
+  })
+  
+
   
   output$table_btn <- renderUI({
     actionButton("do_table", "can you reshape me?", icon = icon("area-chart"))
   })
   
-  do_reshaping <- eventReactive({c(input$do_table)}, {
+  do_reshaping <- observeEvent({c(input$do_table)}, {
       
-    if (counter$countervalue > 0){
-
-        
-        if (input$group_variables != ''){
-          stored_data$data <- stored_data$data %>%
-            group_by_at(vars(input$group_variables))
-        }
-        stored_data$data <- stored_data$data %>%
-          when(
-            (input$reshape_variables == 'select columns') ~ 
-              stored_data$data %>% select(input$select_variables),
-            (input$reshape_variables == 'drop columns') ~ 
-              stored_data$data %>% select(quo(-(!!input$drop_variables))),
-            (input$reshape_variables == 'make my data longer') ~ 
-              stored_data$data %>% gather_('key', 'value', input$select_variables),
-            (input$reshape_variables == 'make my data wider') ~ 
-              stored_data$data %>% spread_(input$select_variables[[1]],
-                                           input$select_variables[[2]]),
-            (input$reshape_variables == 'recode to a numeric variable') ~ 
-              stored_data$data %>% mutate_at(input$select_variables, as.numeric),
-            (input$reshape_variables == 'recode a character/factor variable') ~ 
-              stored_data$data %>% mutate_at(input$select_variables, as.factor(as.character)),
-            (input$reshape_variables == 'summarise') ~ 
-              stored_data$data %>% summarise_at(input$select_variables, 
-                                                input$choose_summary)
-            
-          )
-      }      
-
-    print (stored_data$data)
-    stored_data$data %>% head()
+    req(input$infile)
+    req(counter$count > 0)
     
+    group_it()
+    
+    print (input$reshape_variables)
+    
+    stored_data$data <- stored_data$data %>%
+      when(
+        (input$reshape_variables == 'select columns') ~ 
+          stored_data$data %>% select(input$select_variables),
+        (input$reshape_variables == 'drop columns') ~ 
+          stored_data$data %>% select(quo(-(!!input$drop_variables))),
+        (input$reshape_variables == 'make my data longer') ~ 
+          stored_data$data %>% gather_('key', 'value', input$select_variables),
+        (input$reshape_variables == 'make my data wider') ~ 
+          stored_data$data %>% spread_(input$select_variables[[1]],
+                                       input$select_variables[[2]]),
+        (input$reshape_variables == 'recode to a numeric variable') ~ 
+          stored_data$data %>% mutate_at(input$select_variables, as.numeric),
+        (input$reshape_variables == 'recode a character/factor variable') ~ 
+          stored_data$data %>% mutate_at(input$select_variables, as.factor(as.character)),
+        (input$reshape_variables == 'summarise') ~ 
+          stored_data$data %>% summarise_at(input$select_variables, 
+                                            input$choose_summary) %>% gather(key, value,  -one_of(input$group_variables)) %>% 
+          separate(key, into = c("measure", "stat"), sep = "_") %>% 
+          spread(stat, value) %>% ungroup()
+        
+
+      )
+    
+    # have to set orig data to stored_data! 
+    
+    stored_data$plot_data <- stored_data$data
+    
+    reset('reshape_variables')
+
+    
+  })
+  
+  group_it <- reactive({
+    
+    
+    if (! is.null(input$group_variables)){
+      if (input$group_variables != ''){
+        stored_data$data <- stored_data$data %>%
+          group_by_at(vars(input$group_variables))
+      }
+    }
+    stored_data$data
+
+  })
+  
+  table_it <- reactive({
+    
+    req(input$infile)
+    
+    stored_data$data %>% head()
+  
   })
   
   
   
   output$table <- renderTable(
-    do_reshaping()
+    table_it()
   ) 
   # the custom javascript function for recovering the modification time of the
   # uploaded file is executed whenever a file is uploaded
@@ -164,7 +214,7 @@ shinyServer(function(input, output, session) {
   filters <- reactiveValues(ids = NULL, vars = NULL, ops = NULL, condition = NULL)
   
   # here is the data that we are going to work with
-  stored_data <- reactiveValues(data = NULL, orig_data = NULL, plotted = FALSE)
+  stored_data <- reactiveValues(data = NULL, orig_data = NULL, plot_data = NULL, plotted = FALSE)
   
   onRestore(function(state) {
     original_ops$id     <- state$values$id
@@ -199,6 +249,7 @@ shinyServer(function(input, output, session) {
       names(temp) %<>% make.names(., unique = TRUE)
     }
     stored_data$orig_data <- temp
+    stored_data$plot_data <- temp
     stored_data$data <- temp
   })
   
@@ -220,7 +271,7 @@ shinyServer(function(input, output, session) {
         condition = "input.chart_type != 'pie'",
         selectInput("x",
           "select your x variable:",
-          choices = c("x variable" = "", names(stored_data$data))
+          choices = c("x variable" = "", names(stored_data$plot_data))
           ),
         radioButtons("type_variable_x", label = "set the x variable type:",
           choices = c("keep as is" = "", "categorical", "numeric"),
@@ -231,7 +282,7 @@ shinyServer(function(input, output, session) {
           condition = "input.chart_type != 'density' & input.chart_type != 'histogram'", 
           selectInput("y",
             "select your y variable:",
-            choices =  c("y variable" = "", names(stored_data$data))
+            choices =  c("y variable" = "", names(stored_data$plot_data))
             ),
           radioButtons("type_variable_y", label = "set the y variable type:",
             choices = c("keep as is" = "", "categorical", "numeric"),
@@ -246,14 +297,14 @@ shinyServer(function(input, output, session) {
             input.chart_type == 'area') &
             input.x != ''",
           selectInput("reorder_x", label = "sort the x-axis by:", 
-            choices = c("sort by" = "", names(stored_data$data))
+            choices = c("sort by" = "", names(stored_data$plot_data))
           )
         ),
         conditionalPanel(
           condition = "input.chart_type != 'heatmap'",
           selectInput("z",
             "add a grouping variable:",
-            choices =  c("grouping variable" = "", names(stored_data$data))
+            choices =  c("grouping variable" = "", names(stored_data$plot_data))
             )
           ),
         conditionalPanel(
@@ -276,7 +327,7 @@ shinyServer(function(input, output, session) {
           condition = "input.chart_type == 'heatmap' | input.chart_type == 'scatterplot'",
           selectInput("w",
             "add an additional continuous variable:",
-            choices =  c("continuous variable" = "", names(stored_data$data))
+            choices =  c("continuous variable" = "", names(stored_data$plot_data))
             )
           ),
         conditionalPanel(
