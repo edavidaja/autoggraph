@@ -10,6 +10,7 @@ library(purrr)
 library(dplyr)
 library(openxlsx)
 library(tidyr)
+library(rhandsontable)
 
 # gao theme -------------------------------------------------------------------
 theme_gao <- list(
@@ -45,6 +46,12 @@ shinyServer(function(input, output, session) {
   # set up a counter for dynamic reshaping ----------------------------------
   
   counter <- reactiveValues(count = 0)
+  
+
+  # set up showModal flag ---------------------------------------------------
+  
+  showIt <- reactiveValues(now = TRUE)
+    
 
   observeEvent(input$reset, {
     counter$count <- 0
@@ -62,6 +69,17 @@ shinyServer(function(input, output, session) {
   # set up reshaping --------------------------------------------------------
   
   
+  output$reshape_btns <- renderUI({
+    
+    req(input$infile)
+    
+    list(h4('reshape data'),
+    actionButton("reset", "reset"),
+    actionButton("start", "start reshaping"))
+    
+  })
+  
+  
   output$reshape_me <- renderUI({
     
     req(input$infile)
@@ -74,10 +92,12 @@ shinyServer(function(input, output, session) {
                        'make my data wider',
                        'select columns',
                        'drop columns',
+                       'rename columns',
                        # 'separate columns',
                        # 'unite columns',
                        'summarise',
-                       'transform'
+                       'transform',
+                       'recode'
                        # 'recode to a numeric variable',
                        # 'recode to a character/factor variable'
                      )
@@ -87,11 +107,113 @@ shinyServer(function(input, output, session) {
     
   })
   
+  get_column_names <- function(){
+    
+    map(names(stored_data$data), function(x) textInput(x, x, x))
+  }
+  
+  
+  get_order <- function(x){
+    
+    if (class(x) == 'factor'){
+      return(levels(x))
+    }else{
+      return('')
+    }
+  }
+  
+  get_unique <- function(x){
+    
+    if (class(x) == 'factor' | class(x) == 'character'){
+      
+      return(paste0(unique(x), collapse = ','))
+    }else{
+      return('')
+    }
+  }
+  
+  build_me <- function(df){
+    
+    
+    rows <- list()
+    
+    
+    for (i in 1:length(df$Variables)){
+      
+      cells <- NULL
+      cells <- map(1:6, function(x) div(style="display: inline-block;vertical-align:top; width: 100px;", textInput('Poo', 'Poo', 'Poo')))
+      cells <- tagList(cells)
+      
+      
+    
+      rows <- cells
+      
+      
+      
+    }
+    
+    y <- map(1:6, function(x) div(style="display: inline-block;vertical-align:top; width: 150px;", textInput('Poo', 'Poo', 'Poo')))
+    x <- tagList(y)
+    tags$div(style="display:inline-block", cells)
+  }
+  
+  
+  get_vars <- function(){
+    
+    vars <- names(stored_data$data)
+    vals <- stored_data$data %>% summarise_all(funs(get_unique(.)))
+    vals <- as.character(vals[1,])
+    order <- stored_data$data %>% summarise_all(funs(get_order(.)))
+    order <- as.character(order[1,])
+    type_of <- unlist(lapply(stored_data$data, class))
+    df <- tibble(Variables = vars, `Unique Values` = vals, `Factor Levels` = order, `Variable Type` = type_of)
+    build_me(df)
+  }
+  
+  dataModal <- function(){
+    
+    if (showIt$now == TRUE){
+    
+      reset('reshape_variables')
+      print(input$reshape_variables)
+      
+      modalDialog(
+        title = "Rename Variables",
+        get_column_names(),
+        easyClose = TRUE,
+        footer = tagList(
+          modalButton("Cancel"),
+          actionButton("ok", "OK")
+        ))
+    }
+    
+
+    
+    #showIt$now <- TRUE
+    
+  }
+  
+  dataTableModal <- function(){
+    
+    modalDialog(
+      title = "Recode Variables",
+      get_vars(),
+      easyClose = TRUE,
+      footer = tagList(
+        modalButton("Cancel"),
+        actionButton("ok", "OK")
+      ))
+    
+    
+  }
+  
   
   output$reshape_options <- renderUI({
     
     req(input$reshape_variables)
-    req(counter$count > 0)
+    req(showIt$now == TRUE)
+
+    print (input$reshape_variables)
     
     if (input$reshape_variables == 'summarise'){
       add_it <- 
@@ -116,14 +238,33 @@ shinyServer(function(input, output, session) {
                           label = 'choose a transformation functions', 
                           choices = c('scale', 'log', 'sqrt'), selected = '', multiple = TRUE)
       )
-    }
-    else{
-      add_it <-  list(
-        selectizeInput('select_variables', 
-                       label = 'select which variables you want to do it to', 
-                       choices = names(stored_data$data), selected = '', multiple = TRUE)
-      )
-    }
+    }else if (input$reshape_variables == 'make my data longer'){
+      
+      add_it <- selectizeInput('select_variables', 
+                     label = 'select variables you want stored in key:value pairs', 
+                     choices = names(stored_data$data), selected = '', multiple = TRUE)
+
+    }else if (input$reshape_variables == 'make my data wider'){
+      
+      add_it <- selectizeInput('select_variables', 
+                     label = 'select the variable you want across columns and the variable you want in rows (MAX:2)', 
+                     choices = names(stored_data$data), selected = '', multiple = TRUE)
+      
+    }else if (input$reshape_variables == 'rename columns'){
+      
+      add_it <- showModal(dataModal())
+
+    }else if (input$reshape_variables == 'recode'){
+      
+      add_it <- showModal(dataTableModal())
+      
+    }else{
+        add_it <-  list(
+          selectizeInput('select_variables', 
+                         label = 'select which variables you want to do it to', 
+                         choices = names(stored_data$data), selected = '', multiple = TRUE)
+        )
+      }
     
     add_it
   })
@@ -131,7 +272,16 @@ shinyServer(function(input, output, session) {
 
   
   output$table_btn <- renderUI({
-    actionButton("do_table", "can you reshape me?", icon = icon("area-chart"))
+    req(input$infile)
+    actionButton("do_table", "Save Changes", icon = icon("area-chart"))
+  })
+  
+  
+  rename_them <- reactive({
+    
+    new_names <- unlist(map(names(stored_data$data), function(x) input[[x]])) 
+    names(stored_data$data) <- new_names
+
   })
   
   do_reshaping <- observeEvent({c(input$do_table)}, {
@@ -139,9 +289,9 @@ shinyServer(function(input, output, session) {
     req(input$infile)
     req(counter$count > 0)
     
+    stored_data$data = hot_to_r(input$table)
+  
     group_it()
-    
-    print (input$reshape_variables)
     
     stored_data$data <- stored_data$data %>%
       when(
@@ -161,6 +311,9 @@ shinyServer(function(input, output, session) {
         (input$reshape_variables == 'transform') ~ 
           stored_data$data %>% mutate_at(input$select_variables, 
                                             input$choose_transformation),
+        #(input$reshape_variables == 'rename columns') ~ rename_them(),
+        # adding this block in the for the modals
+        (input$reshape_variables == '') ~ stored_data$data,
         (input$reshape_variables == 'summarise') ~ 
           stored_data$data %>% summarise_at(input$select_variables, 
                                             input$choose_summary) %>% gather(key, value,  -one_of(input$group_variables)) %>% 
@@ -179,6 +332,27 @@ shinyServer(function(input, output, session) {
     
   })
   
+  
+  observeEvent(input$ok, {
+    
+    req(input$infile)
+    
+    rename_them()
+    
+    stored_data$plot_data <- stored_data$data
+    
+    reset('reshape_variables')
+    print(input$reshape_variables)
+    
+    
+    removeModal()
+
+    
+    
+  })
+  
+  
+  
   group_it <- reactive({
     
     
@@ -196,15 +370,17 @@ shinyServer(function(input, output, session) {
     
     req(input$infile)
     
-    stored_data$data %>% head()
+    stored_data$data 
   
   })
   
   
   
-  output$table <- renderTable(
-    table_it()
-  ) 
+  output$table <- renderRHandsontable({
+    
+    rhandsontable(table_it(), height = 250) %>%
+      hot_table(highlightCol = TRUE, highlightRow = TRUE)
+  }) 
   # the custom javascript function for recovering the modification time of the
   # uploaded file is executed whenever a file is uploaded
   observeEvent(input$infile, {
@@ -248,7 +424,6 @@ shinyServer(function(input, output, session) {
   observeEvent(input$infile, {
 
     req(input$infile)
-  
     ext <- tools::file_ext(input$infile$name)
     if (ext == "xls") {
       temp <- read_xls(input$infile$datapath, sheet = input$which_sheet)

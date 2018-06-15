@@ -33,14 +33,10 @@ function(request) {
              ),
              fileInput("infile", label = "upload your data (in excel or csv format)"),
              uiOutput("excel_sheet_selector"),
-             h4('reshape data'),
-             actionButton("reset", "set to 0"),
-             actionButton("start", "start reshaping"),
-             br(),
-             br(),
+             uiOutput("reshape_btns"),
              uiOutput('reshape_me'),
              uiOutput('reshape_options'),
-             tableOutput('table'),
+             rHandsontableOutput('table'),
              uiOutput('table_btn')
     ),
     # plot UI -----------------------------------------------------------------
