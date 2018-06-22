@@ -2,20 +2,6 @@
 library(shiny)
 library(shinyjs)
 
-jsCode <- "
-shinyjs.showFileModified = function() {
-        var input, file;
-
-        if (typeof window.FileReader !== 'function' &&
-            typeof window.FileReader !== 'object') {
-            write('The file API isnt supported on this browser yet.');
-            return;
-        }
-        input = document.getElementById('infile');
-        console.log(input.files[0].lastModifiedDate.toString());
-        Shiny.onInputChange('infile_mtime', input.files[0].lastModifiedDate.toString());
-    }
-"
 function(request) {
   shinyUI(
     navbarPage("autoggraph", id = "which_panel",
@@ -24,6 +10,7 @@ function(request) {
        tags$head(
         tags$link(rel = "icon", type = "image/png", href = "favicon.png")
         ),
+       useShinyjs(),
        uiOutput("landing_page")
        ),
     # plot UI -----------------------------------------------------------------
@@ -67,11 +54,6 @@ function(request) {
                   downloadButton("proof", "download proof", inline = TRUE)
                   )
                 )
-              ),
-            useShinyjs(),
-            extendShinyjs(text = jsCode, functions = c("showFileModified")),
-            hidden(
-              textInput("infile_mtime", "infile_mtime")
               )
             )
           )
