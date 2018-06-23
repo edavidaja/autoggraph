@@ -27,5 +27,4 @@ WORKDIR /autoggraph
 
 RUN install2.r --error \
   -r 'https://cran.rstudio.com' \
-  shiny shinyjs \
-  && R -e 'devtools::install_github("rstudio/shinytest")'
+  shiny shinyjs shinytest

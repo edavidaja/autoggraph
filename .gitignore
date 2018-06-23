@@ -1,6 +1,7 @@
 *.sublime-project
 *.sublime-workspace
 .Rhistory
+.Rdata
 Thumbs.db
 packrat/lib*/
 packrat/src/*
