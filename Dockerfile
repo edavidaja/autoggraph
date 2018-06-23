@@ -27,13 +27,13 @@ WORKDIR /autoggraph
 
 RUN install2.r --error \
   -r 'https://cran.rstudio.com' \
-  shiny shinyjs shinytest
+  shiny shinyjs shinytest haven
 
 FROM rocker/shiny
 
 COPY --from=build /autoggraph /srv/shiny-server/autoggraph
 
-RUN  R -e "install.packages(c('readr', 'readxl', 'ggplot2', 'stringr', 'RColorBrewer', 'shiny', 'shinyjs', 'magrittr'), repos='https://cran.rstudio.com/')"
+RUN  R -e "install.packages(c('readr', 'readxl', 'ggplot2', 'stringr', 'RColorBrewer', 'shiny', 'shinyjs', 'magrittr', 'haven'), repos='https://cran.rstudio.com/')"
 
 EXPOSE 3838
 

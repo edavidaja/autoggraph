@@ -6,6 +6,7 @@ library(RColorBrewer)
 library(shiny)
 library(shinyjs)
 library(magrittr)
+library(haven)
 
 # gao theme -------------------------------------------------------------------
 theme_gao <- list(
@@ -107,14 +108,14 @@ shinyServer(function(input, output, session) {
       "csv" = {
         temp <- read_csv(input$infile$datapath)
         names(temp) %<>% make.names(., unique = TRUE)
-        }
-      # "dta" = {
-      #   temp <- haven::read_dta(input$infile$datapath) %>%
-      #   as_factor()
-      #   },
-      # "sas7bdat" = {
-      #   temp <- haven::read_sas(input$infile$datapath)
-      # }
+        },
+      "dta" = {
+        temp <- haven::read_dta(input$infile$datapath) %>%
+        as_factor()
+        },
+      "sas7bdat" = {
+        temp <- haven::read_sas(input$infile$datapath)
+      }
     )
     stored_data$orig_data <- temp
     stored_data$data <- temp
