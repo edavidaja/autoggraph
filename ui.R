@@ -27,7 +27,10 @@ function(request) {
                 `confidence intervals` = c("pointrange", "error bar")
                 )
               ),
-            fileInput("infile", label = "upload your data (in excel or csv format)"),
+            fileInput(
+              "infile",
+              label = "upload your data:"
+              ),
             uiOutput("excel_sheet_selector"),
             uiOutput("variable_selector")
             ),

@@ -92,33 +92,42 @@ shinyServer(function(input, output, session) {
 
     ext <- tolower(tools::file_ext(input$infile$name))
 
-    switch(ext,
-      "xls" = {
-        req(input$which_sheet %in% c(excel_sheets(input$infile$datapath)))
-        temp <- read_xls(input$infile$datapath, sheet = input$which_sheet)
-        names(temp) %<>% make.names(., unique = TRUE)
-        temp
-        },
-      "xlsx" = {
-        req(input$which_sheet %in% c(excel_sheets(input$infile$datapath)))
-        temp <- read_xlsx(input$infile$datapath, sheet = input$which_sheet)
-        names(temp) %<>% make.names(., unique = TRUE)
-        temp
-        },
-      "csv" = {
-        temp <- read_csv(input$infile$datapath)
-        names(temp) %<>% make.names(., unique = TRUE)
-        },
-      "dta" = {
-        temp <- haven::read_dta(input$infile$datapath) %>%
-        as_factor()
-        },
-      "sas7bdat" = {
-        temp <- haven::read_sas(input$infile$datapath)
+      if(!(ext %in% c("csv", "xls", "xlsx", "dta", "sas7bdat"))) {
+        reset("infile")
+        showModal(modalDialog(
+          title = "invalid data uploaded.",
+          "Upload files in excel, sas, stata, or comma-delimited format.",
+          easyClose = TRUE,
+          footer = NULL
+          ))
+      } else {
+        switch(ext,
+          "xls" = {
+            req(input$which_sheet %in% c(excel_sheets(input$infile$datapath)))
+            temp <- read_xls(input$infile$datapath, sheet = input$which_sheet)
+            names(temp) %<>% make.names(., unique = TRUE)
+            temp
+            },
+          "xlsx" = {
+            req(input$which_sheet %in% c(excel_sheets(input$infile$datapath)))
+            temp <- read_xlsx(input$infile$datapath, sheet = input$which_sheet)
+            names(temp) %<>% make.names(., unique = TRUE)
+            temp
+            },
+          "csv" = {
+            temp <- read_csv(input$infile$datapath)
+            names(temp) %<>% make.names(., unique = TRUE)
+            },
+          "dta" = {
+            temp <- haven::read_dta(input$infile$datapath)
+            },
+          "sas7bdat" = {
+            temp <- haven::read_sas(input$infile$datapath)
+            }
+          )
+        stored_data$orig_data <- temp
+        stored_data$data <- temp
       }
-    )
-    stored_data$orig_data <- temp
-    stored_data$data <- temp
   })
 
   base_plot <- reactive({
