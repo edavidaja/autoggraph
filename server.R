@@ -98,8 +98,6 @@ shinyServer(function(input, output, session) {
                        'summarise',
                        'transform',
                        'recode'
-                       # 'recode to a numeric variable',
-                       # 'recode to a character/factor variable'
                      )
     ))
     
@@ -131,8 +129,6 @@ shinyServer(function(input, output, session) {
     }
     
 
-    
-    #showIt$now <- TRUE
     
   }
 
@@ -274,14 +270,9 @@ shinyServer(function(input, output, session) {
         (input$reshape_variables == 'make my data wider') ~ 
           stored_data$data %>% spread_(input$select_variables[[1]],
                                        input$select_variables[[2]]),
-        (input$reshape_variables == 'recode to a numeric variable') ~ 
-          stored_data$data %>% mutate_at(input$select_variables, as.numeric),
-        (input$reshape_variables == 'recode a character/factor variable') ~ 
-          stored_data$data %>% mutate_at(input$select_variables, as.factor(as.character)),
         (input$reshape_variables == 'transform') ~ 
           stored_data$data %>% mutate_at(input$select_variables, 
                                             input$choose_transformation),
-        #(input$reshape_variables == 'rename columns') ~ rename_them(),
         (input$reshape_variables == 'recode') ~ recode_them(),
         # adding this block in the for the modals
         (input$reshape_variables == '') ~ stored_data$data,
