@@ -113,70 +113,13 @@ shinyServer(function(input, output, session) {
   }
   
   
-  get_order <- function(x){
-    
-    if (class(x) == 'factor'){
-      return(levels(x))
-    }else{
-      return('')
-    }
-  }
-  
-  get_unique <- function(x){
-    
-    if (class(x) == 'factor' | class(x) == 'character'){
-      
-      return(paste0(unique(x), collapse = ','))
-    }else{
-      return('')
-    }
-  }
-  
-  build_me <- function(df){
-    
-    
-    rows <- list()
-    
-    
-    for (i in 1:length(df$Variables)){
-      
-      cells <- NULL
-      cells <- map(1:6, function(x) div(style="display: inline-block;vertical-align:top; width: 100px;", textInput('Poo', 'Poo', 'Poo')))
-      cells <- tagList(cells)
-      
-      
-    
-      rows <- cells
-      
-      
-      
-    }
-    
-    y <- map(1:6, function(x) div(style="display: inline-block;vertical-align:top; width: 150px;", textInput('Poo', 'Poo', 'Poo')))
-    x <- tagList(y)
-    tags$div(style="display:inline-block", cells)
-  }
-  
-  
-  get_vars <- function(){
-    
-    vars <- names(stored_data$data)
-    vals <- stored_data$data %>% summarise_all(funs(get_unique(.)))
-    vals <- as.character(vals[1,])
-    order <- stored_data$data %>% summarise_all(funs(get_order(.)))
-    order <- as.character(order[1,])
-    type_of <- unlist(lapply(stored_data$data, class))
-    df <- tibble(Variables = vars, `Unique Values` = vals, `Factor Levels` = order, `Variable Type` = type_of)
-    build_me(df)
-  }
   
   dataModal <- function(){
     
     if (showIt$now == TRUE){
     
       reset('reshape_variables')
-      print(input$reshape_variables)
-      
+
       modalDialog(
         title = "Rename Variables",
         get_column_names(),
@@ -192,20 +135,7 @@ shinyServer(function(input, output, session) {
     #showIt$now <- TRUE
     
   }
-  
-  dataTableModal <- function(){
-    
-    modalDialog(
-      title = "Recode Variables",
-      get_vars(),
-      easyClose = TRUE,
-      footer = tagList(
-        modalButton("Cancel"),
-        actionButton("ok", "OK")
-      ))
-    
-    
-  }
+
   
   
   output$reshape_options <- renderUI({
@@ -213,8 +143,7 @@ shinyServer(function(input, output, session) {
     req(input$reshape_variables)
     req(showIt$now == TRUE)
 
-    print (input$reshape_variables)
-    
+
     if (input$reshape_variables == 'summarise'){
       add_it <- 
         list(selectizeInput('group_variables', 
@@ -256,9 +185,13 @@ shinyServer(function(input, output, session) {
 
     }else if (input$reshape_variables == 'recode'){
       
-      add_it <- showModal(dataTableModal())
-      
-    }else{
+      add_it <-  list(
+        selectizeInput('select_variables', 
+                       label = 'select which variables you want to do it to', 
+                       choices = names(stored_data$data), selected = '', multiple = FALSE)
+      )
+    }
+    else{
         add_it <-  list(
           selectizeInput('select_variables', 
                          label = 'select which variables you want to do it to', 
@@ -268,6 +201,26 @@ shinyServer(function(input, output, session) {
     
     add_it
   })
+  
+  output$recode <- renderRHandsontable({
+    
+    
+    req(input$reshape_variables == 'recode')
+    req(input$select_variables)
+
+    if (class(stored_data$data[[input$select_variables]]) %in% c('character')){
+      rhandsontable(stored_data$data %>% distinct_(input$select_variables), height = 250) %>%
+        hot_table(highlightCol = TRUE, highlightRow = TRUE)
+    }else if (class(stored_data$data[[input$select_variables]]) %in% c('factor')){
+      rhandsontable(stored_data$data %>% distinct_(input$select_variables), height = 250) %>%
+        hot_table(highlightCol = TRUE, highlightRow = TRUE)
+    }
+    
+  
+    
+  }) 
+  
+  
   
 
   
@@ -284,6 +237,23 @@ shinyServer(function(input, output, session) {
 
   })
   
+  recode_them <- reactive({
+    
+    print ('in the recode function!')
+    
+    new_vals <- hot_to_r(input$recode) %>% pull(input$select_variables)
+    old_vals <- stored_data$data %>% distinct_(input$select_variables) %>% pull(input$select_variables)
+    
+    fruit_lookup <- set_names(new_vals, old_vals)
+    
+    to_recode <- input$select_variables %>% sym()
+
+    
+    stored_data$data <- stored_data$data %>% mutate(!! input$select_variables:= recode(!! to_recode, !!! fruit_lookup))
+    stored_data$data
+    
+  })
+  
   do_reshaping <- observeEvent({c(input$do_table)}, {
       
     req(input$infile)
@@ -298,7 +268,7 @@ shinyServer(function(input, output, session) {
         (input$reshape_variables == 'select columns') ~ 
           stored_data$data %>% select(input$select_variables),
         (input$reshape_variables == 'drop columns') ~ 
-          stored_data$data %>% select(quo(-(!!input$drop_variables))),
+          stored_data$data %>% select(- !!input$select_variables),
         (input$reshape_variables == 'make my data longer') ~ 
           stored_data$data %>% gather_('key', 'value', input$select_variables),
         (input$reshape_variables == 'make my data wider') ~ 
@@ -312,6 +282,7 @@ shinyServer(function(input, output, session) {
           stored_data$data %>% mutate_at(input$select_variables, 
                                             input$choose_transformation),
         #(input$reshape_variables == 'rename columns') ~ rename_them(),
+        (input$reshape_variables == 'recode') ~ recode_them(),
         # adding this block in the for the modals
         (input$reshape_variables == '') ~ stored_data$data,
         (input$reshape_variables == 'summarise') ~ 
@@ -342,8 +313,7 @@ shinyServer(function(input, output, session) {
     stored_data$plot_data <- stored_data$data
     
     reset('reshape_variables')
-    print(input$reshape_variables)
-    
+
     
     removeModal()
 

@@ -1,6 +1,7 @@
 # user interface --------------------------------------------------------------
 library(shiny)
 library(shinyjs)
+library(rhandsontable)
 
 jsCode <- "
 shinyjs.showFileModified = function() {
@@ -36,6 +37,7 @@ function(request) {
              uiOutput("reshape_btns"),
              uiOutput('reshape_me'),
              uiOutput('reshape_options'),
+             conditionalPanel("input.reshape_variables == 'recode'",rHandsontableOutput('recode')),
              rHandsontableOutput('table'),
              uiOutput('table_btn')
     ),
