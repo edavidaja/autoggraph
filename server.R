@@ -240,12 +240,14 @@ shinyServer(function(input, output, session) {
     new_vals <- hot_to_r(input$recode) %>% pull(input$select_variables)
     old_vals <- stored_data$data %>% distinct_(input$select_variables) %>% pull(input$select_variables)
     
-    fruit_lookup <- set_names(new_vals, old_vals)
+    # old names to new names
+    old_to_new <- set_names(new_vals, old_vals)
     
+    # variable to recode
     to_recode <- input$select_variables %>% sym()
 
     
-    stored_data$data <- stored_data$data %>% mutate(!! input$select_variables:= recode(!! to_recode, !!! fruit_lookup))
+    stored_data$data <- stored_data$data %>% mutate(!! input$select_variables:= recode(!! to_recode, !!! old_to_new))
     stored_data$data
     
   })
