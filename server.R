@@ -733,13 +733,13 @@ observeEvent({c(input$w, input$z)}, {
       }
     }
     
-    # if (!is.null(input$factor_order_z) & input$z != "") {
+     if (!is.null(input$factor_order_z) & input$z != "") {
       
-    #   if (class(stored_data$data[[input$z]]) %in% c("character", "factor")) {
-    #     stored_data$data[[input$z]] <- factor(stored_data$data[[input$z]], levels = input$factor_order_z)
-    #   }
-    # }
-    # TODO check if factor
+       if (class(stored_data$data[[input$z]]) %in% c("character", "factor")) {
+         stored_data$data[[input$z]] <- factor(stored_data$data[[input$z]], levels = input$factor_order_z)
+       }
+     }
+
     if (input$reorder_x != "") {
       if (class(stored_data$data[[input$x]]) %in% c("character", "factor")) {
         stored_data$data[[input$x]] <- (reorder(stored_data$data[[input$x]], stored_data$data[[input$reorder_x]]))
