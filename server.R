@@ -197,9 +197,11 @@ shinyServer(function(input, output, session) {
     
     req(input$reshape_variables == 'recode')
     req(input$select_variables)
+    
+    to_recode <- input$select_variables %>% sym()
 
     if (class(stored_data$data[[input$select_variables]]) %in% c('character', 'factor')){
-      rhandsontable(stored_data$data %>% distinct_(input$select_variables), height = 250) %>%
+      rhandsontable(stored_data$data %>% distinct(!! to_recode), height = 250) %>%
         hot_table(highlightCol = TRUE, highlightRow = TRUE)
     }
   
@@ -227,15 +229,15 @@ shinyServer(function(input, output, session) {
     
     print ('in the recode function!')
     
+    # variable to recode
+    to_recode <- input$select_variables %>% sym()
+    
     new_vals <- hot_to_r(input$recode) %>% pull(input$select_variables)
-    old_vals <- stored_data$data %>% distinct_(input$select_variables) %>% pull(input$select_variables)
+    old_vals <- stored_data$data %>% distinct(!! to_recode) %>% pull(input$select_variables)
     
     # old names to new names
     old_to_new <- set_names(new_vals, old_vals)
-    
-    # variable to recode
-    to_recode <- input$select_variables %>% sym()
-
+  
     
     stored_data$data <- stored_data$data %>% mutate(!! input$select_variables:= recode(!! to_recode, !!! old_to_new))
     stored_data$data
