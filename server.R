@@ -266,10 +266,10 @@ shinyServer(function(input, output, session) {
         (input$reshape_variables == 'drop columns') ~ 
           stored_data$data %>% select(- !!input$select_variables),
         (input$reshape_variables == 'make my data longer') ~ 
-          stored_data$data %>% gather_('key', 'value', input$select_variables),
+          stored_data$data %>% gather('key', 'value', !! input$select_variables),
         (input$reshape_variables == 'make my data wider') ~ 
-          stored_data$data %>% spread_(input$select_variables[[1]],
-                                       input$select_variables[[2]]),
+          stored_data$data %>% spread(!! input$select_variables[[1]],
+                                       !! input$select_variables[[2]]),
         (input$reshape_variables == 'transform') ~ 
           stored_data$data %>% mutate_at(input$select_variables, 
                                             input$choose_transformation),
