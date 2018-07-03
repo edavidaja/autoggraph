@@ -50,8 +50,6 @@ shinyServer(function(input, output, session) {
 
   # set up showModal flag ---------------------------------------------------
   
-  showIt <- reactiveValues(now = TRUE)
-    
 
   observeEvent(input$reset, {
     counter$count <- 0
@@ -114,11 +112,9 @@ shinyServer(function(input, output, session) {
   
   dataModal <- function(){
     
-    if (showIt$now == TRUE){
-    
-      reset('reshape_variables')
+    reset('reshape_variables')
 
-      modalDialog(
+    modalDialog(
         title = "Rename Variables",
         get_column_names(),
         easyClose = TRUE,
@@ -126,9 +122,8 @@ shinyServer(function(input, output, session) {
           modalButton("Cancel"),
           actionButton("ok", "OK")
         ))
-    }
-    
 
+  
     
   }
 
@@ -137,7 +132,6 @@ shinyServer(function(input, output, session) {
   output$reshape_options <- renderUI({
     
     req(input$reshape_variables)
-    req(showIt$now == TRUE)
 
 
     if (input$reshape_variables == 'summarise'){
@@ -204,14 +198,10 @@ shinyServer(function(input, output, session) {
     req(input$reshape_variables == 'recode')
     req(input$select_variables)
 
-    if (class(stored_data$data[[input$select_variables]]) %in% c('character')){
-      rhandsontable(stored_data$data %>% distinct_(input$select_variables), height = 250) %>%
-        hot_table(highlightCol = TRUE, highlightRow = TRUE)
-    }else if (class(stored_data$data[[input$select_variables]]) %in% c('factor')){
+    if (class(stored_data$data[[input$select_variables]]) %in% c('character', 'factor')){
       rhandsontable(stored_data$data %>% distinct_(input$select_variables), height = 250) %>%
         hot_table(highlightCol = TRUE, highlightRow = TRUE)
     }
-    
   
     
   }) 
