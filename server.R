@@ -244,13 +244,54 @@ shinyServer(function(input, output, session) {
     
   })
   
+  summary_function <- reactive({
+    
+    if (! is.null(input$group_variables)){
+      
+      if (length(input$select_variables) > 1){
+        
+        return (stored_data$data %>% summarise_at(input$select_variables, 
+                                          input$choose_summary) %>% gather(key, value,  -one_of(input$group_variables)) %>% 
+          separate(key, into = c("measure", "stat"), sep = "_") %>% 
+          spread(stat, value) %>% ungroup())
+        
+      }else{
+        
+        return (stored_data$data %>% summarise_at(input$select_variables, 
+                                                  input$choose_summary) %>% gather(key, value,  -one_of(input$group_variables)))
+        
+      }
+      
+  }else{
+      
+      if (length(input$select_variables) > 1){
+        
+        return (stored_data$data %>% summarise_at(input$select_variables, 
+                                          input$choose_summary) %>% gather(key, value) %>% 
+          separate(key, into = c("measure", "stat"), sep = "_") %>% 
+          spread(stat, value) %>% ungroup())
+      }else{
+        
+        return (stored_data$data %>% summarise_at(input$select_variables, 
+                                                  input$choose_summary) %>% gather(key, value))
+        
+      }
+    
+    
+    }
+
+    
+  })
+  
   do_reshaping <- observeEvent({c(input$do_table)}, {
       
     req(input$infile)
     req(counter$count > 0)
     
     stored_data$data = hot_to_r(input$table)
-  
+    
+    print (input$group_variables)
+    print (input$select_variables)
     group_it()
     
     stored_data$data <- stored_data$data %>%
@@ -258,7 +299,7 @@ shinyServer(function(input, output, session) {
         (input$reshape_variables == 'select columns') ~ 
           stored_data$data %>% select(input$select_variables),
         (input$reshape_variables == 'drop columns') ~ 
-          stored_data$data %>% select(- !!input$select_variables),
+          stored_data$data %>% select(- one_of(input$select_variables)),
         (input$reshape_variables == 'make my data longer') ~ 
           stored_data$data %>% gather('key', 'value', !! input$select_variables),
         (input$reshape_variables == 'make my data wider') ~ 
@@ -270,12 +311,7 @@ shinyServer(function(input, output, session) {
         (input$reshape_variables == 'recode') ~ recode_them(),
         # adding this block in the for the modals
         (input$reshape_variables == '') ~ stored_data$data,
-        (input$reshape_variables == 'summarise') ~ 
-          stored_data$data %>% summarise_at(input$select_variables, 
-                                            input$choose_summary) %>% gather(key, value,  -one_of(input$group_variables)) %>% 
-          separate(key, into = c("measure", "stat"), sep = "_") %>% 
-          spread(stat, value) %>% ungroup()
-        
+        (input$reshape_variables == 'summarise') ~ summary_function()
 
       )
     
