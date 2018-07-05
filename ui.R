@@ -3,20 +3,6 @@ library(shiny)
 library(shinyjs)
 library(rhandsontable)
 
-jsCode <- "
-shinyjs.showFileModified = function() {
-        var input, file;
-
-        if (typeof window.FileReader !== 'function' &&
-            typeof window.FileReader !== 'object') {
-            write('The file API isnt supported on this browser yet.');
-            return;
-        }
-        input = document.getElementById('infile');
-        console.log(input.files[0].lastModifiedDate.toString());
-        Shiny.onInputChange('infile_mtime', input.files[0].lastModifiedDate.toString());
-    }
-"
 function(request) {
   shinyUI(
     navbarPage("autoggraph", id = "which_panel",
@@ -25,30 +11,38 @@ function(request) {
        tags$head(
         tags$link(rel = "icon", type = "image/png", href = "favicon.png")
         ),
+        useShinyjs(),
        uiOutput("landing_page")
        ),
     # reshape UI ---------------------------------------------------------
     tabPanel("reshape",
-             tags$head(
-               tags$link(rel = "icon", type = "image/png", href = "favicon.png")
-             ),
-             fileInput("infile", label = "upload your data (in excel or csv format)"),
-             uiOutput("excel_sheet_selector"),
-             uiOutput("reshape_btns"),
-             uiOutput('reshape_me'),
-             uiOutput('reshape_options'),
-             conditionalPanel("input.reshape_variables == 'recode'",rHandsontableOutput('recode')),
-             rHandsontableOutput('table'),
-             uiOutput('table_btn')
+      fluidRow(
+        column(3,
+          wellPanel(
+            fileInput("infile", label = "upload your data (in excel or csv format)"),
+            uiOutput("excel_sheet_selector"),
+            uiOutput("reshape_btns"),
+            uiOutput('reshape_me'),
+            uiOutput('reshape_options'),
+            conditionalPanel(
+              "input.reshape_variables == 'recode'",
+              rHandsontableOutput('recode')
+              ),
+            uiOutput('table_btn')
+            )
+          ),
+        column(6,
+          rHandsontableOutput('table')
+          )
+      )
     ),
-    # plot UI -----------------------------------------------------------------
     # plot UI -----------------------------------------------------------------
       tabPanel("plots",
         includeCSS("www/simplex.css"),
         fluidRow(  
           column(3,
            wellPanel(
-            h4("plot type | data:"),
+            h4("plot type"),
             selectInput("chart_type", label = NULL,
               choices = list(
                 `select a chart type` = "",
@@ -62,8 +56,7 @@ function(request) {
            ),
           column(6,
             h4("plot preview:"),
-            plotOutput("graph"),
-            runcodeUI()
+            plotOutput("graph")
             ),
           column(3,
             uiOutput("plot_labels"),
@@ -82,11 +75,6 @@ function(request) {
                   downloadButton("proof", "download proof", inline = TRUE)
                   )
                 )
-              ),
-            useShinyjs(),
-            extendShinyjs(text = jsCode, functions = c("showFileModified")),
-            hidden(
-              textInput("infile_mtime", "infile_mtime")
               )
             )
           )
