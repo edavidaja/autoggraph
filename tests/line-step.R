@@ -17,7 +17,7 @@ app$snapshot()
 
 app$uploadFile(infile = "economics_long.csv")
 # multi-variable line plot
-app$setInputs(x = "date" , y = "value", z = "variable", palette_selector = "qualitative")
+app$setInputs(x = "date", y = "value", z = "variable", palette_selector = "qualitative")
 app$setInputs(do_plot = "click")
 app$snapshot()
 

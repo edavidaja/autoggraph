@@ -20,7 +20,7 @@ app$snapshot()
 app$setInputs(wrap = "color", x = "model", z = "", flip_axes = TRUE)
 app$setInputs(do_plot = "click")
 app$snapshot()
-# check that x axis can be sorted 
+# check that x axis can be sorted
 app$setInputs(reorder_x = "hwy", z = "cyl")
 app$setInputs(do_plot = "click")
 app$snapshot()
