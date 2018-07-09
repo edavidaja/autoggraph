@@ -10,3 +10,4 @@ LICENSE
 .vscode
 packrat/lib*
 packrat/src
+tests/

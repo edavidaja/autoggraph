@@ -1,4 +1,4 @@
-FROM rocker/verse as build
+FROM rocker/verse as test
 LABEL Name=autoggraph Version=0.0.1 
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -27,13 +27,14 @@ WORKDIR /autoggraph
 
 RUN install2.r --error \
   -r 'https://cran.rstudio.com' \
-  shiny shinyjs shinytest haven
+  shiny shinyjs shinytest haven rhandsontable
 
-FROM rocker/shiny
+FROM rocker/shiny as deploy
 
-COPY --from=build /autoggraph /srv/shiny-server/autoggraph
+COPY --from=test /autoggraph /srv/shiny-server/autoggraph
 
-RUN  R -e "install.packages(c('readr', 'readxl', 'ggplot2', 'stringr', 'RColorBrewer', 'shiny', 'shinyjs', 'magrittr', 'haven'), repos='https://cran.rstudio.com/')"
+RUN  R -e "install.packages(c('readr', 'readxl', 'ggplot2', 'stringr', 'RColorBrewer', 'shinyjs', 'magrittr', 'haven', 'rhandsontable', 'purrr', 'dplyr', 'tidyr'), \
+  repos='https://cran.rstudio.com/')"
 
 EXPOSE 3838
 
