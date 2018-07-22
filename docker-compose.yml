@@ -1,8 +1,0 @@
-version: '2.1'
-
-services:
-  autoggraph:
-    image: autoggraph
-    build: .
-    ports:
-      - 8787:8787
