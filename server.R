@@ -332,6 +332,7 @@ Sys.setenv(
 
   table_it <- reactive({
     req(input$infile)
+    req(stored_data$data)
     stored_data$data
   })
 
@@ -747,8 +748,6 @@ Sys.setenv(
   })
 
   set_var_types <- reactive({
-    # TODO(portnows): can you leave a comment here explaining what this does? It's not obvious from looking
-    req(input$x %in% names(stored_data$data)) #| input$y %in% names(stored_data$data) | input$z %in% names(stored_data$data))
 
     if (input$type_variable_x != "") {
       if (input$type_variable_x == "categorical") {
@@ -799,6 +798,8 @@ Sys.setenv(
         stored_data$data[[input$x]] <- as.numeric(reorder(stored_data$data[[input$x]], stored_data$data[[input$reorder_x]]))
       }
     }
+    
+    stored_data$data
   })
 
   # aesthetics ----------------------------------------------------------------
@@ -1230,19 +1231,8 @@ Sys.setenv(
     p
   })
 
-
-  # plot builder --------------------------------------------------------------
-  graph_it <- reactive({
-    validate(
-      need(input$chart_type != "", "please select a chart type")
-    )
-    # rendering a plot
-    req(input$chart_type, input$infile, input$do_plot)
-
-    # first make sure to change vars
-    set_var_types()
-    # make sure this is updated!
-    # generate base plot:
+  build_graph <- reactive({
+    
     p <- base_plot() + base_aes() +
       labs(
         y = "", title = input$y,
@@ -1253,7 +1243,7 @@ Sys.setenv(
     if (input$z == "" & input$w == "") {
       p <- p + which_geom_xy()
     }
-
+    
     ## z and no w ---------------------------------------------------------------
     else if (input$z != "" & input$w == "") {
       if (input$wrap == "facets") {
@@ -1306,9 +1296,9 @@ Sys.setenv(
             )
           }
         } else { # apply custom labels
-
+          
           plot_labels <- unlist(strsplit(input$z_label, ",", fixed = TRUE))
-
+          
           if (input$chart_type %in% c("histogram", "boxplot", "bar")) {
             p <- p + scale_fill_manual(values = which_palette(), labels = plot_labels)
             p <- p + guides(fill = guide_legend(title.position = "top", ncol = 1))
@@ -1404,7 +1394,7 @@ Sys.setenv(
       p <- p + which_geom_w()
       print("w fired")
     }
-
+    
     ## z and w ------------------------------------------------------------------
     else if (input$z != "" & input$w != "") {
       if (input$wrap == "facets") {
@@ -1447,7 +1437,7 @@ Sys.setenv(
       }
       p <- p + which_geom_w_z()
     }
-
+    
     ## apply smoother to scatter plot -------------------------------------------
     if (!is.null(input[[paste0("scatter_option_smooth", plot_opts())]])) {
       if (input[[paste0("scatter_option_smooth", plot_opts())]] == TRUE) {
@@ -1472,7 +1462,7 @@ Sys.setenv(
         }
       }
     }
-
+    
     ## custom axis and series labels --------------------------------------------
     if (input$flip_axes == FALSE) {
       if (input$x_label != "") {
@@ -1493,7 +1483,7 @@ Sys.setenv(
         p <- p + labs(x = "", title = input$x) + coord_flip()
       }
     }
-
+    
     if (input$z_guide != "" & input$w_guide == "") {
       if (input$chart_type %in% c("histogram", "boxplot", "bar")) {
         p <- p + labs(fill = input$z_guide)
@@ -1513,38 +1503,38 @@ Sys.setenv(
     } else if (input$w_guide != "" & input$z_guide != "") {
       p <- p + labs(size = input$w_guide, color = input$z_guide, fill = "")
     }
-
+    
     if (input$x_breaks != "") {
       seq <- as.numeric(unlist(strsplit(input$x_breaks, ",", fixed = TRUE)))
-
+      
       p <- p + scale_x_continuous(
         breaks = seq(from = seq[1], to = seq[2], by = seq[3])
       )
     }
-
+    
     if (input$y_breaks != "") {
       seq <- as.numeric(unlist(strsplit(input$y_breaks, ",", fixed = TRUE)))
-
+      
       p <- p + scale_y_continuous(
         breaks = seq(from = seq[1], to = seq[2], by = seq[3])
       )
     }
-
+    
     if (input$x_val_format != "") {
       switch(input$x_val_format,
-        "dollar" = p <- p + scale_x_continuous(labels = scales::dollar),
-        "comma" = p <- p + scale_x_continuous(labels = scales::comma),
-        "percent" = p <- p + scale_x_continuous(labels = scales::percent)
+             "dollar" = p <- p + scale_x_continuous(labels = scales::dollar),
+             "comma" = p <- p + scale_x_continuous(labels = scales::comma),
+             "percent" = p <- p + scale_x_continuous(labels = scales::percent)
       )
     }
     if (input$y_val_format != "") {
       switch(input$y_val_format,
-        "dollar" = p <- p + scale_y_continuous(labels = scales::dollar),
-        "comma" = p <- p + scale_y_continuous(labels = scales::comma),
-        "percent" = p <- p + scale_y_continuous(labels = scales::percent)
+             "dollar" = p <- p + scale_y_continuous(labels = scales::dollar),
+             "comma" = p <- p + scale_y_continuous(labels = scales::comma),
+             "percent" = p <- p + scale_y_continuous(labels = scales::percent)
       )
     }
-
+    
     # suppress gridlines except in case of cleveland plots
     if (!is.null(input[[paste0("scatter_option_grid", plot_opts())]])) {
       if (input[[paste0("scatter_option_grid", plot_opts())]] == FALSE) {
@@ -1555,7 +1545,7 @@ Sys.setenv(
     } else { # apply default GAO theme for all other plots
       p <- p + theme_gao + theme(panel.grid = element_blank())
     }
-
+    
     # title position adjustments -----------------------------------------------
     if (input$offset_x != "") {
       p <- p + theme(axis.title.x = element_text(hjust = input$offset_x))
@@ -1567,6 +1557,21 @@ Sys.setenv(
       p <- p + theme(plot.caption = element_text(hjust = input$offset_source))
     }
     p
+    
+  })
+  # plot builder --------------------------------------------------------------
+  graph_it <- reactive({
+    
+    validate(
+      need(input$chart_type != "", "please select a chart type")
+    )
+    # rendering a plot
+    req(input$chart_type, input$infile, input$do_plot)
+
+    build_graph()
+    # make sure this is updated!
+    # generate base plot:
+
   })
 
   # observer assumes presence of label block on file upload
@@ -1590,10 +1595,12 @@ Sys.setenv(
 
   ## render the plot ------------------------------------------------------------
   output$graph <- renderPlot({
+    
     req(input$infile)
-    # when you render the plot, kill it first
-    kill_graph()
-    # then graph it
+    req(input$do_plot)
+    
+    print ('i am in the output')
+    # graph it 
     graph_it()
   })
 
@@ -1642,6 +1649,7 @@ Sys.setenv(
 
   # proof -----------------------------------------------------------------------
   output$proof <- downloadHandler(
+    
     filename = "proof.html",
     content = function(file) {
       # Copy the proof file to a temporary directory before processing it, in
@@ -1665,7 +1673,9 @@ Sys.setenv(
   )
 
   observeEvent(input$do_plot, {
-
+    
+    
+    stored_data$data <- set_var_types()
     # Update plot generating label and icon after initial plot is rendered
     updateActionButton(session, "do_plot",
       label = "update plot",
