@@ -1,4 +1,3 @@
-# user interface --------------------------------------------------------------
 library(shiny)
 library(shinyjs)
 library(rhandsontable)
@@ -7,23 +6,19 @@ function(request) {
   shinyUI(
     navbarPage("autoggraph",
       id = "which_panel",
-      # instructions UI ---------------------------------------------------------
+      # reshape UI ---------------------------------------------------------
       tabPanel(
-        "instructions",
+        "data",
+        includeCSS("www/simplex.css"),
+        useShinyjs(),
         tags$head(
           tags$link(rel = "icon", type = "image/png", href = "favicon.png")
         ),
-        useShinyjs(),
-        uiOutput("landing_page")
-      ),
-      # reshape UI ---------------------------------------------------------
-      tabPanel(
-        "reshape",
         fluidRow(
           column(
             3,
             wellPanel(
-              fileInput("infile", label = "upload your data (in excel or csv format)"),
+              fileInput("infile", label = "upload your data:"),
               uiOutput("excel_sheet_selector"),
               uiOutput("reshape_btns"),
               uiOutput("reshape_me"),
@@ -44,7 +39,6 @@ function(request) {
       # plot UI -----------------------------------------------------------------
       tabPanel(
         "plots",
-        includeCSS("www/simplex.css"),
         fluidRow(
           column(
             3,

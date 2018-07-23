@@ -29,18 +29,13 @@ theme_gao <- list(
 
 # server ----------------------------------------------------------------------
 shinyServer(function(input, output, session) {
-  output$landing_page <- renderUI({
-    if (session$clientData$url_hostname == "shiny.eseclab.gov") {
-      # set location of zip for export
-      # option is set here rather than in global because the sessions variable
-      # is only available within the scope of the server function
-      Sys.setenv(R_ZIPCMD = "/usr/bin/zip")
-      Sys.setenv(RSTUDIO_PANDOC = "/usr/local/bin")
-      includeHTML("www/ins-deploy.html")
-    } else {
-      includeHTML("www/ins.html")
-    }
-  })
+# set location of zip for export
+# option is set here rather than in global because the sessions variable
+# is only available within the scope of the server function
+Sys.setenv(
+  R_ZIPCMD = "/usr/bin/zip",
+  RSTUDIO_PANDOC = "/usr/local/bin"
+  )
 
   # set up a counter for dynamic reshaping ----------------------------------
 
@@ -64,8 +59,8 @@ shinyServer(function(input, output, session) {
 
     list(
       h4("reshape data"),
-      actionButton("reset", "reset"),
-      actionButton("start", "start reshaping")
+      actionButton("start", "start reshaping"),
+      actionButton("reset", "reset")
     )
   })
 
@@ -523,7 +518,7 @@ shinyServer(function(input, output, session) {
           selected = "classic"
         )
       ),
-      actionButton("do_plot", "can i have your autoggraph?", icon = icon("area-chart"))
+      actionButton("do_plot", "plot:", icon = icon("area-chart"))
     )
   })
 
