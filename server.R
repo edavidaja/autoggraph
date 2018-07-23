@@ -46,6 +46,7 @@ Sys.setenv(
   observeEvent(input$reset, {
     counter$count <- 0
     stored_data$data <- stored_data$orig_data
+    stored_data$plot_data <- stored_data$data
   })
 
   observeEvent(input$start, {
@@ -323,10 +324,8 @@ Sys.setenv(
 
   group_it <- reactive({
     if (!is.null(input$group_variables)) {
-      if (input$group_variables != "") {
         stored_data$data <- stored_data$data %>%
           group_by_at(vars(input$group_variables))
-      }
     }
     stored_data$data
   })
@@ -675,7 +674,8 @@ Sys.setenv(
   })
 
   which_palette <- reactive({
-
+  
+    print ('hi')
     # if a z variable is set, then the level count should be mapped to the
     # number of levels of the discrete variable; otherwise, a five class
     # palette is used
@@ -684,6 +684,8 @@ Sys.setenv(
     } else {
       level_count <- 5
     }
+    
+    print (level_count)
 
     switch(input$palette_selector,
       "classic" = {
@@ -785,7 +787,13 @@ Sys.setenv(
     }
 
     if (input$reorder_x != "") {
+      
+      validate(
+        need(! class(stored_data$data[[input$reorder_x]]) %in% c("character", "factor"), "Select a numeric variable")
+      )
+
       if (class(stored_data$data[[input$x]]) %in% c("character", "factor")) {
+        print ('hi...?')
         stored_data$data[[input$x]] <- (reorder(stored_data$data[[input$x]], stored_data$data[[input$reorder_x]]))
       } else {
         stored_data$data[[input$x]] <- as.numeric(reorder(stored_data$data[[input$x]], stored_data$data[[input$reorder_x]]))
