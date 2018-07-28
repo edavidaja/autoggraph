@@ -1226,11 +1226,6 @@ Sys.setenv(
     }
   )
 
-  kill_graph <- reactive({
-    p <- base_plot() + aes()
-    p
-  })
-
   build_graph <- reactive({
     
     p <- base_plot() + base_aes() +
