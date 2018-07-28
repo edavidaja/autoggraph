@@ -6,3 +6,4 @@ Thumbs.db
 packrat/lib*/
 packrat/src/*
 packrat/bundles/*
+.Rproj.user
