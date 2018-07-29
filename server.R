@@ -12,6 +12,7 @@ library(dplyr)
 library(tidyr)
 library(rhandsontable)
 
+
 # gao theme -------------------------------------------------------------------
 theme_gao <- list(
   theme_minimal(),
@@ -36,7 +37,7 @@ Sys.setenv(
   R_ZIPCMD = "/usr/bin/zip",
   RSTUDIO_PANDOC = "/usr/local/bin"
   )
-
+source("data.R", local = TRUE)
   # set up a counter for dynamic reshaping ----------------------------------
 
   counter <- reactiveValues(count = 0)
@@ -268,9 +269,7 @@ Sys.setenv(
   })
 
 
-  do_reshaping <- observeEvent({
-    c(input$do_table)
-  }, {
+  do_reshaping <- observeEvent(input$do_table, {
     req(input$infile)
     req(counter$count > 0)
 
@@ -303,7 +302,6 @@ Sys.setenv(
       )
 
     # have to set orig data to stored_data!
-
     stored_data$plot_data <- stored_data$data
 
     reset("reshape_variables")
@@ -375,24 +373,33 @@ Sys.setenv(
 
     req(ext %in% c("xls", "xlsx"))
 
-    selectInput(
-      "which_sheet",
-      "select a worksheet:",
-      choices = excel_sheets(input$infile$datapath)
+    tagList(
+      selectInput(
+        "which_sheet",
+        "select a worksheet:",
+        choices = excel_sheets(input$infile$datapath)
+      ),
+      textInput("cell_range", "add an optional range:", placeholder = "A1:Z26")
     )
   })
 
-  # make.names() is used to coerce all column names to valid R names after using
-  # read_csv() or read_excel()
-  # stata names will be valid R names
-  # labelled SAS files may require extra UI for a sas7bcat file
-  observeEvent({
-    c(input$infile, input$which_sheet)
-  }, {
+  # observe file input, sheet, and cell range inputs for changes and
+  # read data based on file extension
+  observeEvent(c(input$infile, input$which_sheet, input$cell_range), {
     req(input$infile)
     ext <- tolower(tools::file_ext(input$infile$name))
 
-    if (!(ext %in% c("csv", "xls", "xlsx", "dta", "sas7bdat"))) {
+    if (ext %in% valid_filetypes) {
+      stored_data$orig_data <- stored_data$plot_data <- stored_data$data <- 
+        switch(ext, 
+          "xls"      = ingest_xls(range = input$cell_range),
+          "xlsx"     = ingest_xlsx(range = input$cell_range),
+          "csv"      = read_csv(input$infile$datapath),
+          "dta"      = read_dta(input$infile$datapath),
+          "sas7bdat" = read_sas(input$infile$datapath)
+        )
+      stored_data$variable_names <- names(stored_data$data)
+    } else {
       reset("infile")
       showModal(modalDialog(
         title = "invalid data uploaded.",
@@ -400,34 +407,6 @@ Sys.setenv(
         easyClose = TRUE,
         footer = NULL
       ))
-    } else {
-      switch(ext,
-        "xls" = {
-          req(input$which_sheet %in% c(excel_sheets(input$infile$datapath)))
-          temp <- read_xls(input$infile$datapath, sheet = input$which_sheet)
-          names(temp) %<>% make.names(., unique = TRUE)
-          temp
-        },
-        "xlsx" = {
-          req(input$which_sheet %in% c(excel_sheets(input$infile$datapath)))
-          temp <- read_xlsx(input$infile$datapath, sheet = input$which_sheet)
-          names(temp) %<>% make.names(., unique = TRUE)
-          temp
-        },
-        "csv" = {
-          temp <- read_csv(input$infile$datapath)
-          names(temp) %<>% make.names(., unique = TRUE)
-        },
-        "dta" = {
-          temp <- haven::read_dta(input$infile$datapath)
-        },
-        "sas7bdat" = {
-          temp <- haven::read_sas(input$infile$datapath)
-        }
-      )
-      stored_data$orig_data <- temp
-      stored_data$plot_data <- temp
-      stored_data$data <- temp
     }
   })
 
