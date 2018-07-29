@@ -269,9 +269,7 @@ source("data.R", local = TRUE)
   })
 
 
-  do_reshaping <- observeEvent({
-    c(input$do_table)
-  }, {
+  do_reshaping <- observeEvent(input$do_table, {
     req(input$infile)
     req(counter$count > 0)
 
@@ -304,7 +302,6 @@ source("data.R", local = TRUE)
       )
 
     # have to set orig data to stored_data!
-
     stored_data$plot_data <- stored_data$data
 
     reset("reshape_variables")
