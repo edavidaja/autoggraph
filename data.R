@@ -15,17 +15,19 @@ ingest_xlsx <- function(workbook = input$infile$datapath,
 				),
 			need(validate_range, "Please enter a valid cell range.")
 			)
-		read_xlsx(workbook, worksheet, range = input$cell_range)
+		read_xlsx(workbook, worksheet, range = range)
 	}
 }
 
 ingest_xls <- function(workbook = input$infile$datapath,
-												worksheet = input$which_sheet,
-												range = input$cell_range) {
+											 worksheet = input$which_sheet,
+											 range = input$cell_range) {
 	req(input$which_sheet)
 	if (range == "") {
 		read_xls(workbook, worksheet)
 	} else {
+		# these validate statements to not push through to the table 
+		# but should prevent invalid cell ranges from being specified
 		validate_range <- try(cellranger::as.cell_limits(input$cell_range))
 		validate(
 			need(
@@ -34,6 +36,6 @@ ingest_xls <- function(workbook = input$infile$datapath,
 				),
 			need(validate_range, "Please enter a valid cell range.")
 			)
-		read_xls(workbook, worksheet, range = input$cell_range)
+		read_xls(workbook, worksheet, range = range)
 	}
 }

@@ -395,12 +395,13 @@ source("data.R", local = TRUE)
     if (ext %in% valid_filetypes) {
       stored_data$orig_data <- stored_data$plot_data <- stored_data$data <- 
         switch(ext, 
-          "xls"  =  ingest_xls(range = input$cell_range),
-          "xlsx" =  ingest_xlsx(range = input$cell_range),
-          "csv"  =  read_csv(input$infile$datapath),
-          "dta"  =  haven::read_dta(input$infile$datapath),
-          "sas7bdat" =  haven::read_sas(input$infile$datapath)
+          "xls"      = ingest_xls(range = input$cell_range),
+          "xlsx"     = ingest_xlsx(range = input$cell_range),
+          "csv"      = read_csv(input$infile$datapath),
+          "dta"      = read_dta(input$infile$datapath),
+          "sas7bdat" = read_sas(input$infile$datapath)
         )
+      stored_data$variable_names <- names(stored_data$data)
     } else {
       reset("infile")
       showModal(modalDialog(
