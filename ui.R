@@ -20,6 +20,7 @@ function(request) {
             wellPanel(
               fileInput("infile", label = "upload your data:"),
               uiOutput("excel_sheet_selector"),
+              uiOutput("delim_selector"),
               uiOutput("reshape_btns"),
               uiOutput("reshape_me"),
               uiOutput("reshape_options"),

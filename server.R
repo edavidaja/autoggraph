@@ -383,9 +383,24 @@ source("data.R", local = TRUE)
     )
   })
 
+  output$delim_selector <- renderUI({
+    ext <- tolower(tools::file_ext(input$infile$name))
+
+    req(ext %in% c("csv", "tsv", "txt"))
+
+    tagList(
+      selectInput(
+        "which_delim",
+        "select a delimiter:",
+        choices = c("delimiter" = "", "comma" = ",", "tab" = "\t", "pipe" = "|", "semicolon" = ";")
+      )
+    )
+  })
+
+
   # observe file input, sheet, and cell range inputs for changes and
   # read data based on file extension
-  observeEvent(c(input$infile, input$which_sheet, input$cell_range), {
+  observeEvent(c(input$infile, input$which_sheet, input$cell_range, input$which_delim), {
     req(input$infile)
     ext <- tolower(tools::file_ext(input$infile$name))
 
@@ -394,9 +409,9 @@ source("data.R", local = TRUE)
         switch(ext, 
           "xls"      = ingest_xls(range = input$cell_range),
           "xlsx"     = ingest_xlsx(range = input$cell_range),
-          "csv"      = read_csv(input$infile$datapath),
           "dta"      = read_dta(input$infile$datapath),
-          "sas7bdat" = read_sas(input$infile$datapath)
+          "sas7bdat" = read_sas(input$infile$datapath),
+          ingest_delim(delim = input$which_delim)
         )
       stored_data$variable_names <- names(stored_data$data)
     } else {
