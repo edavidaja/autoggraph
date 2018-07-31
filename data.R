@@ -1,4 +1,4 @@
-valid_filetypes <- c("csv", "xls", "xlsx", "dta", "sas7bdat")
+valid_filetypes <- c("csv", "xls", "xlsx", "dta", "sas7bdat", "txt", "tsv")
 
 ingest_xlsx <- function(workbook = input$infile$datapath,
 												worksheet = input$which_sheet,
@@ -38,4 +38,11 @@ ingest_xls <- function(workbook = input$infile$datapath,
 			)
 		read_xls(workbook, worksheet, range = range)
 	}
+}
+
+ingest_delim <- function(file =  input$infile$datapath,
+												 delim = NULL) {
+	req(input$which_delim)
+	print("ingest fired")
+	read_delim(file, delim = delim)
 }
