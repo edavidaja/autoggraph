@@ -11,6 +11,7 @@ library(purrr)
 library(dplyr)
 library(tidyr)
 library(rhandsontable)
+library(rlang)
 
 
 # gao theme -------------------------------------------------------------------
@@ -80,7 +81,8 @@ source("data.R", local = TRUE)
         "rename columns",
         "summarise",
         "transform",
-        "recode"
+        "recode",
+        "change variable type"
       )
     )
   })
@@ -88,7 +90,39 @@ source("data.R", local = TRUE)
   get_column_names <- function() {
     map(names(stored_data$data), function(x) textInput(x, x, x))
   }
+  
+  
+  
 
+# function to get var type ------------------------------------------------
+
+  
+  change_var_type <- reactive({
+    
+    req(input$select_variables)
+    req(input$choose_type)
+    
+    print (stored_data$types)
+    
+    
+    if (stored_data$types %>% filter(varlist == input$select_variables) %>% pull(type_collapse) == input$choose_type){
+      return(stored_data$data)
+    }
+    
+
+    if (input$choose_type == 'Numeric'){
+      stored_data$data <- stored_data$data %>% mutate_at(input$select_variables, as.numeric)
+    }
+    if (input$choose_type == 'Character/Factor'){
+      stored_data$data <- stored_data$data %>% mutate_at(input$select_variables, as.character)
+    }
+    if (input$choose_type == 'Logical'){
+      stored_data$data <- stored_data$data %>% mutate_at(input$select_variables, as.logical)
+    }
+    
+    stored_data$data
+  })
+  
   rename_modal <- function() {
     reset("reshape_variables")
 
@@ -102,8 +136,22 @@ source("data.R", local = TRUE)
       )
     )
   }
+  
+  output$date_format <- renderUI({
+    
+    req(input$choose_type)
+    req(input$choose_type %in% c('Date', 'DateTime'))
+    
+    if (input$choose_type == 'Date' & stored_data$types %>% filter(var_list == input$select_variables) %>% pull(type_collapse) != 'Numeric'){
+      textInput('date', 'enter a date format')
+    }else if (input$choose_type == 'DateTime' & stored_data$types %>% filter(var_list == input$select_variables) %>% pull(type_collapse) != 'Numeric'){
+      textInput('datetime', 'enter a datetime format')
+    }
+  })
+
 
   output$reshape_options <- renderUI({
+    
     req(input$reshape_variables)
 
     switch(input$reshape_variables,
@@ -187,7 +235,23 @@ source("data.R", local = TRUE)
         choices = names(stored_data$data),
         selected = "",
         multiple = FALSE
+      ),
+      "change variable type" = list(
+        selectizeInput(
+        "select_variables",
+        label = "select which variables you want to do it to",
+        choices = names(stored_data$data),
+        selected = "",
+        multiple = FALSE
+      ),
+      selectizeInput(
+        "choose_type",
+        label = "select which type you want it to be",
+        choices = c('Numeric', 'Character/Factor', 'Date', 'DateTime'),
+        selected = stored_data$types %>% filter(varlist == input$select_variables) %>% pull(type_collapse),
+        multiple = FALSE
       )
+     )
     )
   })
 
@@ -298,7 +362,9 @@ source("data.R", local = TRUE)
         (input$reshape_variables == "recode") ~ recode_them(),
         # adding this block in the for the modals
         (input$reshape_variables == "") ~ stored_data$data,
-        (input$reshape_variables == "summarise") ~ summary_function()
+        (input$reshape_variables == "summarise") ~ summary_function(),
+        (input$reshape_variables == "change variable type") ~ change_var_type()
+        
       )
 
     # have to set orig data to stored_data!
@@ -360,7 +426,7 @@ source("data.R", local = TRUE)
 
 
   # here is the data that we are going to work with
-  stored_data <- reactiveValues(data = NULL, orig_data = NULL, plotted = FALSE)
+  stored_data <- reactiveValues(data = NULL, orig_data = NULL, plotted = FALSE, types = NULL)
 
   onRestore(function(state) {
     original_ops$id <- state$values$id
@@ -399,6 +465,19 @@ source("data.R", local = TRUE)
           "sas7bdat" = read_sas(input$infile$datapath)
         )
       stored_data$variable_names <- names(stored_data$data)
+      
+      stored_data$types <- data_frame(
+        varlist = names(stored_data$data), 
+        type = map_chr(names(stored_data$data), ~class(stored_data$data[[.x]]))
+        ) %>% 
+        mutate(
+          type_collapse = case_when(type == 'numeric' | type == 'integer' ~ 'Numeric',
+                    'POSIXct' %in% type | 'POSIXt' %in% type ~ 'Datetime',
+                    type == 'date' ~ 'Date',
+                    type == 'character' | type == 'factor' ~ 'Character/Factor',
+                    type == 'logical' ~ 'Logical'                    
+          )
+        )
     } else {
       reset("infile")
       showModal(modalDialog(
