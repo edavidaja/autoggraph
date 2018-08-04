@@ -7,7 +7,7 @@ ingest_xlsx <- function(workbook = input$infile$datapath,
 	if (range == "") {
 		read_xlsx(workbook, worksheet)
 	} else {
-		validate_range <- try(cellranger::as.cell_limits(input$cell_range))
+		validate_range <- try(cellranger::as.cell_limits(range))
 		validate(
 			need(
 				str_detect(input$cell_range, "[A-z]+[0-9]+:[A-z]+[0-9]+"),
@@ -28,7 +28,7 @@ ingest_xls <- function(workbook = input$infile$datapath,
 	} else {
 		# these validate statements to not push through to the table 
 		# but should prevent invalid cell ranges from being specified
-		validate_range <- try(cellranger::as.cell_limits(input$cell_range))
+		validate_range <- try(cellranger::as.cell_limits(range))
 		validate(
 			need(
 				str_detect(input$cell_range, "[A-z]+[0-9]+:[A-z]+[0-9]+"),
