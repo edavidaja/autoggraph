@@ -12,7 +12,7 @@ library(dplyr)
 library(tidyr)
 library(rhandsontable)
 library(rlang)
-
+library(lubridate)
 
 # gao theme -------------------------------------------------------------------
 theme_gao <- list(
@@ -123,17 +123,18 @@ source("data.R", local = TRUE)
       if (stored_data$types %>% filter(varlist == input$select_variables) %>% pull(type_collapse) == 'Numeric'){
         stored_data$data <- stored_data$data %>% mutate_at(input$select_variables, as.POSIXct, origin = input$origin)
       }else{
-        stored_data$data <- stored_data$data %>% mutate_at(input$select_variables, parse_date_time, orders = trimws(unlist(str_split(input$datetime, ','))))
+        stored_data$data <- stored_data$data %>% mutate_at(input$select_variables, lubridate::parse_date_time, orders = trimws(unlist(str_split(input$datetime, ';'))))
       }
     }
     else if (input$choose_type == 'Date'){
       if (stored_data$types %>% filter(varlist == input$select_variables) %>% pull(type_collapse) == 'Numeric'){
         stored_data$data <- stored_data$data %>% mutate_at(input$select_variables, as.Date, origin = input$origin)
       }else{
-        stored_data$data <- stored_data$data %>% mutate_at(input$select_variables, parse_date, orders = trimws(unlist(str_split(input$date, ','))))
+        stored_data$data <- stored_data$data %>% mutate_at(input$select_variables, lubridate::parse_date_time, orders = trimws(unlist(str_split(input$date, ';'))))
       }
       
     }
+    print (stored_data$data)
     stored_data$types <- get_data_types()
     stored_data$data
   })
@@ -156,11 +157,15 @@ source("data.R", local = TRUE)
     
     req(input$choose_type)
     req(input$choose_type %in% c('Date', 'DateTime'))
+    req(! is.na(input$choose_type))
+    
+    print(stored_data$types)
+    print(stored_data$types$type)
     
     if (input$choose_type == 'Date' & stored_data$types %>% filter(varlist == input$select_variables) %>% pull(type_collapse) != 'Numeric'){
-      textInput('date', 'enter a date format. mutiple formats must be separated by a comma')
+      textInput('date', 'enter a date format. mutiple formats must be separated by a semicolon')
     }else if (input$choose_type == 'DateTime' & stored_data$types %>% filter(varlist == input$select_variables) %>% pull(type_collapse) != 'Numeric'){
-      textInput('datetime', 'enter a datetime format. mutiple formats must be separated by a comma')
+      textInput('datetime', 'enter a datetime format. mutiple formats must be separated by a semicolon')
     }else if (input$choose_type %in% c('Date', 'DateTime') & stored_data$types %>% filter(varlist == input$select_variables) %>% pull(type_collapse) == 'Numeric'){
       textInput('origin', 'enter an origin in the format of Y-m-d (e.g., 2001-01-01)')
     }
@@ -286,8 +291,11 @@ source("data.R", local = TRUE)
     req(input$select_variables, input$reshape_variables == "recode")
 
     to_recode <- sym(input$select_variables)
+    
+    
+    print(stored_data$types)
 
-    if (class(stored_data$data[[input$select_variables]]) %in% c("character", "factor")) {
+    if (stored_data$types %>% filter(varlist == input$select_variables) %>% pull(type_collapse) %in% c("Character/Factor")) {
       rhandsontable(stored_data$data %>% distinct(!!to_recode), height = 250) %>%
         hot_table(highlightCol = TRUE, highlightRow = TRUE)
     }
@@ -524,16 +532,21 @@ source("data.R", local = TRUE)
   get_data_types <- reactive({
     
     req(stored_data$data)
-    data_frame(
+    x <- data_frame(
       varlist = names(stored_data$data), 
-      type = map_chr(names(stored_data$data), ~class(stored_data$data[[.x]]))
-    ) %>% 
+      type = map(names(stored_data$data), ~paste0(class(stored_data$data[[.x]]), collapse = ','))
+    )
+    x$type <- as.character(x$type)
+    print (x)
+    print (x$type)
+    x %>%
       mutate(
         type_collapse = case_when(type == 'numeric' | type == 'integer' ~ 'Numeric',
-                                  'POSIXct' %in% type | 'POSIXt' %in% type ~ 'Datetime',
+                                  grepl('POSIXct|POSIXt', type) ~ 'Datetime',
                                   type == 'Date' ~ 'Date',
                                   type == 'character' | type == 'factor' ~ 'Character/Factor',
-                                  type == 'logical' ~ 'Logical'                    
+                                  type == 'logical' ~ 'Logical',
+                                  TRUE ~ type
         )
       )
   })
