@@ -102,7 +102,7 @@ source("data.R", local = TRUE)
     req(input$select_variables)
     req(input$choose_type)
     
-    print (input$choose_type)
+    error_return <- FALSE
     
     if (stored_data$types %>% filter(varlist == input$select_variables) %>% pull(type_collapse) == input$choose_type){
       return(stored_data$data)
@@ -123,18 +123,26 @@ source("data.R", local = TRUE)
       if (stored_data$types %>% filter(varlist == input$select_variables) %>% pull(type_collapse) == 'Numeric'){
         stored_data$data <- stored_data$data %>% mutate_at(input$select_variables, as.POSIXct, origin = input$origin)
       }else{
-        stored_data$data <- stored_data$data %>% mutate_at(input$select_variables, lubridate::parse_date_time, orders = trimws(unlist(str_split(input$datetime, ';'))))
-      }
+        x <-  tryCatch(stored_data$data %>% mutate_at(input$select_variables, lubridate::parse_date_time, orders = trimws(unlist(str_split(input$datetime, ';')))),
+                       error=function(e) e, 
+                       warning=function(w) w)
+        if (is(x,"warning") != TRUE){
+          stored_data$data <- x
+        }      }
     }
     else if (input$choose_type == 'Date'){
       if (stored_data$types %>% filter(varlist == input$select_variables) %>% pull(type_collapse) == 'Numeric'){
         stored_data$data <- stored_data$data %>% mutate_at(input$select_variables, as.Date, origin = input$origin)
       }else{
-        stored_data$data <- stored_data$data %>% mutate_at(input$select_variables, lubridate::parse_date_time, orders = trimws(unlist(str_split(input$date, ';'))))
+        x <-  tryCatch(stored_data$data %>% mutate_at(input$select_variables, lubridate::parse_date_time, orders = trimws(unlist(str_split(input$date, ';')))),
+                       error=function(e) e, 
+                       warning=function(w) w)
+        if (is(x,"warning") != TRUE){
+          stored_data$data <- x
+        }
       }
       
     }
-    print (stored_data$data)
     stored_data$types <- get_data_types()
     stored_data$data
   })
