@@ -22,12 +22,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   ln -sf /usr/local/share/$PHANTOM_JS/bin/phantomjs /usr/bin/phantomjs && \
   phantomjs --version
 
-COPY . /autoggraph
-WORKDIR /autoggraph
-
 RUN install2.r --error \
   -r 'https://cran.rstudio.com' \
   shiny shinyjs shinytest haven rhandsontable
+
+COPY . /autoggraph
+WORKDIR /autoggraph
 
 FROM rocker/shiny as deploy
 

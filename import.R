@@ -1,5 +1,20 @@
 valid_filetypes <- c("csv", "xls", "xlsx", "dta", "sas7bdat", "txt", "tsv")
 
+output$excel_sheet_selector <- renderUI({
+    
+    req(stored_data$ext %in% c("xls", "xlsx"))
+
+    tagList(
+      selectInput(
+        "which_sheet",
+        "select a worksheet:",
+        choices = excel_sheets(input$infile$datapath)
+      ),
+      textInput("cell_range", "add an optional range:", placeholder = "A1:Z26")
+    )
+  })
+
+
 ingest_xlsx <- function(workbook = input$infile$datapath,
 												worksheet = input$which_sheet,
 												range = input$cell_range) {
@@ -40,8 +55,26 @@ ingest_xls <- function(workbook = input$infile$datapath,
 	}
 }
 
-ingest_delim <- function(file =  input$infile$datapath,
-												 delim = NULL) {
+output$delim_selector <- renderUI({
+
+    req(stored_data$ext %in% c("csv", "tsv", "txt"))
+
+    tagList(
+      selectInput(
+        "which_delim",
+        "select a delimiter:",
+        choices = c(
+        	"delimiter" = "",
+        	"comma" = ",",
+        	"tab" = "\t",
+        	"pipe" = "|", 
+        	"semicolon" = ";"
+        	)
+    	)
+    )
+  })
+
+ingest_delim <- function(file = input$infile$datapath, delim = NULL) {
 	req(input$which_delim)
 	print("ingest fired")
 	read_delim(file, delim = delim)
