@@ -28,6 +28,7 @@ function(request) {
                 "input.reshape_variables == 'recode'",
                 rHandsontableOutput("recode")
               ),
+              uiOutput('date_format'),
               uiOutput("table_btn")
             )
           ),

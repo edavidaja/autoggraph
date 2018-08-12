@@ -11,7 +11,8 @@ library(purrr)
 library(dplyr)
 library(tidyr)
 library(rhandsontable)
-
+library(rlang)
+library(lubridate)
 
 # gao theme -------------------------------------------------------------------
 theme_gao <- list(
@@ -80,7 +81,8 @@ source("data.R", local = TRUE)
         "rename columns",
         "summarise",
         "transform",
-        "recode"
+        "recode",
+        "change variable type"
       )
     )
   })
@@ -88,7 +90,63 @@ source("data.R", local = TRUE)
   get_column_names <- function() {
     map(names(stored_data$data), function(x) textInput(x, x, x))
   }
+  
+  
+  
 
+# function to get var type ------------------------------------------------
+
+  
+  change_var_type <- reactive({
+    
+    req(input$select_variables)
+    req(input$choose_type)
+    
+    error_return <- FALSE
+    
+    if (stored_data$types %>% filter(varlist == input$select_variables) %>% pull(type_collapse) == input$choose_type){
+      return(stored_data$data)
+    }
+    
+
+    if (input$choose_type == 'Numeric'){
+      stored_data$data <- stored_data$data %>% mutate_at(input$select_variables, as.numeric)
+    }
+    else if (input$choose_type == 'Character/Factor'){
+      stored_data$data <- stored_data$data %>% mutate_at(input$select_variables, as.character)
+    }
+    else if (input$choose_type == 'Logical'){
+      stored_data$data <- stored_data$data %>% mutate_at(input$select_variables, as.logical)
+    }
+    
+    else if (input$choose_type == 'DateTime'){
+      if (stored_data$types %>% filter(varlist == input$select_variables) %>% pull(type_collapse) == 'Numeric'){
+        stored_data$data <- stored_data$data %>% mutate_at(input$select_variables, as.POSIXct, origin = input$origin)
+      }else{
+        x <-  tryCatch(stored_data$data %>% mutate_at(input$select_variables, lubridate::parse_date_time, orders = trimws(unlist(str_split(input$datetime, ';')))),
+                       error=function(e) e, 
+                       warning=function(w) w)
+        if (is(x,"warning") != TRUE){
+          stored_data$data <- x
+        }      }
+    }
+    else if (input$choose_type == 'Date'){
+      if (stored_data$types %>% filter(varlist == input$select_variables) %>% pull(type_collapse) == 'Numeric'){
+        stored_data$data <- stored_data$data %>% mutate_at(input$select_variables, as.Date, origin = input$origin)
+      }else{
+        x <-  tryCatch(stored_data$data %>% mutate_at(input$select_variables, lubridate::parse_date_time, orders = trimws(unlist(str_split(input$date, ';')))),
+                       error=function(e) e, 
+                       warning=function(w) w)
+        if (is(x,"warning") != TRUE){
+          stored_data$data <- x
+        }
+      }
+      
+    }
+    stored_data$types <- get_data_types()
+    stored_data$data
+  })
+  
   rename_modal <- function() {
     reset("reshape_variables")
 
@@ -102,8 +160,53 @@ source("data.R", local = TRUE)
       )
     )
   }
+  
+  output$date_format <- renderUI({
+    
+    req(input$choose_type)
+    req(input$choose_type %in% c('Date', 'DateTime'))
+    req(! is.na(input$choose_type))
+    
+    print(stored_data$types)
+    print(stored_data$types$type)
+    
+    if (input$choose_type == 'Date' & stored_data$types %>% filter(varlist == input$select_variables) %>% pull(type_collapse) != 'Numeric'){
+      textInput('date', 'enter a date format. mutiple formats must be separated by a semicolon')
+    }else if (input$choose_type == 'DateTime' & stored_data$types %>% filter(varlist == input$select_variables) %>% pull(type_collapse) != 'Numeric'){
+      textInput('datetime', 'enter a datetime format. mutiple formats must be separated by a semicolon')
+    }else if (input$choose_type %in% c('Date', 'DateTime') & stored_data$types %>% filter(varlist == input$select_variables) %>% pull(type_collapse) == 'Numeric'){
+      textInput('origin', 'enter an origin in the format of Y-m-d (e.g., 2001-01-01)')
+    }
+  })
+  
+  # function to get what to display for changing the var type
+  get_more <- reactive({
+  
+      list(
+        selectizeInput(
+          "select_variables",
+          label = "select which variables you want to do it to",
+          choices = c(names(stored_data$data)),
+          selected = "",
+          multiple = FALSE
+        ),
+        renderPrint(paste0('Your variable is currently ', stored_data$types %>% filter(varlist == input$select_variables) %>% pull(type_collapse))),
+        selectizeInput(
+          "choose_type",
+          label = "select which type you want it to be",
+          choices = c('Numeric', 'Character/Factor', 'Date', 'DateTime'),
+          selected = '',
+          multiple = FALSE
+        )
+      )
+        
+    
+  })
+  
+
 
   output$reshape_options <- renderUI({
+    
     req(input$reshape_variables)
 
     switch(input$reshape_variables,
@@ -187,7 +290,8 @@ source("data.R", local = TRUE)
         choices = names(stored_data$data),
         selected = "",
         multiple = FALSE
-      )
+      ),
+      "change variable type" = get_more()
     )
   })
 
@@ -195,8 +299,11 @@ source("data.R", local = TRUE)
     req(input$select_variables, input$reshape_variables == "recode")
 
     to_recode <- sym(input$select_variables)
+    
+    
+    print(stored_data$types)
 
-    if (class(stored_data$data[[input$select_variables]]) %in% c("character", "factor")) {
+    if (stored_data$types %>% filter(varlist == input$select_variables) %>% pull(type_collapse) %in% c("Character/Factor")) {
       rhandsontable(stored_data$data %>% distinct(!!to_recode), height = 250) %>%
         hot_table(highlightCol = TRUE, highlightRow = TRUE)
     }
@@ -298,7 +405,9 @@ source("data.R", local = TRUE)
         (input$reshape_variables == "recode") ~ recode_them(),
         # adding this block in the for the modals
         (input$reshape_variables == "") ~ stored_data$data,
-        (input$reshape_variables == "summarise") ~ summary_function()
+        (input$reshape_variables == "summarise") ~ summary_function(),
+        (input$reshape_variables == "change variable type") ~ change_var_type()
+        
       )
 
     # have to set orig data to stored_data!
@@ -360,7 +469,7 @@ source("data.R", local = TRUE)
 
 
   # here is the data that we are going to work with
-  stored_data <- reactiveValues(data = NULL, orig_data = NULL, plotted = FALSE)
+  stored_data <- reactiveValues(data = NULL, orig_data = NULL, plotted = FALSE, types = NULL)
 
   onRestore(function(state) {
     original_ops$id <- state$values$id
@@ -414,6 +523,8 @@ source("data.R", local = TRUE)
           ingest_delim(delim = input$which_delim)
         )
       stored_data$variable_names <- names(stored_data$data)
+      # putting types into a reactive
+      stored_data$types <- get_data_types()
     } else {
       reset("infile")
       showModal(modalDialog(
@@ -423,6 +534,29 @@ source("data.R", local = TRUE)
         footer = NULL
       ))
     }
+  })
+  
+  
+  get_data_types <- reactive({
+    
+    req(stored_data$data)
+    x <- data_frame(
+      varlist = names(stored_data$data), 
+      type = map(names(stored_data$data), ~paste0(class(stored_data$data[[.x]]), collapse = ','))
+    )
+    x$type <- as.character(x$type)
+    print (x)
+    print (x$type)
+    x %>%
+      mutate(
+        type_collapse = case_when(type == 'numeric' | type == 'integer' ~ 'Numeric',
+                                  grepl('POSIXct|POSIXt', type) ~ 'Datetime',
+                                  type == 'Date' ~ 'Date',
+                                  type == 'character' | type == 'factor' ~ 'Character/Factor',
+                                  type == 'logical' ~ 'Logical',
+                                  TRUE ~ type
+        )
+      )
   })
 
   base_plot <- reactive({
@@ -441,11 +575,6 @@ source("data.R", local = TRUE)
         selectInput("x",
           "select your x variable:",
           choices = c("x variable" = "", names(stored_data$plot_data))
-        ),
-        radioButtons("type_variable_x",
-          label = "set the x variable type:",
-          choices = c("keep as is" = "", "categorical", "numeric"),
-          inline = TRUE
         )
       ),
       conditionalPanel(
@@ -453,11 +582,6 @@ source("data.R", local = TRUE)
         selectInput("y",
           "select your y variable:",
           choices = c("y variable" = "", names(stored_data$plot_data))
-        ),
-        radioButtons("type_variable_y",
-          label = "set the y variable type:",
-          choices = c("keep as is" = "", "categorical", "numeric"),
-          inline = TRUE
         )
       ),
       conditionalPanel(
@@ -742,24 +866,6 @@ source("data.R", local = TRUE)
   })
 
   set_var_types <- reactive({
-
-    if (input$type_variable_x != "") {
-      if (input$type_variable_x == "categorical") {
-        stored_data$data[[input$x]] <- as.factor(as.character(stored_data$data[[input$x]]))
-      }
-      else if (input$type_variable_x == "numeric") {
-        stored_data$data[[input$x]] <- as.numeric(as.character(stored_data$data[[input$x]]))
-      }
-    }
-
-    if (input$type_variable_y != "") {
-      if (input$type_variable_y == "categorical") {
-        stored_data$data[[input$y]] <- as.factor(as.character(stored_data$data[[input$y]]))
-      }
-      else if (input$type_variable_y == "numeric") {
-        stored_data$data[[input$y]] <- as.numeric(as.character(stored_data$data[[input$y]]))
-      }
-    }
 
     if (!is.null(input$factor_order_x) & input$x != "") {
       if (class(stored_data$data[[input$x]]) %in% c("character", "factor")) {
