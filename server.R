@@ -210,12 +210,19 @@ source("data.R", local = TRUE)
     req(input$reshape_variables)
 
     switch(input$reshape_variables,
-      "make my data longer" = selectizeInput(
-        "select_variables",
-        label = "select variables you want stored in key:value pairs",
+      "make my data longer" = list(selectizeInput(
+        "keys",
+        label = "select variables you want stored as keys",
         choices = names(stored_data$data),
         selected = "",
-        multiple = TRUE
+        multiple = FALSE
+      ),
+      selectizeInput("values",
+      label = "select variables you want stored as values",
+      choices = names(stored_data$data),
+      selected = "",
+      multiple = FALSE
+      )
       ),
       "make my data wider" = selectizeInput(
         "select_variables",
@@ -383,6 +390,9 @@ source("data.R", local = TRUE)
     stored_data$data <- hot_to_r(input$table)
 
     group_it()
+    
+    print (input$keys)
+    print (input$values)
 
     stored_data$data <- stored_data$data %>%
       when(
@@ -391,7 +401,7 @@ source("data.R", local = TRUE)
         (input$reshape_variables == "drop columns") ~
         stored_data$data %>% select(-one_of(input$select_variables)),
         (input$reshape_variables == "make my data longer") ~
-        stored_data$data %>% gather("key", "value", !!input$select_variables),
+        stored_data$data %>% gather(!! input$keys, !! input$values),
         (input$reshape_variables == "make my data wider") ~
         stored_data$data %>% spread(
           !!input$select_variables[[1]],
