@@ -1,0 +1,18 @@
+[1] "ingest fired"
+Parsed with column specification:
+cols(
+  date = col_date(format = ""),
+  pce = col_double(),
+  pop = col_integer(),
+  psavert = col_double(),
+  uempmed = col_double(),
+  unemploy = col_integer()
+)
+[1] "i am in the output"
+
+Error in UseMethod("tbl_vars") : 
+  no applicable method for 'tbl_vars' applied to an object of class "character"
+Error: object 'aassigment' not found
+Error: object 'assigment' not found
+Error: object 'assigment' not found
+[1] "hi"

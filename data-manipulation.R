@@ -1,3 +1,5 @@
+  source("logit.R", local = TRUE)
+
   # set up a counter for dynamic reshaping ----------------------------------
 
   counter <- reactiveValues(count = 0)
@@ -56,8 +58,6 @@ get_data_types <- reactive({
       type = map(names(stored_data$data), ~paste0(class(stored_data$data[[.x]]), collapse = ','))
     )
     x$type <- as.character(x$type)
-    print (x)
-    print (x$type)
     x %>%
       mutate(
         type_collapse = case_when(
@@ -85,41 +85,55 @@ get_data_types <- reactive({
       return(stored_data$data)
     }
     
-
+    
     if (input$choose_type == 'Numeric'){
-      stored_data$data <- stored_data$data %>% mutate_at(input$select_variables, as.numeric)
+      
+      mutation <- 'mutate_at(input$select_variables, as.numeric)'
     }
     else if (input$choose_type == 'Character/Factor'){
-      stored_data$data <- stored_data$data %>% mutate_at(input$select_variables, as.character)
+      mutation <- 'mutate_at(input$select_variables, as.character)'
     }
     else if (input$choose_type == 'Logical'){
-      stored_data$data <- stored_data$data %>% mutate_at(input$select_variables, as.logical)
+      mutation <- 'mutate_at(input$select_variables, as.logical)'
     }
     
     else if (input$choose_type == 'DateTime'){
       if (stored_data$types %>% filter(varlist == input$select_variables) %>% pull(type_collapse) == 'Numeric'){
-        stored_data$data <- stored_data$data %>% mutate_at(input$select_variables, as.POSIXct, origin = input$origin)
+        mutation <- 'mutate_at(input$select_variables, as.POSIXct, origin = input$origin)'
       }else{
+        # going to try do this here but save the mutation
+        mutation <- "mutate_at(input$select_variables, lubridate::parse_date_time, orders = trimws(unlist(str_split(input$datetime, ';'))))"
         x <-  tryCatch(stored_data$data %>% mutate_at(input$select_variables, lubridate::parse_date_time, orders = trimws(unlist(str_split(input$datetime, ';')))),
                        error=function(e) e, 
                        warning=function(w) w)
-        if (is(x,"warning") != TRUE){
-          stored_data$data <- x
-        }      }
+        }
     }
     else if (input$choose_type == 'Date'){
       if (stored_data$types %>% filter(varlist == input$select_variables) %>% pull(type_collapse) == 'Numeric'){
-        stored_data$data <- stored_data$data %>% mutate_at(input$select_variables, as.Date, origin = input$origin)
+        mutation <- 'mutate_at(input$select_variables, as.Date, origin = input$origin)'
       }else{
+        # going to try do this here but save the mutation
+        mutation <- "mutate_at(input$select_variables, lubridate::parse_date_time, orders = trimws(unlist(str_split(input$date, ';'))))"
         x <-  tryCatch(stored_data$data %>% mutate_at(input$select_variables, lubridate::parse_date_time, orders = trimws(unlist(str_split(input$date, ';')))),
                        error=function(e) e, 
                        warning=function(w) w)
-        if (is(x,"warning") != TRUE){
-          stored_data$data <- x
-        }
       }
       
     }
+    if (exists("x")){
+      if (is(x,"warning") != TRUE){
+        full_mutation <- glue('stored_data$data %>% ', mutation)
+        write_to_log(full_mutation)
+        stored_data$data <- eval(full_mutation %>% parse_expr())
+      }
+    }else{
+      full_mutation <- glue('stored_data$data %>% ', mutation)
+      write_to_log(full_mutation)
+      stored_data$data <- eval(full_mutation %>% parse_expr())
+    }
+
+
+    
     stored_data$types <- get_data_types()
     stored_data$data
   })
