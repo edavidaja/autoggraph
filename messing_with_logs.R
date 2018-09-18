@@ -30,3 +30,17 @@ names(to_grab) %>% purrr::walk(function(x){
 })
 
 assignment  
+data(iris)
+
+new_names <- c('pee', 'poo')
+eval(new_names)
+eval('names(iris) <- new_names' %>% parse_expr())
+iris
+
+iris <- iris %>% mutate(Sepal.Length = 4)
+
+
+full_mutation <- "iris <- iris %>% mutate(Species = 'Poo')"
+
+eval("iris <- iris %>% mutate(Sepal.Length = 4)" %>% parse_expr())
+iris

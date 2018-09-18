@@ -401,33 +401,52 @@ source("data-manipulation.R", local = TRUE)
   })
 
   set_var_types <- reactive({
+    
+    # get factor orders
+    list_factor_order <- list(input$factor_order_x, input$factor_order_y, input$factor_order_z)
+    list_factor_order <- set_names(list_factor_order, c('x_var', 'y_var', 'z_var'))
+    list_factor_order <- unlist(list_factor_order)
+    # get variable inputs
+    list_inputs <- list(input$x, input$y, input$z)
+    list_inputs <- set_names(list_inputs, 'x_var', 'y_var', 'z_var')
+    list_inputs <- unlist(list_inputs)
+    
+    print(bind_rows(list_inputs, list_factor_order))
+    
+    req(length(list_factor_order) > 0)
+    req(length(list_inputs) > 0)
 
-    if (!is.null(input$factor_order_x) & input$x != "") {
-      if (class(stored_data$data[[input$x]]) %in% c("character", "factor")) {
-        stored_data$data[[input$x]] <- factor(stored_data$data[[input$x]], levels = input$factor_order_x)
-      }
-    }
+    fctr <- unique(gsub('_.*', '', names(list_factor_order)))
+    var_to_use <- list_inputs[grepl(glue(fctr, '_var'), names(list_inputs))]
 
-    if (!is.null(input$factor_order_y) & input$y != "") {
-      if (class(stored_data$data[[input$y]]) %in% c("character", "factor")) {
-        stored_data$data[[input$y]] <- factor(stored_data$data[[input$y]], levels = input$factor_order_y)
-      }
-    }
 
-    if (!is.null(input$factor_order_z) & input$z != "") {
-      if (class(stored_data$data[[input$z]]) %in% c("character", "factor")) {
-        stored_data$data[[input$z]] <- factor(stored_data$data[[input$z]], levels = input$factor_order_z)
-      }
-    }
+    mutation <- glue('if (class(stored_data$data[["{input_to_replace}"]]) %in% c("character", "factor")){{
+    stored_data$data[["{input_to_replace}"]] <- factor(stored_data$data[["{input_to_replace}"]], levels = {new_levels})
+                     }}',
+                  input_to_replace = var_to_use,
+                  new_levels = quo_text(as.character(list_factor_order)))
+    write_to_log(mutation, checkinputs = F)
+    eval(mutation %>% parse_expr())
 
     if (input$reorder_x != "") {
       
       validate(
         need(! class(stored_data$data[[input$reorder_x]]) %in% c("character", "factor"), "Select a numeric variable")
       )
+      
+      mutation <- glue('
+      if (class(stored_data$data[["{input_to_replace}"]]) %in% c("character", "factor")) {{
+        stored_data$data[["{input_to_replace}"]] <- (reorder(stored_data$data[["{input_to_replace}"]], stored_data$data[[input$reorder_x]]))
+      }}else {{
+        stored_data$data[["{input_to_replace}"]] <- as.numeric(reorder(stored_data$data[["{input_to_replace}"]], stored_data$data[["{order_by}"]]))
+      }}',
+      input_to_replace = input$x,
+      order_by = input$reorder_x
+      )
+      
+      print (mutation)
 
       if (class(stored_data$data[[input$x]]) %in% c("character", "factor")) {
-        print ('hi...?')
         stored_data$data[[input$x]] <- (reorder(stored_data$data[[input$x]], stored_data$data[[input$reorder_x]]))
       } else {
         stored_data$data[[input$x]] <- as.numeric(reorder(stored_data$data[[input$x]], stored_data$data[[input$reorder_x]]))

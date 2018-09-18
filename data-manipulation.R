@@ -120,20 +120,22 @@ get_data_types <- reactive({
       }
       
     }
+    
+    print (stored_data$data)
+    
     if (exists("x")){
       if (is(x,"warning") != TRUE){
-        full_mutation <- glue('stored_data$data %>% ', mutation)
+        full_mutation <- glue('stored_data$data <- stored_data$data %>% ', mutation)
         write_to_log(full_mutation)
-        stored_data$data <- eval(full_mutation %>% parse_expr())
+        eval(full_mutation %>% parse_expr())
       }
     }else{
-      full_mutation <- glue('stored_data$data %>% ', mutation)
+      full_mutation <- glue('stored_data$data <- stored_data$data %>% ', mutation)
       write_to_log(full_mutation)
-      stored_data$data <- eval(full_mutation %>% parse_expr())
+      eval(full_mutation %>% parse_expr())
     }
 
 
-    
     stored_data$types <- get_data_types()
     stored_data$data
   })
@@ -158,9 +160,7 @@ get_data_types <- reactive({
     req(input$choose_type %in% c('Date', 'DateTime'))
     req(! is.na(input$choose_type))
     
-    print(stored_data$types)
-    print(stored_data$types$type)
-    
+
     if (input$choose_type == 'Date' & stored_data$types %>% filter(varlist == input$select_variables) %>% pull(type_collapse) != 'Numeric'){
       textInput('date', 'enter a date format. mutiple formats must be separated by a semicolon')
     }else if (input$choose_type == 'DateTime' & stored_data$types %>% filter(varlist == input$select_variables) %>% pull(type_collapse) != 'Numeric'){
@@ -283,13 +283,11 @@ get_data_types <- reactive({
   })
 
   output$recode <- renderRHandsontable({
+    
     req(input$select_variables, input$reshape_variables == "recode")
 
     to_recode <- sym(input$select_variables)
     
-    
-    print(stored_data$types)
-
     if (stored_data$types %>% filter(varlist == input$select_variables) %>% pull(type_collapse) %in% c("Character/Factor")) {
       rhandsontable(stored_data$data %>% distinct(!!to_recode), height = 250) %>%
         hot_table(highlightCol = TRUE, highlightRow = TRUE)
@@ -303,23 +301,51 @@ get_data_types <- reactive({
 
 
   rename_them <- reactive({
-    new_names <- unlist(map(names(stored_data$data), function(x) input[[x]]))
-    names(stored_data$data) <- new_names
+    # here is how i am going to create the new names
+    create_new_names <- 'new_names <- unlist(map(names(stored_data$data), function(x) input[[x]]))'
+    # write it to a log
+    write_to_log(create_new_names)
+    # new do it 
+    eval(create_new_names %>% parse_expr())
+    # now write the new names to the log to show that they are
+    write_to_log(new_names, checkinputs = F)
+    # now make the actual assignment
+    mutation <- 'names(stored_data$data) <- new_names'
+    # write what youre going to do to the log
+    write_to_log(mutation, checkinputs = F)
+    # now do it
+    eval(mutation %>% parse_expr())
   })
 
   recode_them <- reactive({
-
+    
+    req(stored_data$types %>% filter(varlist == input$select_variables) %>% pull(type_collapse) %in% c("Character/Factor"))
+    
     # variable to recode
     to_recode <- sym(input$select_variables)
-
+    
     new_vals <- hot_to_r(input$recode) %>% pull(input$select_variables)
     old_vals <- stored_data$data %>% distinct(!!to_recode) %>% pull(input$select_variables)
 
+    write_to_log('recoding. new values are', checkinputs = F)
+    write_to_log(new_vals, checkinputs = F)
+    write_to_log('recoding. old values are', checkinputs = F)
+    write_to_log(old_vals, checkinputs = F)
+    
     # old names to new names
-    old_to_new <- set_names(new_vals, old_vals)
-
-    stored_data$data <- stored_data$data %>%
-      mutate(!!input$select_variables := recode(!!to_recode, !!!old_to_new))
+    mutation <- 'old_to_new <- set_names(new_vals, old_vals)'
+    write_to_log(mutation)
+    eval(mutation %>% parse_expr())
+    write_to_log('showing everything before assignment')
+    write_to_log('old_to_new is', checkinputs = F)
+    write_to_log(old_to_new, checkinputs = F)
+    write_to_log(glue('variables to recode: ', to_recode), checkinputs = F)
+    mutation <- 'stored_data$data <- stored_data$data %>%
+      mutate(!!input$select_variables := recode(!!to_recode, !!!old_to_new))'
+    
+    write_to_log(mutation, specificinput = "select_variables")
+    eval(mutation %>% parse_expr())
+    
 
     stored_data$data
   })
@@ -327,7 +353,8 @@ get_data_types <- reactive({
   summary_function <- reactive({
     if (!is.null(input$group_variables)) {
       if (length(input$select_variables) > 1) {
-        return(stored_data$data %>%
+        
+        mutation <- 'stored_data$data %>%
           summarise_at(
             input$select_variables,
             input$choose_summary
@@ -335,16 +362,23 @@ get_data_types <- reactive({
           gather(key, value, -one_of(input$group_variables)) %>%
           separate(key, into = c("measure", "stat"), sep = "_") %>%
           spread(stat, value) %>%
-          ungroup())
+          ungroup())'
+        write_to_log(mutation)
+        return(eval(mutation %>% parse_expr()))
       } else {
-        return(stored_data$data %>% summarise_at(
+        
+        mutation <- 'stored_data$data %>% summarise_at(
           input$select_variables,
           input$choose_summary
-        ) %>% gather(key, value, -one_of(input$group_variables)))
+        ) %>% gather(key, value, -one_of(input$group_variables))
+        '
+        write_to_log(mutation)
+        return(eval(mutation  %>% parse_expr()))
       }
     } else {
       if (length(input$select_variables) > 1) {
-        return(stored_data$data %>%
+        
+        mutation <- 'stored_data$data %>%
           summarise_at(
             input$select_variables,
             input$choose_summary
@@ -352,12 +386,18 @@ get_data_types <- reactive({
           gather(key, value) %>%
           separate(key, into = c("measure", "stat"), sep = "_") %>%
           spread(stat, value) %>%
-          ungroup())
+          ungroup())'
+        write_to_log(mutation)
+        return(eval(mutation %>% parse_expr()))
       } else {
-        return(stored_data$data %>% summarise_at(
+        
+        mutation <- 'stored_data$data %>% summarise_at(
           input$select_variables,
           input$choose_summary
         ) %>% gather(key, value))
+        '
+        write_to_log(mutation)
+        return(eval(mutation %>% parse_exrp()))
       }
     }
   })
